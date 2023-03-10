@@ -239,17 +239,16 @@ def plot_flat_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare
         for axis in newxAxis:
             axis.SetLabelSize(FLS)
 
-        for iaxis, axis in enumerate(newxAxis):
-            axis.SetNdivisions(205)
-            if len(newxAxis) > 1 and iaxis != len(newxAxis) - 1:
-                axis.ChangeLabel(-1, -1, -1, -1, -1, -1, ' ')
-            axis.Draw('same')
-
-        for axis in newxAxis_up:
-            axis.SetNdivisions(205)
-            axis.SetOption('-')
-            axis.SetLabelSize(0)
-            axis.Draw('same')
+    for iaxis, axis in enumerate(newxAxis):
+        axis.SetNdivisions(205)
+        if len(newxAxis) > 1 and iaxis != len(newxAxis) - 1:
+            axis.ChangeLabel(-1, -1, -1, -1, -1, -1, ' ')
+        axis.Draw('same')
+    for axis in newxAxis_up:
+        axis.SetNdivisions(205)
+        axis.SetOption('-')
+        axis.SetLabelSize(0)
+        axis.Draw('same')
 
     pad1.Update()
     list_compare_legendstyle = []

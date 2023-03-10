@@ -1,7 +1,7 @@
 {
   "varunfold":"VarUnfold_finebin_v7.json",
   "var1":"nparticle_eta2p4pt05_pur_1d",
-  "var2":"spherocity_eta2p4pt05_pur_1d",
+  "var2":"broaden_eta2p4pt05_pur",
   "combine":{
     "isfit":false,
     "fitdir":"rootfiles_finebin_v7_MCCP1ES_CP5sys_trksys_1d",

@@ -65,7 +65,7 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
       for j in range(len(var1_config["binedgesreco"])-1):
         mig[i][j].read_settings_from_config_dim1(var2_config,isgen=True)
         mig[i][j].read_settings_from_config_dim2(var2_config,isgen=False)
-        mig[i][j].root_cut=root_cut_passreco_passgen+"*({var1gen}<{var1gen_low})*({var1gen}>={var1gen_high})*({var1reco}<{var1reco_low})*({var1reco}>={var1reco_high})".format(var1gen=var1_config["gen"],var1reco=var1_config["reco"],var1gen_low=var1_config["binedgesgen"][i],var1gen_high=var1_config["binedgesgen"][j],var1reco_low=var1_config["binedgesreco"][j],var1reco_high=var1_config["binedgesreco"][j+1])
+        mig[i][j].root_cut=root_cut_passreco_passgen+"*({var1gen}>={var1gen_low})*({var1gen}<{var1gen_high})*({var1reco}>={var1reco_low})*({var1reco}<{var1reco_high})".format(var1gen=var1_config["gen"],var1reco=var1_config["reco"],var1gen_low=var1_config["binedgesgen"][i],var1gen_high=var1_config["binedgesgen"][i+1],var1reco_low=var1_config["binedgesreco"][j],var1reco_high=var1_config["binedgesreco"][j+1])
         mig[i][j].npy_cut=np_cut_passreco_passgen+[[var1_config["gen_key"],">=",str(var1_config["binedgesgen"][i])],[var1_config["gen_key"],"<",str(var1_config["binedgesgen"][i+1])],[var1_config["reco_key"],">=",str(var1_config["binedgesreco"][j])],[var1_config["reco_key"],"<",str(var1_config["binedgesreco"][j+1])]]
         if from_root:
           mig[i][j].fill_2Dhist_from_root(source,genWeight=genWeight)

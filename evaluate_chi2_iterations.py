@@ -43,41 +43,43 @@ def GetRefoldIter(File):
   names=[key.GetName() for key in File.GetListOfKeys() if ("HistRecoInclusive_MC" in key.GetName() and "iter" in key.GetName())]
   #extract heads and remove duplicates
   heads=list(dict.fromkeys([name.split("iter")[0] for name in names]))
-  heads_sort=sorted(heads,key=lambda s: int(re.search(r'\d+', s).group()))
+  print heads
+  heads_sort=sorted(heads,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])
+  print heads_sort
   if any("iter0" in s for s in names):
     start_iter=0
   else:
     start_iter=1
   names_rank=[[head+"iter"+str(i) for head in heads_sort] for i in range(start_iter,len(names)/len(heads_sort)+start_iter)]
-
+  print names_rank
   names_data=[key.GetName() for key in File.GetListOfKeys() if "HistRecoInclusive_Pseudodata" in key.GetName()]
   if len(names_data)>0:
-    names_data_sort=sorted(names_data,key=lambda s: int(re.search(r'\d+', s).group()))
+    names_data_sort=sorted(names_data,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])
   else:
     names_data=[key.GetName() for key in File.GetListOfKeys() if "HistRecoInclusive_Data" in key.GetName()]
-    names_data_sort=sorted(names_data,key=lambda s: int(re.search(r'\d+', s).group()))
+    names_data_sort=sorted(names_data,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])
   names_MC=[key.GetName() for key in File.GetListOfKeys() if "HistRecoInclusive_MC_" in key.GetName() and "iter" not in key.GetName()]
-  names_MC_sort=sorted(names_MC,key=lambda s: int(re.search(r'\d+', s).group()))
+  names_MC_sort=sorted(names_MC,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])
   return names_rank,names_data_sort,names_MC_sort
 
 def GetUnfoldIter(File):
   names=[key.GetName() for key in File.GetListOfKeys() if ("HistGenInclusive_MC" in key.GetName() and "iter" in key.GetName())]
   heads=list(dict.fromkeys([name.split("iter")[0] for name in names]))
-  heads_sort=sorted(heads,key=lambda s: int(re.search(r'\d+', s).group()))
+  heads_sort=sorted(heads,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])
   if any("iter0" in s for s in names):
     start_iter=0
   else:
     start_iter=1
   names_rank=[[head+"iter"+str(i) for head in heads_sort] for i in range(start_iter,len(names)/len(heads_sort)+start_iter)]
   names_MC=[key.GetName() for key in File.GetListOfKeys() if "HistGenInclusive_MC" in key.GetName() and "iter" not in key.GetName()]
-  names_MC_sort=sorted(names_MC,key=lambda s: int(re.search(r'\d+', s).group()))
+  names_MC_sort=sorted(names_MC,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])
   return names_rank,names_MC_sort
 
 def GetPseudoDataTruth(File):
   names=[key.GetName() for key in File.GetListOfKeys() if "HistGenInclusive_Pseudodata" in key.GetName()]
   names_sort=None
   if len(names)>0:
-    names_sort=sorted(names,key=lambda s: int(re.search(r'\d+', s).group()))
+    names_sort=sorted(names,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])
   return names_sort
 
 
@@ -172,7 +174,7 @@ if __name__=="__main__":
         "stat":0,
         "color":1,
         "style":"cross",
-        "legend":"Data" if not args.sysreweight else "sys variation: "+config["syslegend"][0]
+        "legend":("Data" if names_psedodata_truth is None else "Pseudo-data") if not args.sysreweight else "sys variation: "+config["syslegend"][0]
       }
       Config["MCGenInclusive"]={
         "hist":hist_list_MCgeninclusive,
@@ -205,14 +207,16 @@ if __name__=="__main__":
       comparelegends=[c["legend"] for c in PlotName["compare"] if c["hist"] is not None]
       path=str(args.plotdir+"/"+PlotName["name"]+"_"+config["var1"]+"_"+config["var2"])
       os.system("mkdir -p "+args.plotdir)
-      if "data" in PlotName["name"] or "reco" in PlotName["name"] or "refold" in PlotName["name"]:
+      if "reco" in PlotName["name"] or "refold" in PlotName["name"]:
         axis_title=info_var[config["var2"]]["reco_name"]
       else:
         axis_title=info_var[config["var2"]]["gen_name"]
-      plot_flat_hists(PlotName["ref"]["hist"], comparehists, PlotName["ref"]["legend"], comparelegends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=PlotName["ref"]["stat"], text_list=(TextListReco if ("_reco" in PlotName["name"]) else TextListGen), style_ref=PlotName["ref"]["style"], color_ref=PlotName["ref"]["color"], list_style_compare=comparestyles, list_color_compare=comparecolors, labelY='Normalized Events/Bin Width', label_ratio=PlotName["ratio"])
+      plot_flat_hists(PlotName["ref"]["hist"], comparehists, PlotName["ref"]["legend"], comparelegends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=PlotName["ref"]["stat"], text_list=(TextListReco if ("reco" in PlotName["name"] or "refold" in PlotName["name"]) else TextListGen), style_ref=PlotName["ref"]["style"], color_ref=PlotName["ref"]["color"], list_style_compare=comparestyles, list_color_compare=comparecolors, labelY='Normalized Events/Bin Width', label_ratio=PlotName["ratio"])
       return path+"_logy.png"
 
+    print(name_data)
     for i,name_refold in enumerate(names_refold):
+      print(name_refold)
       _,_,_,wchi2_per_ndof,wchi2_hist2unc_per_ndof,_,_ = GOF([f.Get(name) for name in name_refold],[f.Get(name) for name in name_data])
       hist_chi2_iter_dataMCunc.SetBinContent(i+1,wchi2_per_ndof)
       hist_chi2_iter_dataMCunc.SetBinError(i+1,0)
