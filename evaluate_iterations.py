@@ -92,9 +92,59 @@ def fill_hist_lists_recoonly(dataset,var1_config,var2_config,edges_reco,source,g
   print "filled histogram:",reco_inclusive.root_hists_name
   return reco_inclusive
 
-if __name__=="__main__":
-    parser = ArgumentParser()
 
+def get_sys_variations( config ):
+    tree_sys_list = []
+    fin_sys={}
+    tree_sys={}
+    for sys in config["inputfilesim_sys"].keys():
+      fin_sys[sys]={
+        "up":ROOT.TFile(config["inputfilesim_sys"][sys]["up"]),
+        "down":ROOT.TFile(config["inputfilesim_sys"][sys]["down"]) if config["inputfilesim_sys"][sys]["down"] is not None else None
+      }
+      tree_sys[sys]={
+        "up":fin_sys[sys]["up"].Get("ntuplizer/tree") if fin_sys[sys]["up"].Get("ntuplizer/tree") else fin_sys[sys]["up"].Get("tree"),
+        "down":(fin_sys[sys]["down"].Get("ntuplizer/tree") if fin_sys[sys]["down"].Get("ntuplizer/tree") else fin_sys[sys]["down"].Get("tree") ) if fin_sys[sys]["down"] is not None else None
+      }
+    for sys in tree_sys.keys():
+      tree_sys_list.append(tree_sys[sys]["up"])
+      if tree_sys[sys]["down"] is not None:
+        tree_sys_list.append(tree_sys[sys]["down"])
+
+    return tree_sys_list
+
+def get_bin_edges( conf, v1_dct, v2_dct, ttree, trees_syst):
+    if config['mergerecobin']:
+      bin_edges_reco_merge=merge_bins(obs=[var1_dct["reco"],var2_dct["reco"]],trees=[ttree]+trees_syst,root_cut=root_cut_passreco_passgen,threshold=config["mergethresholdreco"],bin_edges_dim1_1d=var1_dct["binedgesreco"],bin_edges_dim2_1d=var2_dct["binedgesreco"])
+    else:
+      bin_edges_reco_merge=([var2_dct["binedgesreco"]]*var1_dct["nbinsreco"] if FineBin else [var2_dct["minreco"]+(var2_dct["maxreco"]-var2_dct["minreco"])/var2_dct["nbinsreco"]*ibinreco1  for ibinreco1 in range(var2_dct["nbinsreco"])]*var1_dct["nbinsreco"])
+
+    if config['mergegenbin']:
+      bin_edges_gen_merge=merge_bins(obs=[var1_dct["gen"],var2_dct["gen"]],trees=[ttree]+trees_syst,root_cut=root_cut_passreco_passgen,threshold=config["mergethresholdgen"],bin_edges_dim1_1d=var1_dct["binedgesgen"],bin_edges_dim2_1d=var2_dct["binedgesgen"])
+    else:
+      bin_edges_gen_merge=([var2_dct["binedgesgen"]]*var1_dct["nbinsgen"] if FineBin else [var2_dct["mingen"]+(var2_dct["maxgen"]-var2_dct["mingen"])/var2_dct["nbinsgen"]*ibingen1  for ibingen1 in range(var2_dct["nbinsgen"])]*var1_dct["nbinsgen"])
+    return bin_edges_reco_merge, bin_edges_gen_merge
+
+def get_tree_data( config, pseudodata_NPZ):
+    if config["pseudodata"]:
+      if not pseudodata_NPZ:
+        fin_data=ROOT.TFile(config["inputfilepseudodata"],"READ")
+        tree_data = fin_data.Get("ntuplizer/tree") if  fin_data.Get("ntuplizer/tree") else  fin_data.Get("tree")
+      fin_refdata=ROOT.TFile(config["inputfiledata"],"READ")
+      tree_refdata=fin_refdata.Get("ntuplizer/tree") if fin_refdata.Get("ntuplizer/tree") else fin_refdata.Get("tree")
+    else:
+      fin_data = ROOT.TFile(config["inputfiledata"],"READ")
+      tree_data = fin_data.Get("ntuplizer/tree") if fin_data.Get("ntuplizer/tree") else fin_data.Get("tree")
+      tree_refdata = None
+
+    tree_data.SetDirectory(0)
+    tree_refdata.SetDirectory(0)
+
+    return tree_data, tree_refdata
+
+if __name__=="__main__":
+
+    parser = ArgumentParser()
     parser.add_argument('--config',default="Config_checkunfold/Config_sph_1d_v7_badtunesys.json",help="The configration file including the unfolding setup")
     parser.add_argument('--method',default="omnifold",help="omnifold/multfold/unifold")
     parser.add_argument('--migiter',type=int,nargs='+',help="Which iterations to plot the migration matrices")
@@ -103,11 +153,13 @@ if __name__=="__main__":
     parser.add_argument('--eff-from-nominal',action="store_true",default=False,help="Apply the reconstruction efficiency of the nominal MC to the unfolded one, otherwise use the efficiency given by the unfolding algorithm.")
     args = parser.parse_args()
 
-
     with open(args.config, 'r') as configjson:
         config = json.load(configjson)
     with open(config["varunfold"], 'r') as fjson:
         info_var = json.load(fjson)
+
+    var1_dct = info_var[config["var1"]]
+    var2_dct = info_var[config["var2"]]
 
     if not os.path.exists(config["outputdir"]):
       os.makedirs(config["outputdir"])
@@ -118,57 +170,24 @@ if __name__=="__main__":
 
     tree_sys_list=[]
     if config["addsys"]:
-      fin_sys={}
-      tree_sys={}
-      for sys in config["inputfilesim_sys"].keys():
-        fin_sys[sys]={
-          "up":ROOT.TFile(config["inputfilesim_sys"][sys]["up"]),
-          "down":ROOT.TFile(config["inputfilesim_sys"][sys]["down"]) if config["inputfilesim_sys"][sys]["down"] is not None else None
-        }
-        tree_sys[sys]={
-          "up":fin_sys[sys]["up"].Get("ntuplizer/tree") if fin_sys[sys]["up"].Get("ntuplizer/tree") else fin_sys[sys]["up"].Get("tree"),
-          "down":(fin_sys[sys]["down"].Get("ntuplizer/tree") if fin_sys[sys]["down"].Get("ntuplizer/tree") else fin_sys[sys]["down"].Get("tree") ) if fin_sys[sys]["down"] is not None else None
-        }
-      for sys in tree_sys.keys():
-        tree_sys_list.append(tree_sys[sys]["up"])
-        if tree_sys[sys]["down"] is not None:
-          tree_sys_list.append(tree_sys[sys]["down"])
+        tree_syst_list = get_sys_variations( config )
 
-    FineBin = ("binedgesreco" in info_var[config["var1"]].keys()) and ("binedgesreco" in info_var[config["var2"]].keys())
+    FineBin = ("binedgesreco" in var1_dct.keys()) and ("binedgesreco" in var2_dct.keys())
 
-    if config['mergerecobin']:
-      bin_edges_reco_merge=merge_bins(obs=[info_var[config["var1"]]["reco"],info_var[config["var2"]]["reco"]],trees=[tree]+tree_sys_list,root_cut=root_cut_passreco_passgen,threshold=config["mergethresholdreco"],bin_edges_dim1_1d=info_var[config["var1"]]["binedgesreco"],bin_edges_dim2_1d=info_var[config["var2"]]["binedgesreco"])
-    else:
-      bin_edges_reco_merge=([info_var[config["var2"]]["binedgesreco"]]*info_var[config["var1"]]["nbinsreco"] if FineBin else [info_var[config["var2"]]["minreco"]+(info_var[config["var2"]]["maxreco"]-info_var[config["var2"]]["minreco"])/info_var[config["var2"]]["nbinsreco"]*ibinreco1  for ibinreco1 in range(info_var[config["var2"]]["nbinsreco"])]*info_var[config["var1"]]["nbinsreco"])
+    bin_edges_reco_merge, bin_edges_gen_merge = get_bin_edges( config, var1_dct, var2_dct, tree, tree_sys_list)
 
-    if config['mergegenbin']:
-      bin_edges_gen_merge=merge_bins(obs=[info_var[config["var1"]]["gen"],info_var[config["var2"]]["gen"]],trees=[tree]+tree_sys_list,root_cut=root_cut_passreco_passgen,threshold=config["mergethresholdgen"],bin_edges_dim1_1d=info_var[config["var1"]]["binedgesgen"],bin_edges_dim2_1d=info_var[config["var2"]]["binedgesgen"])
-    else:
-      bin_edges_gen_merge=([info_var[config["var2"]]["binedgesgen"]]*info_var[config["var1"]]["nbinsgen"] if FineBin else [info_var[config["var2"]]["mingen"]+(info_var[config["var2"]]["maxgen"]-info_var[config["var2"]]["mingen"])/info_var[config["var2"]]["nbinsgen"]*ibingen1  for ibingen1 in range(info_var[config["var2"]]["nbinsgen"])]*info_var[config["var1"]]["nbinsgen"])
-
-
-    gen_MC_passreco,gen_MC_inclusive,reco_MC_passgen,reco_MC_inclusive,mig_MC=fill_hist_lists("MC",info_var[config["var1"]],info_var[config["var2"]],bin_edges_gen_merge,bin_edges_reco_merge,tree,genWeight=weightname,from_root=True,weight_array=None,store_mig=True)
+    gen_MC_passreco,gen_MC_inclusive,reco_MC_passgen,reco_MC_inclusive,mig_MC=fill_hist_lists("MC",var1_dct,var2_dct,bin_edges_gen_merge,bin_edges_reco_merge,tree,genWeight=weightname,from_root=True,weight_array=None,store_mig=True)
 
     #efficiency=reconstructed and generated / generated
     gen_inveff = hist_list("HistGenInvEff")
-    gen_inveff.read_settings_from_config_dim1(info_var[config["var1"]],isgen=True)
-    gen_inveff.read_settings_from_config_dim2(info_var[config["var2"]],isgen=True)
+    gen_inveff.read_settings_from_config_dim1(var1_dct,isgen=True)
+    gen_inveff.read_settings_from_config_dim2(var2_dct,isgen=True)
     gen_inveff.bin_edges_dim2 = bin_edges_gen_merge
     gen_inveff.fill_root_hists_name()
     gen_inveff.get_hist_from_division(gen_MC_inclusive,gen_MC_passreco)
 
-    pseudodata_NPZ=False
-    if config["pseudodata"]:
-      if isinstance(config["inputfilepseudodata"],list) or '.npz' in config["inputfilepseudodata"]:
-        pseudodata_NPZ=True
-      else:
-        fin_data=ROOT.TFile(config["inputfilepseudodata"],"READ")
-        tree_data = fin_data.Get("ntuplizer/tree") if  fin_data.Get("ntuplizer/tree") else  fin_data.Get("tree")
-      fin_refdata=ROOT.TFile(config["inputfiledata"],"READ")
-      tree_refdata=fin_refdata.Get("ntuplizer/tree") if fin_refdata.Get("ntuplizer/tree") else fin_refdata.Get("tree")
-    else:
-      fin_data = ROOT.TFile(config["inputfiledata"],"READ")
-      tree_data = fin_data.Get("ntuplizer/tree") if fin_data.Get("ntuplizer/tree") else fin_data.Get("tree")
+    pseudodata_NPZ =  config["pseudodata"] and (isinstance(config["inputfilepseudodata"],list) or '.npz' in config["inputfilepseudodata"])
+    tree_data, tree_refdata = get_tree_data( config, pseudodata_NPZ)
 
     if config["pseudodata"]:
       if pseudodata_NPZ:
@@ -177,17 +196,18 @@ if __name__=="__main__":
           weight_pseudodata=file_weight_pseudodata[-1]
         else:
           weight_pseudodata=None
-        gen_pseudodata_passreco,gen_pseudodata_inclusive,reco_pseudodata_passgen,reco_pseudodata_inclusive,mig_pseudodata=fill_hist_lists("Pseudodata",info_var[config["var1"]],info_var[config["var2"]],bin_edges_gen_merge,bin_edges_reco_merge,config["inputfilepseudodata"],genWeight=weightname,from_root=False,weight_array=weight_pseudodata,store_mig=True)
+        gen_pseudodata_passreco,gen_pseudodata_inclusive,reco_pseudodata_passgen,reco_pseudodata_inclusive,mig_pseudodata=fill_hist_lists("Pseudodata",var1_dct,var2_dct,bin_edges_gen_merge,bin_edges_reco_merge,config["inputfilepseudodata"],genWeight=weightname,from_root=False,weight_array=weight_pseudodata,store_mig=True)
       else:
-        gen_pseudodata_passreco,gen_pseudodata_inclusive,reco_pseudodata_passgen,reco_pseudodata_inclusive,mig_pseudodata=fill_hist_lists("Pseudodata",info_var[config["var1"]],info_var[config["var2"]],bin_edges_gen_merge,bin_edges_reco_merge,tree_data,genWeight=weightname,from_root=True,weight_array=None,store_mig=True)
-      reco_data_inclusive=fill_hist_lists_recoonly("Data",info_var[config["var1"]],info_var[config["var2"]],bin_edges_reco_merge,tree_refdata,genWeight="",from_root=True,weight_array=None,tag="_Ref")
+        gen_pseudodata_passreco,gen_pseudodata_inclusive,reco_pseudodata_passgen,reco_pseudodata_inclusive,mig_pseudodata=fill_hist_lists("Pseudodata",var1_dct,var2_dct,bin_edges_gen_merge,bin_edges_reco_merge,tree_data,genWeight=weightname,from_root=True,weight_array=None,store_mig=True)
+      reco_data_inclusive=fill_hist_lists_recoonly("Data",var1_dct,var2_dct,bin_edges_reco_merge,tree_refdata,genWeight="",from_root=True,weight_array=None,tag="_Ref")
     else:
-      reco_data_inclusive=fill_hist_lists_recoonly("Data",info_var[config["var1"]],info_var[config["var2"]],bin_edges_reco_merge,tree_data,genWeight="",from_root=True,weight_array=None)
+      reco_data_inclusive=fill_hist_lists_recoonly("Data",var1_dct,var2_dct,bin_edges_reco_merge,tree_data,genWeight="",from_root=True,weight_array=None)
 
     if config["pseudodata"]:
       norm_factor=reco_pseudodata_inclusive.norm/reco_MC_inclusive.norm
     else:
       norm_factor=reco_data_inclusive.norm/reco_MC_inclusive.norm
+
     gen_MC_passreco.multiply(norm_factor)
     gen_MC_inclusive.multiply(norm_factor)
     reco_MC_passgen.multiply(norm_factor)
@@ -216,7 +236,7 @@ if __name__=="__main__":
           weight_iter=weights[2*i-1]
         else:
           weight_iter=weights[2*i]
-      gen_unfold_passreco,gen_unfold_inclusive,reco_unfold_passgen,reco_unfold_inclusive,mig_unfold=fill_hist_lists("MC_"+args.method,info_var[config["var1"]],info_var[config["var2"]],bin_edges_gen_merge,bin_edges_reco_merge,config[args.method]["sim"],genWeight=weightname,from_root=False,weight_array=weight_iter,store_mig=True if i in args.migiter else False,tag="_iter"+str(i))
+      gen_unfold_passreco,gen_unfold_inclusive,reco_unfold_passgen,reco_unfold_inclusive,mig_unfold=fill_hist_lists("MC_"+args.method,var1_dct,var2_dct,bin_edges_gen_merge,bin_edges_reco_merge,config[args.method]["sim"],genWeight=weightname,from_root=False,weight_array=weight_iter,store_mig=True if i in args.migiter else False,tag="_iter"+str(i))
       if args.eff_from_nominal:
         gen_unfold_inclusive.get_hist_from_multiplication(gen_unfold_passreco,gen_inveff)
       if config["pseudodata"]:
