@@ -20,34 +20,34 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
   gen_passreco.read_settings_from_config_dim1(var1_config,isgen=True)
   gen_passreco.read_settings_from_config_dim2(var2_config,isgen=True)
   gen_passreco.bin_edges_dim2 = edges_gen
-  gen_passreco.root_cut=root_cut_passreco_passgen
-  gen_passreco.npy_cut=np_cut_passreco_passgen
+  gen_passreco.cut = cuts[CutType.PassReco_PassGen]
   gen_passreco.fill_root_hists_name()
   print "histograms:",gen_passreco.root_hists_name
+
   gen_inclusive=hist_list("HistGenInclusive_"+dataset,tag)
   gen_inclusive.read_settings_from_config_dim1(var1_config,isgen=True)
   gen_inclusive.read_settings_from_config_dim2(var2_config,isgen=True)
   gen_inclusive.bin_edges_dim2 = edges_gen
-  gen_inclusive.root_cut=root_cut_passgen
-  gen_inclusive.npy_cut=np_cut_passgen
+  gen_inclusive.cut = cuts[CutType.PassGen]
   gen_inclusive.fill_root_hists_name()
   print "histograms:",gen_inclusive.root_hists_name
+
   reco_passgen=hist_list("HistReco_"+dataset,tag)
   reco_passgen.read_settings_from_config_dim1(var1_config,isgen=False)
   reco_passgen.read_settings_from_config_dim2(var2_config,isgen=False)
   reco_passgen.bin_edges_dim2 = edges_reco
-  reco_passgen.root_cut=root_cut_passreco_passgen
-  reco_passgen.npy_cut=np_cut_passreco_passgen
+  reco_passgen.cut = cuts[CutType.PassReco_PassGen]
   reco_passgen.fill_root_hists_name()
   print "histograms:",reco_passgen.root_hists_name
+
   reco_inclusive=hist_list("HistRecoInclusive_"+dataset,tag)
   reco_inclusive.read_settings_from_config_dim1(var1_config,isgen=False)
   reco_inclusive.read_settings_from_config_dim2(var2_config,isgen=False)
   reco_inclusive.bin_edges_dim2 = edges_reco
-  reco_inclusive.root_cut=root_cut_passreco
-  reco_inclusive.npy_cut=np_cut_passreco
+  reco_inclusive.cut = cuts[CutType.PassReco]
   reco_inclusive.fill_root_hists_name()
   print "histograms:",reco_inclusive.root_hists_name
+
   if from_root:
     gen_passreco.fill_hist_from_root(source,genWeight=genWeight)
     gen_inclusive.fill_hist_from_root(source,genWeight=genWeight)
@@ -82,8 +82,7 @@ def fill_hist_lists_recoonly(dataset,var1_config,var2_config,edges_reco,source,g
   reco_inclusive.read_settings_from_config_dim1(var1_config,isgen=False)
   reco_inclusive.read_settings_from_config_dim2(var2_config,isgen=False)
   reco_inclusive.bin_edges_dim2 = edges_reco
-  reco_inclusive.root_cut=root_cut_passreco
-  reco_inclusive.npy_cut=np_cut_passreco
+  reco_inclusive.cut = cuts[CutType.PassReco]
   reco_inclusive.fill_root_hists_name()
   if from_root:
     reco_inclusive.fill_hist_from_root(source,genWeight=genWeight)
