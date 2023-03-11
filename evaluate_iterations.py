@@ -57,8 +57,8 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
       for j in range(len(var1_config["binedgesreco"])-1):
         mig[i][j].read_settings_from_config_dim1(var2_config,isgen=True)
         mig[i][j].read_settings_from_config_dim2(var2_config,isgen=False)
-        mig[i][j].root_cut=root_cut_passreco_passgen+"*({var1gen}>={var1gen_low})*({var1gen}<{var1gen_high})*({var1reco}>={var1reco_low})*({var1reco}<{var1reco_high})".format(var1gen=var1_config["gen"],var1reco=var1_config["reco"],var1gen_low=var1_config["binedgesgen"][i],var1gen_high=var1_config["binedgesgen"][i+1],var1reco_low=var1_config["binedgesreco"][j],var1reco_high=var1_config["binedgesreco"][j+1])
-        mig[i][j].npy_cut=np_cut_passreco_passgen+[[var1_config["gen_key"],">=",str(var1_config["binedgesgen"][i])],[var1_config["gen_key"],"<",str(var1_config["binedgesgen"][i+1])],[var1_config["reco_key"],">=",str(var1_config["binedgesreco"][j])],[var1_config["reco_key"],"<",str(var1_config["binedgesreco"][j+1])]]
+        mig[i][j].root_cut=root_cuts[CutType.PassReco_PassGen]+"*({var1gen}>={var1gen_low})*({var1gen}<{var1gen_high})*({var1reco}>={var1reco_low})*({var1reco}<{var1reco_high})".format(var1gen=var1_config["gen"],var1reco=var1_config["reco"],var1gen_low=var1_config["binedgesgen"][i],var1gen_high=var1_config["binedgesgen"][i+1],var1reco_low=var1_config["binedgesreco"][j],var1reco_high=var1_config["binedgesreco"][j+1])
+        mig[i][j].npy_cut=np_cuts[CutType.PassReco_PassGen]+[[var1_config["gen_key"],">=",str(var1_config["binedgesgen"][i])],[var1_config["gen_key"],"<",str(var1_config["binedgesgen"][i+1])],[var1_config["reco_key"],">=",str(var1_config["binedgesreco"][j])],[var1_config["reco_key"],"<",str(var1_config["binedgesreco"][j+1])]]
         if from_root:
           mig[i][j].fill_2Dhist_from_root(source,genWeight=genWeight)
         else:
@@ -106,12 +106,12 @@ def get_sys_variations( config ):
 
 def get_bin_edges( conf, v1_dct, v2_dct, ttree, trees_syst):
     if config['mergerecobin']:
-      bin_edges_reco_merge=merge_bins(obs=[var1_dct["reco"],var2_dct["reco"]],trees=[ttree]+trees_syst,root_cut=root_cut_passreco_passgen,threshold=config["mergethresholdreco"],bin_edges_dim1_1d=var1_dct["binedgesreco"],bin_edges_dim2_1d=var2_dct["binedgesreco"])
+      bin_edges_reco_merge=merge_bins(obs=[var1_dct["reco"],var2_dct["reco"]],trees=[ttree]+trees_syst,root_cut=root_cuts[CutType.PassReco_PassGen],threshold=config["mergethresholdreco"],bin_edges_dim1_1d=var1_dct["binedgesreco"],bin_edges_dim2_1d=var2_dct["binedgesreco"])
     else:
       bin_edges_reco_merge=([var2_dct["binedgesreco"]]*var1_dct["nbinsreco"] if FineBin else [var2_dct["minreco"]+(var2_dct["maxreco"]-var2_dct["minreco"])/var2_dct["nbinsreco"]*ibinreco1  for ibinreco1 in range(var2_dct["nbinsreco"])]*var1_dct["nbinsreco"])
 
     if config['mergegenbin']:
-      bin_edges_gen_merge=merge_bins(obs=[var1_dct["gen"],var2_dct["gen"]],trees=[ttree]+trees_syst,root_cut=root_cut_passreco_passgen,threshold=config["mergethresholdgen"],bin_edges_dim1_1d=var1_dct["binedgesgen"],bin_edges_dim2_1d=var2_dct["binedgesgen"])
+      bin_edges_gen_merge=merge_bins(obs=[var1_dct["gen"],var2_dct["gen"]],trees=[ttree]+trees_syst,root_cut=root_cuts[CutType.PassReco_PassGen],threshold=config["mergethresholdgen"],bin_edges_dim1_1d=var1_dct["binedgesgen"],bin_edges_dim2_1d=var2_dct["binedgesgen"])
     else:
       bin_edges_gen_merge=([var2_dct["binedgesgen"]]*var1_dct["nbinsgen"] if FineBin else [var2_dct["mingen"]+(var2_dct["maxgen"]-var2_dct["mingen"])/var2_dct["nbinsgen"]*ibingen1  for ibingen1 in range(var2_dct["nbinsgen"])]*var1_dct["nbinsgen"])
     return bin_edges_reco_merge, bin_edges_gen_merge

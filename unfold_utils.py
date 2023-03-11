@@ -110,24 +110,6 @@ class Cut:
         self.root_cut = root_cut
         self.npy_cut = npy_cut
 
-
-
-
-root_cut_passreco = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>2))'
-root_cut_passgen = '(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>2)'
-root_cut_passreco_passgen = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>2)&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>2))'
-root_cut_passreco_notpassgen = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>2)&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05<=2))'
-root_cut_nopassreco_passgen = '(((PV_N_good!=1)||(PV_isgood&&(Instanton_N_Trk_highPurity_pt05<=2)))&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>2))'
-root_cut_nopassreco_nopassgen = '(((PV_N_good!=1)||(PV_isgood&&(Instanton_N_Trk_highPurity_pt05<=2)))&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05<=2))'
-np_cut_passreco = [
- [
-  'reco_ntrk', '!=', 'NAN']]
-np_cut_passgen = [['gen_nch', '>', '2']]
-np_cut_passreco_passgen = [['reco_ntrk', '!=', 'NAN'], ['gen_nch', '>', '2']]
-np_cut_passreco_nopassgen = [['reco_ntrk', '!=', 'NAN'], ['gen_nch', '<=', '2']]
-np_cut_nopassreco_passgen = [['reco_ntrk', '==', 'NAN'], ['gen_nch', '>', '2']]
-np_cut_nopassreco_nopassgen = [['reco_ntrk', '==', 'NAN'], ['gen_nch', '<=', '2']]
-
 cuts = {}
 for cut_type in CutType:
     cuts[cut_type] = Cut( root_cuts[cut_type], np_cuts[cut_type])
