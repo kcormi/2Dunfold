@@ -276,6 +276,12 @@ class hist_list:
     def read_settings_from_config_dim2(self, config, isgen=False):
         self.dim2.read_settings_from_config( config, isgen=isgen, inner_dim=self.dim1 )
 
+    def fill_hist( self, event_info, from_root, weightarray=None, genWeight=''):
+        if from_root:
+            self.fill_hist_from_root( event_info, genWeight=genWeight)
+        else:
+            self.fill_hist_from_npz( event_info, weightarray= weightarray, genWeight=genWeight )
+
     def fill_hist_from_root(self, tree, genWeight=''):
         if len(self.dim1.bin_edges) - 1 != len(self.dim2.bin_edges):
             raise ValueError(('bin_edges_dim1 (length {0}) and bin_edges_dim2 (length {1}) not compatible').format(len(self.dim1.bin_edges), len(self.dim2.bin_edges)))
@@ -326,7 +332,7 @@ class hist_list:
             weight = weightarray
         filter_cut = filter_np_cut(obs_arrays, self.npy_cut)
         inf_weight_mask = np.isinf(weight) != True
-        
+
         for ihist in range(len(self.dim1.bin_edges) - 1):
             bind1_low_cut = obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]
             bind1_high_cut = obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist+1]
@@ -348,7 +354,7 @@ class hist_list:
 
             self.root_hists[ihist].SetBinContent(0, np.sum(weight[full_sel]) )
             self.root_hists[ihist].SetBinContent(0, np.sqrt(np.sum(np.square(weight[full_sel]))) )
-            
+
             d2_ovfl_cut = obs_arrays[self.dim2.np_var ] > self.dim2.bin_edges[ihist][-1]
             full_sel = d1_cut & d2_ovfl_cut
 

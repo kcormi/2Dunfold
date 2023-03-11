@@ -16,48 +16,40 @@ import glob
 from unfold_utils import *
 
 def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,genWeight="",from_root=True,weight_array=None,store_mig=False,tag=""):
+  hists = []
+
   gen_passreco=hist_list("HistGen_"+dataset,tag)
   gen_passreco.read_settings_from_config_dim1(var1_config,isgen=True)
   gen_passreco.read_settings_from_config_dim2(var2_config,isgen=True)
   gen_passreco.bin_edges_dim2 = edges_gen
   gen_passreco.cut = cuts[CutType.PassReco_PassGen]
-  gen_passreco.fill_root_hists_name()
-  print "histograms:",gen_passreco.root_hists_name
+  hists.append(gen_passreco)
 
   gen_inclusive=hist_list("HistGenInclusive_"+dataset,tag)
   gen_inclusive.read_settings_from_config_dim1(var1_config,isgen=True)
   gen_inclusive.read_settings_from_config_dim2(var2_config,isgen=True)
   gen_inclusive.bin_edges_dim2 = edges_gen
   gen_inclusive.cut = cuts[CutType.PassGen]
-  gen_inclusive.fill_root_hists_name()
-  print "histograms:",gen_inclusive.root_hists_name
+  hists.append(gen_inclusive)
 
   reco_passgen=hist_list("HistReco_"+dataset,tag)
   reco_passgen.read_settings_from_config_dim1(var1_config,isgen=False)
   reco_passgen.read_settings_from_config_dim2(var2_config,isgen=False)
   reco_passgen.bin_edges_dim2 = edges_reco
   reco_passgen.cut = cuts[CutType.PassReco_PassGen]
-  reco_passgen.fill_root_hists_name()
-  print "histograms:",reco_passgen.root_hists_name
+  hists.append(reco_passgen)
 
   reco_inclusive=hist_list("HistRecoInclusive_"+dataset,tag)
   reco_inclusive.read_settings_from_config_dim1(var1_config,isgen=False)
   reco_inclusive.read_settings_from_config_dim2(var2_config,isgen=False)
   reco_inclusive.bin_edges_dim2 = edges_reco
   reco_inclusive.cut = cuts[CutType.PassReco]
-  reco_inclusive.fill_root_hists_name()
-  print "histograms:",reco_inclusive.root_hists_name
+  hists.append(reco_inclusive)
 
-  if from_root:
-    gen_passreco.fill_hist_from_root(source,genWeight=genWeight)
-    gen_inclusive.fill_hist_from_root(source,genWeight=genWeight)
-    reco_passgen.fill_hist_from_root(source,genWeight=genWeight)
-    reco_inclusive.fill_hist_from_root(source,genWeight=genWeight)
-  else:
-    gen_passreco.fill_hist_from_npz(files=source,weightarray=weight_array,genWeight=genWeight)
-    gen_inclusive.fill_hist_from_npz(files=source,weightarray=weight_array,genWeight=genWeight)
-    reco_passgen.fill_hist_from_npz(files=source,weightarray=weight_array,genWeight=genWeight)
-    reco_inclusive.fill_hist_from_npz(files=source,weightarray=weight_array,genWeight=genWeight)
+  for hist in hists:
+    hist.fill_root_hists_name()
+    print "histograms:", hist.root_hists_name
+    hist.fill_hist(source, from_root, weightarray=weight_array,genWeight=genWeight)
   print "filled"
   if store_mig:
     mig = [[hist_list("HistMig_"+dataset+"_"+var1_config["gen_key"]+str(var1_config["binedgesgen"][i])+"-"+str(var1_config["binedgesgen"][i+1])+"_"+var1_config["reco_key"]+str(var1_config["binedgesreco"][j])+"-"+str(var1_config["binedgesreco"][j+1])+tag) for j in range(len(var1_config["binedgesreco"])-1)] for i in range(len(var1_config["binedgesgen"])-1)]
