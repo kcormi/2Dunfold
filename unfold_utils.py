@@ -577,3 +577,7 @@ class hist_list:
 
     def write_2Dhist(self):
         self.root_2Dhist.Write()
+
+    def write_all(self):
+        self.write_2Dhist()
+        self.write_hist_list()

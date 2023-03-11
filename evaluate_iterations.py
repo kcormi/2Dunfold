@@ -15,42 +15,44 @@ from array import array
 import glob
 from unfold_utils import *
 
-def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,genWeight="",from_root=True,weight_array=None,store_mig=False,tag=""):
-  hists = []
-
-  gen_passreco=hist_list("HistGen_"+dataset,tag)
-  gen_passreco.read_settings_from_config_dim1(var1_config,isgen=True)
-  gen_passreco.read_settings_from_config_dim2(var2_config,isgen=True)
-  gen_passreco.bin_edges_dim2 = edges_gen
-  gen_passreco.cut = cuts[CutType.PassReco_PassGen]
-  hists.append(gen_passreco)
-
-  gen_inclusive=hist_list("HistGenInclusive_"+dataset,tag)
-  gen_inclusive.read_settings_from_config_dim1(var1_config,isgen=True)
-  gen_inclusive.read_settings_from_config_dim2(var2_config,isgen=True)
-  gen_inclusive.bin_edges_dim2 = edges_gen
-  gen_inclusive.cut = cuts[CutType.PassGen]
-  hists.append(gen_inclusive)
-
-  reco_passgen=hist_list("HistReco_"+dataset,tag)
-  reco_passgen.read_settings_from_config_dim1(var1_config,isgen=False)
-  reco_passgen.read_settings_from_config_dim2(var2_config,isgen=False)
-  reco_passgen.bin_edges_dim2 = edges_reco
-  reco_passgen.cut = cuts[CutType.PassReco_PassGen]
-  hists.append(reco_passgen)
+def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,genWeight="",from_root=True,weight_array=None,store_mig=False,tag="", reco_only=False):
+  hists = {}
 
   reco_inclusive=hist_list("HistRecoInclusive_"+dataset,tag)
   reco_inclusive.read_settings_from_config_dim1(var1_config,isgen=False)
   reco_inclusive.read_settings_from_config_dim2(var2_config,isgen=False)
   reco_inclusive.bin_edges_dim2 = edges_reco
   reco_inclusive.cut = cuts[CutType.PassReco]
-  hists.append(reco_inclusive)
+  hists["reco_inclusive"] = reco_inclusive
 
-  for hist in hists:
+  if not reco_only:
+    gen_passreco=hist_list("HistGen_"+dataset,tag)
+    gen_passreco.read_settings_from_config_dim1(var1_config,isgen=True)
+    gen_passreco.read_settings_from_config_dim2(var2_config,isgen=True)
+    gen_passreco.bin_edges_dim2 = edges_gen
+    gen_passreco.cut = cuts[CutType.PassReco_PassGen]
+    hists["gen_passreco"] = gen_passreco
+
+    gen_inclusive=hist_list("HistGenInclusive_"+dataset,tag)
+    gen_inclusive.read_settings_from_config_dim1(var1_config,isgen=True)
+    gen_inclusive.read_settings_from_config_dim2(var2_config,isgen=True)
+    gen_inclusive.bin_edges_dim2 = edges_gen
+    gen_inclusive.cut = cuts[CutType.PassGen]
+    hists["gen_inclusive"] = gen_inclusive
+
+    reco_passgen=hist_list("HistReco_"+dataset,tag)
+    reco_passgen.read_settings_from_config_dim1(var1_config,isgen=False)
+    reco_passgen.read_settings_from_config_dim2(var2_config,isgen=False)
+    reco_passgen.bin_edges_dim2 = edges_reco
+    reco_passgen.cut = cuts[CutType.PassReco_PassGen]
+    hists["reco_passgen"] = reco_passgen
+
+  for _, hist in hists.items():
     hist.fill_root_hists_name()
     print "histograms:", hist.root_hists_name
     hist.fill_hist(source, from_root, weightarray=weight_array,genWeight=genWeight)
   print "filled"
+
   if store_mig:
     mig = [[hist_list("HistMig_"+dataset+"_"+var1_config["gen_key"]+str(var1_config["binedgesgen"][i])+"-"+str(var1_config["binedgesgen"][i+1])+"_"+var1_config["reco_key"]+str(var1_config["binedgesreco"][j])+"-"+str(var1_config["binedgesreco"][j+1])+tag) for j in range(len(var1_config["binedgesreco"])-1)] for i in range(len(var1_config["binedgesgen"])-1)]
     for i in range(len(var1_config["binedgesgen"])-1):
@@ -67,22 +69,9 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
         print "filled histogram:",mig[i][j].name
   else:
     mig = None
-  return gen_passreco,gen_inclusive,reco_passgen,reco_inclusive,mig
 
-def fill_hist_lists_recoonly(dataset,var1_config,var2_config,edges_reco,source,genWeight="",from_root=True,weight_array=None,tag=""):
-  reco_inclusive=hist_list("HistRecoInclusive_"+dataset,tag)
-  reco_inclusive.read_settings_from_config_dim1(var1_config,isgen=False)
-  reco_inclusive.read_settings_from_config_dim2(var2_config,isgen=False)
-  reco_inclusive.bin_edges_dim2 = edges_reco
-  reco_inclusive.cut = cuts[CutType.PassReco]
-  reco_inclusive.fill_root_hists_name()
-  if from_root:
-    reco_inclusive.fill_hist_from_root(source,genWeight=genWeight)
-  else:
-    reco_inclusive.fill_hist_from_npz(files=source,weightarray=weight_array,genWeight=genWeight)
-  print "filled histogram:",reco_inclusive.root_hists_name
-  return reco_inclusive
-
+  hists["mig"] = mig
+  return hists 
 
 def get_sys_variations( config ):
     tree_sys_list = []
@@ -105,28 +94,27 @@ def get_sys_variations( config ):
     return tree_sys_list
 
 def get_bin_edges( conf, v1_dct, v2_dct, ttree, trees_syst):
-    if config['mergerecobin']:
-      bin_edges_reco_merge=merge_bins(obs=[var1_dct["reco"],var2_dct["reco"]],trees=[ttree]+trees_syst,root_cut=root_cuts[CutType.PassReco_PassGen],threshold=config["mergethresholdreco"],bin_edges_dim1_1d=var1_dct["binedgesreco"],bin_edges_dim2_1d=var2_dct["binedgesreco"])
+    if conf['mergerecobin']:
+      bin_edges_reco_merge=merge_bins(obs=[var1_dct["reco"],var2_dct["reco"]],trees=[ttree]+trees_syst,root_cut=root_cuts[CutType.PassReco_PassGen],threshold=conf["mergethresholdreco"],bin_edges_dim1_1d=var1_dct["binedgesreco"],bin_edges_dim2_1d=var2_dct["binedgesreco"])
     else:
       bin_edges_reco_merge=([var2_dct["binedgesreco"]]*var1_dct["nbinsreco"] if FineBin else [var2_dct["minreco"]+(var2_dct["maxreco"]-var2_dct["minreco"])/var2_dct["nbinsreco"]*ibinreco1  for ibinreco1 in range(var2_dct["nbinsreco"])]*var1_dct["nbinsreco"])
 
-    if config['mergegenbin']:
-      bin_edges_gen_merge=merge_bins(obs=[var1_dct["gen"],var2_dct["gen"]],trees=[ttree]+trees_syst,root_cut=root_cuts[CutType.PassReco_PassGen],threshold=config["mergethresholdgen"],bin_edges_dim1_1d=var1_dct["binedgesgen"],bin_edges_dim2_1d=var2_dct["binedgesgen"])
+    if conf['mergegenbin']:
+      bin_edges_gen_merge=merge_bins(obs=[var1_dct["gen"],var2_dct["gen"]],trees=[ttree]+trees_syst,root_cut=root_cuts[CutType.PassReco_PassGen],threshold=conf["mergethresholdgen"],bin_edges_dim1_1d=var1_dct["binedgesgen"],bin_edges_dim2_1d=var2_dct["binedgesgen"])
     else:
       bin_edges_gen_merge=([var2_dct["binedgesgen"]]*var1_dct["nbinsgen"] if FineBin else [var2_dct["mingen"]+(var2_dct["maxgen"]-var2_dct["mingen"])/var2_dct["nbinsgen"]*ibingen1  for ibingen1 in range(var2_dct["nbinsgen"])]*var1_dct["nbinsgen"])
     return bin_edges_reco_merge, bin_edges_gen_merge
 
 def get_tree_data( config, pseudodata_NPZ):
+
+    fin_refdata=ROOT.TFile(config["inputfiledata"],"READ")
+    tree_refdata=fin_refdata.Get("ntuplizer/tree") if fin_refdata.Get("ntuplizer/tree") else fin_refdata.Get("tree")
     if config["pseudodata"]:
       if not pseudodata_NPZ:
         fin_data=ROOT.TFile(config["inputfilepseudodata"],"READ")
         tree_data = fin_data.Get("ntuplizer/tree") if  fin_data.Get("ntuplizer/tree") else  fin_data.Get("tree")
-      fin_refdata=ROOT.TFile(config["inputfiledata"],"READ")
-      tree_refdata=fin_refdata.Get("ntuplizer/tree") if fin_refdata.Get("ntuplizer/tree") else fin_refdata.Get("tree")
     else:
-      fin_data = ROOT.TFile(config["inputfiledata"],"READ")
-      tree_data = fin_data.Get("ntuplizer/tree") if fin_data.Get("ntuplizer/tree") else fin_data.Get("tree")
-      tree_refdata = None
+      tree_data = tree_refdata
 
     tree_data.SetDirectory(0)
     tree_refdata.SetDirectory(0)
@@ -167,7 +155,7 @@ if __name__=="__main__":
 
     bin_edges_reco_merge, bin_edges_gen_merge = get_bin_edges( config, var1_dct, var2_dct, tree, tree_sys_list)
 
-    gen_MC_passreco,gen_MC_inclusive,reco_MC_passgen,reco_MC_inclusive,mig_MC=fill_hist_lists("MC",var1_dct,var2_dct,bin_edges_gen_merge,bin_edges_reco_merge,tree,genWeight=weightname,from_root=True,weight_array=None,store_mig=True)
+    mc_hists = fill_hist_lists("MC",var1_dct,var2_dct,bin_edges_gen_merge,bin_edges_reco_merge,tree,genWeight=weightname,from_root=True,weight_array=None,store_mig=True)
 
     #efficiency=reconstructed and generated / generated
     gen_inveff = hist_list("HistGenInvEff")
@@ -175,97 +163,94 @@ if __name__=="__main__":
     gen_inveff.read_settings_from_config_dim2(var2_dct,isgen=True)
     gen_inveff.bin_edges_dim2 = bin_edges_gen_merge
     gen_inveff.fill_root_hists_name()
-    gen_inveff.get_hist_from_division(gen_MC_inclusive,gen_MC_passreco)
+    gen_inveff.get_hist_from_division(mc_hists["gen_inclusive"],mc_hists["gen_passreco"])
 
     pseudodata_NPZ =  config["pseudodata"] and (isinstance(config["inputfilepseudodata"],list) or '.npz' in config["inputfilepseudodata"])
     tree_data, tree_refdata = get_tree_data( config, pseudodata_NPZ)
 
     if config["pseudodata"]:
+      weight_pseudodata = None
       if pseudodata_NPZ:
-        if "pseudodataweight" in config.keys() and config["pseudodataweight"] is not None:
+        if config.get("pseudodataweight",None) is not None:
           file_weight_pseudodata=np.load(config["pseudodataweight"],allow_pickle=True)
           weight_pseudodata=file_weight_pseudodata[-1]
-        else:
-          weight_pseudodata=None
-        gen_pseudodata_passreco,gen_pseudodata_inclusive,reco_pseudodata_passgen,reco_pseudodata_inclusive,mig_pseudodata=fill_hist_lists("Pseudodata",var1_dct,var2_dct,bin_edges_gen_merge,bin_edges_reco_merge,config["inputfilepseudodata"],genWeight=weightname,from_root=False,weight_array=weight_pseudodata,store_mig=True)
+
+        event_data = config["inputfilepseudodata"]
+        from_root = False
       else:
-        gen_pseudodata_passreco,gen_pseudodata_inclusive,reco_pseudodata_passgen,reco_pseudodata_inclusive,mig_pseudodata=fill_hist_lists("Pseudodata",var1_dct,var2_dct,bin_edges_gen_merge,bin_edges_reco_merge,tree_data,genWeight=weightname,from_root=True,weight_array=None,store_mig=True)
-      reco_data_inclusive=fill_hist_lists_recoonly("Data",var1_dct,var2_dct,bin_edges_reco_merge,tree_refdata,genWeight="",from_root=True,weight_array=None,tag="_Ref")
+        event_data = tree_data
+        from_root = True
+      pseudo_hists = fill_hist_lists("Pseudodata",var1_dct,var2_dct,bin_edges_gen_merge,bin_edges_reco_merge,event_data,genWeight=weightname,from_root=from_root,weight_array=weight_pseudodata,store_mig=True)
+      reco_data_tree = tree_refdata
+      tag = "_Ref"
     else:
-      reco_data_inclusive=fill_hist_lists_recoonly("Data",var1_dct,var2_dct,bin_edges_reco_merge,tree_data,genWeight="",from_root=True,weight_array=None)
+      reco_data_tree = tree_data
+      tag = ""
+    data_hists = fill_hist_lists("Data",var1_dct,var2_dct,None,bin_edges_reco_merge,reco_data_tree,genWeight="",from_root=True,weight_array=None,tag="_Ref", reco_only=True)
 
     if config["pseudodata"]:
-      norm_factor=reco_pseudodata_inclusive.norm/reco_MC_inclusive.norm
+      mc_norm_factor=pseudo_hists["reco_inclusive"].norm/mc_hists["reco_inclusive"].norm
     else:
-      norm_factor=reco_data_inclusive.norm/reco_MC_inclusive.norm
+      mc_norm_factor= data_hists["reco_inclusive"].norm/mc_hists["reco_inclusive"].norm
 
-    gen_MC_passreco.multiply(norm_factor)
-    gen_MC_inclusive.multiply(norm_factor)
-    reco_MC_passgen.multiply(norm_factor)
-    reco_MC_inclusive.multiply(norm_factor)
+    for key, hist in mc_hists.items():
+        if not (key == 'mig'):
+            hist.multiply(mc_norm_factor)
 
     if not os.path.exists(config[args.method]["weight"]):
       print "Cannot find weight file ",config[args.method]["weight"]
       exit(0)
 
     weights=np.load(config[args.method]["weight"],allow_pickle=True)
-    if args.eff_acc:
-      niter=len(weights)/4
-    else:
-      niter=len(weights)/2
+    weights_per_iter = 4 if args.eff_acc else 2
 
+    config["outputdir"]+"/unfold_"+config["var1"]+"_"+config["var2"]+"_"+config["MCtag"]+"_optimize_"+args.method+("_step1" if args.step1 else "")+".root"
     fout = ROOT.TFile(config["outputdir"]+"/unfold_"+config["var1"]+"_"+config["var2"]+"_"+config["MCtag"]+"_optimize_"+args.method+("_step1" if args.step1 else "")+".root","recreate")
 
+    niter = len(weights)/weights_per_iter
     for i in range(0,niter+1):
-      if args.eff_acc:
-        if args.step1 and i>0:
-          weight_iter=weights[4*i-2]
-        else:
-          weight_iter=weights[4*i]
-      else:
-        if args.step1 and i>0:
-          weight_iter=weights[2*i-1]
-        else:
-          weight_iter=weights[2*i]
-      gen_unfold_passreco,gen_unfold_inclusive,reco_unfold_passgen,reco_unfold_inclusive,mig_unfold=fill_hist_lists("MC_"+args.method,var1_dct,var2_dct,bin_edges_gen_merge,bin_edges_reco_merge,config[args.method]["sim"],genWeight=weightname,from_root=False,weight_array=weight_iter,store_mig=True if i in args.migiter else False,tag="_iter"+str(i))
+      offset = weights_per_iter / 2 if (args.step1 and i > 0 ) else 0
+      weight_iter = weights[weights_per_iter*i - offset ]
+
+      store_mig = i in args.migiter
+
+      unfold_hists = fill_hist_lists("MC_"+args.method,var1_dct,var2_dct,bin_edges_gen_merge,bin_edges_reco_merge,config[args.method]["sim"],genWeight=weightname,from_root=False,weight_array=weight_iter,store_mig=store_mig,tag="_iter"+str(i))
       if args.eff_from_nominal:
-        gen_unfold_inclusive.get_hist_from_multiplication(gen_unfold_passreco,gen_inveff)
+        gen_unfold_inclusive.get_hist_from_multiplication(unfold_hists["gen_passreco"],gen_inveff)
       if config["pseudodata"]:
-        norm_factor=reco_pseudodata_inclusive.norm/reco_unfold_inclusive.norm
+        unf_norm_factor = pseudo_hists["reco_inclusive"].norm/unfold_hists["reco_inclusive"].norm
       else:
-        norm_factor=reco_data_inclusive.norm/reco_unfold_inclusive.norm
-      gen_unfold_passreco.multiply(norm_factor)
-      gen_unfold_inclusive.multiply(norm_factor)
-      reco_unfold_passgen.multiply(norm_factor)
-      reco_unfold_inclusive.multiply(norm_factor)
-      gen_unfold_passreco.write_hist_list()
-      gen_unfold_inclusive.write_hist_list()
-      reco_unfold_passgen.write_hist_list()
-      reco_unfold_inclusive.write_hist_list()
-      if i in args.migiter:
-        for column in mig_unfold:
-          for row in column:
-            row.write_2Dhist()
-    gen_MC_passreco.write_hist_list()
-    gen_MC_inclusive.write_hist_list()
-    reco_MC_passgen.write_hist_list()
-    reco_MC_inclusive.write_hist_list()
-    for column in mig_MC:
-      for row in column:
-        row.write_2Dhist()
+        unf_norm_factor = data_hists["reco_inclusive"].norm/unfold_hists["reco_inclusive"].norm
+
+      for key, hist in unfold_hists.items():
+        if key == 'mig':
+            if i in args.migiter:
+                for column in hist:
+                    for row in column:
+                        row.write_2Dhist()
+        else:
+            hist.multiply(unf_norm_factor)
+            hist.write_hist_list()
+
+    for key, hist in mc_hists.items():
+        if key == 'mig':
+          for column in hist:
+            for row in column:
+              row.write_2Dhist()
+
+        else:
+          hist.multiply(mc_norm_factor)
+          hist.write_hist_list()
+
     gen_inveff.write_hist_list()
     if config["pseudodata"]:
-      gen_pseudodata_passreco.write_hist_list()
-      gen_pseudodata_inclusive.write_hist_list()
-      reco_pseudodata_passgen.write_hist_list()
-      reco_pseudodata_inclusive.write_hist_list()
-      for column in mig_pseudodata:
-        for row in column:
-          row.write_2Dhist()
+      for key, hist in pseudo_hists.items():
+        if key == 'mig':
+            for column in hist:
+              for row in column:
+                row.write_2Dhist()
+        else:
+            hist.write_hist_list()
     else:
-      reco_data_inclusive.write_hist_list()
-
-
-
-
+        data_hists["reco_inclusive"].write_hist_list()
 
