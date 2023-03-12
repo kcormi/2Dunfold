@@ -88,35 +88,34 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
 
 def get_sys_variations( config ):
     tree_sys_list = []
-    fin_sys={}
-    tree_sys={}
     for sys in config["inputfilesim_sys"].keys():
-      fin_sys[sys]={
-        "up":ROOT.TFile(config["inputfilesim_sys"][sys]["up"]),
-        "down":ROOT.TFile(config["inputfilesim_sys"][sys]["down"]) if config["inputfilesim_sys"][sys]["down"] is not None else None
-      }
-      tree_sys[sys]={
-        "up":fin_sys[sys]["up"].Get("ntuplizer/tree") if fin_sys[sys]["up"].Get("ntuplizer/tree") else fin_sys[sys]["up"].Get("tree"),
-        "down":(fin_sys[sys]["down"].Get("ntuplizer/tree") if fin_sys[sys]["down"].Get("ntuplizer/tree") else fin_sys[sys]["down"].Get("tree") ) if fin_sys[sys]["down"] is not None else None
-      }
-    for sys in tree_sys.keys():
-      tree_sys_list.append(tree_sys[sys]["up"])
-      if tree_sys[sys]["down"] is not None:
-        tree_sys_list.append(tree_sys[sys]["down"])
-
+      for vari in ["up", "down"]:
+        fin_sys_vari = ROOT.TFile(config["inputfilesim_sys"][sys][vari])
+        default = fin_sys_vari.Get("ntuplizer/tree")
+        if default:
+            tree = default
+        else:
+            tree = fin_sys_vari.Get("tree")
+        if tree is not None:
+            tree_sys_list.append(tree)
     return tree_sys_list
 
-def get_bin_edges( conf, v1_dct, v2_dct, ttree, trees_syst):
-    if conf['mergerecobin']:
-      bin_edges_reco_merge=merge_bins(obs=[var1_dct["reco"],var2_dct["reco"]],trees=[ttree]+trees_syst,root_cut=root_cuts[CutType.PassReco_PassGen],threshold=conf["mergethresholdreco"],bin_edges_dim1_1d=var1_dct["binedgesreco"],bin_edges_dim2_1d=var2_dct["binedgesreco"])
-    else:
-      bin_edges_reco_merge=([var2_dct["binedgesreco"]]*var1_dct["nbinsreco"] if FineBin else [var2_dct["minreco"]+(var2_dct["maxreco"]-var2_dct["minreco"])/var2_dct["nbinsreco"]*ibinreco1  for ibinreco1 in range(var2_dct["nbinsreco"])]*var1_dct["nbinsreco"])
+def get_bin_edges( conf, v1_dct, v2_dct, trees):
 
-    if conf['mergegenbin']:
-      bin_edges_gen_merge=merge_bins(obs=[var1_dct["gen"],var2_dct["gen"]],trees=[ttree]+trees_syst,root_cut=root_cuts[CutType.PassReco_PassGen],threshold=conf["mergethresholdgen"],bin_edges_dim1_1d=var1_dct["binedgesgen"],bin_edges_dim2_1d=var2_dct["binedgesgen"])
-    else:
-      bin_edges_gen_merge=([var2_dct["binedgesgen"]]*var1_dct["nbinsgen"] if FineBin else [var2_dct["mingen"]+(var2_dct["maxgen"]-var2_dct["mingen"])/var2_dct["nbinsgen"]*ibingen1  for ibingen1 in range(var2_dct["nbinsgen"])]*var1_dct["nbinsgen"])
-    return bin_edges_reco_merge, bin_edges_gen_merge
+    cut = root_cuts[CutType.PassReco_PassGen]
+    bin_edges = []
+    for lvl in ["reco","gen"]:
+        do_merge = conf["merge" + lvl + "bin"]
+        if do_merge:
+            edges = merge_bins(obs=[v1_dct[lvl] , v2_dct[lvl]], trees=trees, root_cut=cut, threshold=conf["mergethreshold" + lvl], bin_edges_dim1_1d=v1_dct["binedges" +lvl], bin_edges_dim2_1d=v2_dct["binedges" + lvl])
+        else:
+            if FineBin:
+                edges = [v2_dct["binedges" + lvl] * v1_dct["nbins" + lvl] ]
+            else:
+                edges = [ v2_dct["min"+lvl]+(v2_dct["max" + lvl] - v2_dct["min"+lvl])/ v2_dct["nbins" + lvl] * ibin for ibin in range(v2_dct["nbins" + lvl])] * v1_dct["nbins" + lvl]
+        bin_edges.append(edges)
+
+    return bin_edges
 
 def get_tree_data( config, pseudodata_NPZ):
 
@@ -178,7 +177,8 @@ if __name__=="__main__":
 
     FineBin = ("binedgesreco" in var1_dct.keys()) and ("binedgesreco" in var2_dct.keys())
 
-    bin_edges_reco, bin_edges_gen = get_bin_edges( config, var1_dct, var2_dct, tree, tree_sys_list)
+    all_trees = [tree] + tree_sys_list
+    bin_edges_reco, bin_edges_gen = get_bin_edges( config, var1_dct, var2_dct, all_trees)
 
     mc_hists = fill_hist_lists("MC", var1_dct, var2_dct, bin_edges_gen, bin_edges_reco, tree, genWeight=weightname, store_mig=True)
 

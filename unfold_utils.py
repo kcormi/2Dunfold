@@ -71,7 +71,9 @@ def filter_np_cut(np_dic, np_cut):
         return filter_cut
 
 
-def merge_bins(obs, trees=[], root_cut='', threshold=1.0, bin_edges_dim1_1d=[], bin_edges_dim2_1d=[]):
+def merge_bins(obs, trees=[], root_cut='', threshold=1.0, bin_edges_dim1_1d=None, bin_edges_dim2_1d=None):
+    bin_edges_dim1_1d = [] if bin_edges_dim1_1d is None else bin_edges_dim1_1d
+    bin_edges_dim2_1d = [] if bin_edges_dim2_1d is None else bin_edges_dim2_1d
     hists = []
     for itree, tree in enumerate(trees):
         hist = ROOT.TH2F('HistMerge' + str(itree), 'HistMerge' + str(itree), len(bin_edges_dim1_1d) - 1, np.array(bin_edges_dim1_1d), len(bin_edges_dim2_1d) - 1, np.array(bin_edges_dim2_1d))
@@ -185,19 +187,6 @@ class hist_list:
     @property
     def name(self):
         return self._name
-
-    def _set_name(self):
-        self._name = self.name_prefix + "_" + self.dataset
-    
-    @property
-    def name_prefix(self):
-        prefixes[HistType.GEN] = { CutTypes.PassReco_PassGen : 'HistGen',
-                     CutTypes.PassGen : 'HistGenInclusive' }
-        prefixes[HistType.RECO] = { CutTypes.PassReco_PassGen : 'HistReco',
-                      CutTypes.PassReco : 'HistRecoInclusive' }
-        prefixes[HistType.MIG] = { CutTypes.PassReco_PassGen : 'HistMig' }
-        prefix = prefixes[self.htype.get(self.cut_type)]
-        return prefix
 
     @property
     def nd1(self):
