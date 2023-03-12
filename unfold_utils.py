@@ -423,34 +423,53 @@ class hist_list:
         else:
             weight = weightarray
         filter_cut = filter_np_cut(obs_arrays, self.npy_cut)
+        base_cut = (~(np.isinf(weight)) & filter_cut )
         for ihist in range(self.root_2Dhist.GetNbinsX()):
+            ihist_cut = (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]) & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist + 1]) 
             for ibin in range(self.root_2Dhist.GetNbinsY()):
-                self.root_2Dhist.SetBinContent(ihist + 1, ibin + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]) & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist + 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[ihist][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[ihist][ibin + 1])]))
-                self.root_2Dhist.SetBinError(ihist + 1, ibin + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]) & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist + 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[ihist][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[ihist][ibin + 1])]))))
+                wgts = weight[base_cut & ihist_cut & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[ihist][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[ihist][ibin + 1])]
+                self.root_2Dhist.SetBinContent(ihist + 1, ibin + 1, np.sum(wgts) )
+                self.root_2Dhist.SetBinError(ihist + 1, ibin + 1, np.sqrt(np.sum(np.square(wgts))) )
 
-            self.root_2Dhist.SetBinContent(ihist + 1, 0, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]) & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist + 1]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[ihist][0])]))
-            self.root_2Dhist.SetBinError(ihist + 1, 0, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]) & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist + 1]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[ihist][0])]))))
-            self.root_2Dhist.SetBinContent(ihist + 1, self.root_2Dhist.GetNbinsY() + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]) & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist + 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[ihist][len(self.dim2.bin_edges[ihist]) - 1])]))
-            self.root_2Dhist.SetBinError(ihist + 1, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]) & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist + 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[ihist][len(self.dim2.bin_edges[ihist]) - 1])]))))
+            wgts = weight[ base_cut &  ihist_cut & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[ihist][0])]
+            self.root_2Dhist.SetBinContent(ihist + 1, 0, np.sum(wgts) )
+            self.root_2Dhist.SetBinError(ihist + 1, 0, np.sqrt(np.sum(np.square(wgts))) )
+
+            wgts = weight[ base_cut & ihist_cut & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[ihist][len(self.dim2.bin_edges[ihist]) - 1])]
+            self.root_2Dhist.SetBinContent(ihist + 1, self.root_2Dhist.GetNbinsY() + 1, np.sum(wgts) )
+            self.root_2Dhist.SetBinError(ihist + 1, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(wgts))) )
+
             self.bin_sum.append(np.sum([ self.root_2Dhist.GetBinContent(ihist + 1, ibin + 1) for ibin in range(self.root_2Dhist.GetNbinsX()) ]))
             self.bin_norm.append(np.sum([ self.root_2Dhist.GetBinContent(ihist + 1, ibin) for ibin in range(self.root_2Dhist.GetNbinsX() + 2) ]))
 
         for ibin in range(self.root_2Dhist.GetNbinsY()):
-            self.root_2Dhist.SetBinContent(0, ibin + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][ibin + 1])]))
-            self.root_2Dhist.SetBinError(0, ibin + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][ibin + 1])]))))
-            self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, ibin + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][ibin + 1])]))
-            self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, ibin + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][ibin + 1])]))))
+            wgts = weight[ base_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][ibin + 1])]
+            self.root_2Dhist.SetBinContent(0, ibin + 1, np.sum(wgts) )
+            self.root_2Dhist.SetBinError(0, ibin + 1, np.sqrt(np.sum(np.square(wgts)) ) )
 
-        self.root_2Dhist.SetBinContent(0, 0, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][0])]))
-        self.root_2Dhist.SetBinError(0, 0, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][0])]))))
-        self.root_2Dhist.SetBinContent(0, self.root_2Dhist.GetNbinsY() + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][len(self.dim2.bin_edges[0]) - 1])]))
-        self.root_2Dhist.SetBinError(0, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][len(self.dim2.bin_edges[0]) - 1])]))))
-        self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, 0, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][0])]))
-        self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, 0, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][0])]))))
-        self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, self.root_2Dhist.GetNbinsY() + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][len(self.dim2.bin_edges[0]) - 1])]))
-        self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][len(self.dim2.bin_edges[0]) - 1])]))))
-        self.dim1_underflow = np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0])])
-        self.dim1_overflow = np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1])])
+            wgts = weight[ base_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][ibin + 1])] 
+            self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, ibin + 1, np.sum(wgts) )
+            self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, ibin + 1, np.sqrt(np.sum(np.square(wgts))) )
+
+        wgts = weight[ base_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][0])]
+        self.root_2Dhist.SetBinContent(0, 0, np.sum(wgts) )
+        self.root_2Dhist.SetBinError(0, 0, np.sqrt(np.sum(np.square(wgts) ) ) )
+
+        wgts = weight[base_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][len(self.dim2.bin_edges[0]) - 1])]
+        self.root_2Dhist.SetBinContent(0, self.root_2Dhist.GetNbinsY() + 1, np.sum(wgts) )
+        self.root_2Dhist.SetBinError(0, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(wgts))) )
+
+        wgts = weight[base_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][0])]
+        self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, 0, np.sum(wgts) )
+        self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, 0, np.sqrt(np.sum(np.square(wgts))) )
+
+        wgts = weight[base_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][len(self.dim2.bin_edges[0]) - 1])]
+        
+        self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, self.root_2Dhist.GetNbinsY() + 1, np.sum(wgts) )
+        self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(wgts))) )
+
+        self.dim1_underflow = np.sum(weight[base_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0])])
+        self.dim1_overflow = np.sum(weight[base_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1])])
         self.total = np.sum(self.bin_sum)
         self.norm = np.sum(weight[(np.isinf(weight) != True) & filter_cut])
         return

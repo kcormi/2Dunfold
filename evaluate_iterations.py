@@ -72,16 +72,11 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
         gen_cuts_root = " ({}>={}) * ({}<{}) ".format(var1_config["gen"], edge_i, var1_config["gen"], edge_ip1)
         reco_cuts_root = " ({}>={}) * ({}<{}) ".format(var1_config["reco"], edge_j, var1_config["gen"], edge_jp1)
         all_cuts_root = root_cuts[CutType.PassReco_PassGen] + "*" + gen_cuts_root + "*" + reco_cuts_root
-
-        mig[i][j].read_settings_from_config_dim1(var2_config,isgen=True)
-        mig[i][j].read_settings_from_config_dim2(var2_config,isgen=False)
-
         mig[i][j].root_cut = all_cuts_root
 
         gen_cuts_np = [[var1_config["gen_key"],">=",str(edge_i)], [var1_config["gen_key"],"<",str(edge_ip1)]]
         reco_cuts_np = [[var1_config["reco_key"], ">=", str(edge_j)], [var1_config["reco_key"],"<",str(edge_jp1)]]
         all_cuts_np = np_cuts[CutType.PassReco_PassGen] + gen_cuts_np + reco_cuts_np
-
         mig[i][j].py_cut = all_cuts_np
 
         mig[i][j].fill_2Dhist(source, from_root=from_root, weightarray=weight_array,genWeight=genWeight)
@@ -150,7 +145,6 @@ def write_all_hists( hist_dict ):
               row.write_2Dhist()
         else:
           hist.write_hist_list()
-
 
 if __name__=="__main__":
 
@@ -239,7 +233,6 @@ if __name__=="__main__":
     for i in range(0,niter+1):
       offset = weights_per_iter / 2 if (args.step1 and i > 0 ) else 0
       weight_iter = weights[weights_per_iter*i - offset ]
-
       store_mig = i in args.migiter
 
       unfold_hists = fill_hist_lists("MC_"+args.method,var1_dct,var2_dct,bin_edges_gen,bin_edges_reco,config[args.method]["sim"],genWeight=weightname,from_root=False,weight_array=weight_iter,store_mig=store_mig,tag="_iter"+str(i))
@@ -250,10 +243,9 @@ if __name__=="__main__":
       write_all_hists(unfold_hists)
 
     write_all_hists(mc_hists)
-
     gen_inveff.write_hist_list()
     if config["pseudodata"]:
       write_all_hists(pseudo_hists)
     else:
-        data_hists["reco_inclusive"].write_hist_list()
+      data_hists["reco_inclusive"].write_hist_list()
 
