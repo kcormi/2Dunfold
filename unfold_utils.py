@@ -126,7 +126,7 @@ class HistDim:
         self.overflow = 0.
         self.inner_dim = inner_dim
 
-    def read_settings_from_config(self, config, isgen=False, inner_dim = None):
+    def from_config(self, config, isgen=False, inner_dim = None):
         inner_dim_factor = 0
         self.inner_dim = inner_dim
         if self.inner_dim is not None:
@@ -253,10 +253,10 @@ class hist_list:
 
 
     def read_settings_from_config_dim1(self, config, isgen=False):
-        self.dim1.read_settings_from_config( config, isgen=isgen )
+        self.dim1.from_config( config, isgen=isgen )
 
     def read_settings_from_config_dim2(self, config, isgen=False):
-        self.dim2.read_settings_from_config( config, isgen=isgen, inner_dim=self.dim1 )
+        self.dim2.from_config( config, isgen=isgen, inner_dim=self.dim1 )
 
     def fill_hist( self, event_info, from_root, weightarray=None, genWeight=''):
         if from_root:
@@ -376,6 +376,12 @@ class hist_list:
                 self.root_flat_hist.SetBinContent(ibin_merge + 1, Hist.GetBinContent(ibin + 1))
                 self.root_flat_hist.SetBinError(ibin_merge + 1, Hist.GetBinError(ibin + 1))
                 ibin_merge += 1
+
+    def fill_2Dhist(self, event_data, from_root, hist_name=None, weightarray=None, genWeight=''):
+        if from_root:
+            self.fill_2Dhist_from_root( event_data, hist_name=hist_name, genWeight=genWeight )
+        else:
+            self.fill_2Dhist_from_npz( event_data, hist_name=hist_name, weightarray=weightarray, genWeight=genWeight)
 
     def fill_2Dhist_from_root(self, tree, hist_name=None, genWeight=''):
         if hist_name is None:
