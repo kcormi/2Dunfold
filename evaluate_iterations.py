@@ -120,15 +120,17 @@ def get_bin_edges( conf, v1_dct, v2_dct, trees):
 def get_tree_data( config, pseudodata_NPZ):
 
     fin_refdata=ROOT.TFile(config["inputfiledata"],"READ")
+    tree_data = None
     tree_refdata=fin_refdata.Get("ntuplizer/tree") if fin_refdata.Get("ntuplizer/tree") else fin_refdata.Get("tree")
     if config["pseudodata"]:
       if not pseudodata_NPZ:
         fin_data=ROOT.TFile(config["inputfilepseudodata"],"READ")
         tree_data = fin_data.Get("ntuplizer/tree") if  fin_data.Get("ntuplizer/tree") else  fin_data.Get("tree")
+        tree_data.SetDirectory(0)
     else:
       tree_data = tree_refdata
+      tree_data.SetDirectory(0)
 
-    tree_data.SetDirectory(0)
     tree_refdata.SetDirectory(0)
 
     return tree_data, tree_refdata
