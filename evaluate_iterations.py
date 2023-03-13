@@ -236,6 +236,10 @@ if __name__=="__main__":
         gen_unfold_inclusive.get_hist_from_multiplication(unfold_hists["gen_passreco"],gen_inveff)
       unf_norm_factor = normalization_hist.norm / unfold_hists["reco_inclusive"].norm
 
+      for key, hist in unfold_hists.items():
+        if not (key == 'mig'):
+            hist.multiply(unf_norm_factor)
+
       write_all_hists(unfold_hists)
 
     write_all_hists(mc_hists)
