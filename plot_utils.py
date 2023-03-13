@@ -284,7 +284,7 @@ def plot_flat_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare
     box['label'].Draw()
     TextPaves = []
     Interval = 0.8200000000000001 / len(text_list)
-    TextCenters = np.array(list(range(len(text_list)))) * Interval + Interval / 2 + 0.16
+    TextCenters = np.array(range(len(text_list))) * Interval + Interval / 2 + 0.16
     if len(text_list) > 7:
         TextCenters -= 0.035
     for iText, Text in enumerate(text_list):
