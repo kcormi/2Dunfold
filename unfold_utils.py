@@ -122,7 +122,7 @@ class HistDim:
     def __init__(self, is_gen=False, inner_dim=None):
         self.is_gen = is_gen
         self.bin_edges = None
-        self.root_variable = ''
+        self.root_var = ''
         self.np_var  = ''
         self.underflow = 0.
         self.overflow = 0.
@@ -138,14 +138,14 @@ class HistDim:
                 self.bin_edges = config['binedgesgen'] 
             else:
                 self.bin_edges = [config['binedgesgen']] * inner_dim_factor
-            self.root_variable = config['gen']
+            self.root_var = config['gen']
             self.np_var = config['gen_key']
         else:
             if self.inner_dim is None:
                 self.bin_edges = config['binedgesreco'] 
             else:
                 self.bin_edges = [config['binedgesreco']] * inner_dim_factor
-            self.root_variable = config['reco']
+            self.root_var = config['reco']
             self.np_var = config['reco_key']
 
     def length(self):
@@ -226,11 +226,11 @@ class hist_list:
 
     @property
     def root_variable_dim1(self):
-        return self.dim1.root_variable
+        return self.dim1.root_var
 
     @property
     def root_variable_dim2(self):
-        return self.dim2.root_variable
+        return self.dim2.root_var
 
     @property
     def np_variable_dim1(self):
@@ -264,15 +264,15 @@ class hist_list:
             string_weight = '*' + genWeight
         base_cut_str = self.root_cut + string_weight
         for ihist in range(len(self.dim1.bin_edges) - 1):
-            cut_str = base_cut_str + ('*({var1}>={var1_low})*({var1}<{var1_high})').format(var1=self.dim1.np_var, var1_low=self.dim1.bin_edges[ihist], var1_high=self.dim1.bin_edges[ihist + 1])
+            cut_str = base_cut_str + ('*({var1}>={var1_low})*({var1}<{var1_high})').format(var1=self.dim1.root_var, var1_low=self.dim1.bin_edges[ihist], var1_high=self.dim1.bin_edges[ihist + 1])
             print cut_str
             print tree.GetEntries(cut_str)
-            tree.Draw(self.dim2.np_var + '>>' + self.root_hists_name[ihist], cut_str)
+            tree.Draw(self.dim2.root_var + '>>' + self.root_hists_name[ihist], cut_str)
             self.bin_sum.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin + 1) for ibin in range(self.root_hists[ihist].GetNbinsX()) ]))
             self.bin_norm.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin) for ibin in range(self.root_hists[ihist].GetNbinsX() + 2) ]))
 
-        self.dim1_underflow = tree.GetEntries(base_cut_str + ('*({var1}<{var1_low})').format(var1=self.dim1.np_var, var1_low=self.dim1.bin_edges[0]))
-        self.dim1_overflow = tree.GetEntries(base_cut_str + ('*({var1}>={var1_high})').format(var1=self.dim1.np_var, var1_high=self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]))
+        self.dim1_underflow = tree.GetEntries(base_cut_str + ('*({var1}<{var1_low})').format(var1=self.dim1.root_var, var1_low=self.dim1.bin_edges[0]))
+        self.dim1_overflow = tree.GetEntries(base_cut_str + ('*({var1}>={var1_high})').format(var1=self.dim1.root_var, var1_high=self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]))
         self.total = np.sum(self.bin_sum)
         self.norm = np.sum(self.bin_norm) + self.dim1_overflow + self.dim1_underflow
 
