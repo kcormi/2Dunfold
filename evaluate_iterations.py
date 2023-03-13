@@ -117,23 +117,7 @@ def get_bin_edges( conf, v1_dct, v2_dct, trees):
 
     return bin_edges
 
-def get_tree_data( config, pseudodata_NPZ):
 
-    fin_refdata=ROOT.TFile(config["inputfiledata"],"READ")
-    tree_data = None
-    tree_refdata=fin_refdata.Get("ntuplizer/tree") if fin_refdata.Get("ntuplizer/tree") else fin_refdata.Get("tree")
-    if config["pseudodata"]:
-      if not pseudodata_NPZ:
-        fin_data=ROOT.TFile(config["inputfilepseudodata"],"READ")
-        tree_data = fin_data.Get("ntuplizer/tree") if  fin_data.Get("ntuplizer/tree") else  fin_data.Get("tree")
-        tree_data.SetDirectory(0)
-    else:
-      tree_data = tree_refdata
-      tree_data.SetDirectory(0)
-
-    tree_refdata.SetDirectory(0)
-
-    return tree_data, tree_refdata
 
 def write_all_hists( hist_dict ):
     for key, hist in hist_dict.items():
@@ -193,7 +177,17 @@ if __name__=="__main__":
     gen_inveff.get_hist_from_division(mc_hists["gen_inclusive"],mc_hists["gen_passreco"])
 
     pseudodata_NPZ =  config["pseudodata"] and (isinstance(config["inputfilepseudodata"],list) or '.npz' in config["inputfilepseudodata"])
-    tree_data, tree_refdata = get_tree_data( config, pseudodata_NPZ)
+    #tree_data, tree_refdata = get_tree_data( config, pseudodata_NPZ)
+
+    tree_data = None
+    fin_refdata=ROOT.TFile(config["inputfiledata"],"READ")
+    tree_refdata=fin_refdata.Get("ntuplizer/tree") if fin_refdata.Get("ntuplizer/tree") else fin_refdata.Get("tree")
+    if config["pseudodata"]:
+      if not pseudodata_NPZ:
+        fin_data=ROOT.TFile(config["inputfilepseudodata"],"READ")
+        tree_data = fin_data.Get("ntuplizer/tree") if  fin_data.Get("ntuplizer/tree") else  fin_data.Get("tree")
+    else:
+      tree_data = tree_refdata
 
     if config["pseudodata"]:
       weight_pseudodata = None
