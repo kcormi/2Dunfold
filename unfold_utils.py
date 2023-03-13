@@ -9,21 +9,37 @@ from argparse import ArgumentParser
 import os, ast, time, math, sys, stat, ROOT, itertools, h5py, pandas as pd, itertools
 from math import sqrt
 from array import array
+from enum import Enum
 import glob
-root_cut_passreco = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>2))'
-root_cut_passgen = '(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>2)'
-root_cut_passreco_passgen = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>2)&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>2))'
-root_cut_passreco_notpassgen = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>2)&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05<=2))'
-root_cut_nopassreco_passgen = '(((PV_N_good!=1)||(PV_isgood&&(Instanton_N_Trk_highPurity_pt05<=2)))&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>2))'
-root_cut_nopassreco_nopassgen = '(((PV_N_good!=1)||(PV_isgood&&(Instanton_N_Trk_highPurity_pt05<=2)))&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05<=2))'
-np_cut_passreco = [
- [
-  'reco_ntrk', '!=', 'NAN']]
-np_cut_passgen = [['gen_nch', '>', '2']]
-np_cut_passreco_passgen = [['reco_ntrk', '!=', 'NAN'], ['gen_nch', '>', '2']]
-np_cut_passreco_nopassgen = [['reco_ntrk', '!=', 'NAN'], ['gen_nch', '<=', '2']]
-np_cut_nopassreco_passgen = [['reco_ntrk', '==', 'NAN'], ['gen_nch', '>', '2']]
-np_cut_nopassreco_nopassgen = [['reco_ntrk', '==', 'NAN'], ['gen_nch', '<=', '2']]
+
+class CutType(Enum):
+    PassReco = 1
+    PassGen  = 2 
+    PassReco_PassGen = 3
+    PassReco_noPassGen = 4
+    noPassReco_PassGen = 5
+    noPassReco_noPassGen = 6
+
+class HistType(Enum):
+    RECO = 1
+    GEN = 2
+    MIG = 3
+
+root_cuts = {}
+root_cuts[CutType.PassReco] = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>2))'
+root_cuts[CutType.PassGen] = '(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>2)'
+root_cuts[CutType.PassReco_PassGen] = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>2)&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>2))'
+root_cuts[CutType.PassReco_noPassGen] = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>2)&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05<=2))'
+root_cuts[CutType.noPassReco_PassGen] = '(((PV_N_good!=1)||(PV_isgood&&(Instanton_N_Trk_highPurity_pt05<=2)))&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>2))'
+root_cuts[CutType.noPassReco_noPassGen] = '(((PV_N_good!=1)||(PV_isgood&&(Instanton_N_Trk_highPurity_pt05<=2)))&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05<=2))'
+
+np_cuts = {}
+np_cuts[CutType.PassReco] = [['reco_ntrk', '!=', 'NAN']]
+np_cuts[CutType.PassGen] = [['gen_nch', '>', '2']]
+np_cuts[CutType.PassReco_PassGen] = [['reco_ntrk', '!=', 'NAN'], ['gen_nch', '>', '2']]
+np_cuts[CutType.PassReco_noPassGen] = [['reco_ntrk', '!=', 'NAN'], ['gen_nch', '<=', '2']]
+np_cuts[CutType.noPassReco_PassGen] = [['reco_ntrk', '==', 'NAN'], ['gen_nch', '>', '2']]
+np_cuts[CutType.noPassReco_noPassGen] = [['reco_ntrk', '==', 'NAN'], ['gen_nch', '<=', '2']]
 
 def filter_np_cut(np_dic, np_cut):
     filter_cut = np.ones(len(np_dic['reco_ntrk']), dtype=bool)
@@ -55,7 +71,9 @@ def filter_np_cut(np_dic, np_cut):
         return filter_cut
 
 
-def merge_bins(obs, trees=[], root_cut='', threshold=1.0, bin_edges_dim1_1d=[], bin_edges_dim2_1d=[]):
+def merge_bins(obs, trees=[], root_cut='', threshold=1.0, bin_edges_dim1_1d=None, bin_edges_dim2_1d=None):
+    bin_edges_dim1_1d = [] if bin_edges_dim1_1d is None else bin_edges_dim1_1d
+    bin_edges_dim2_1d = [] if bin_edges_dim2_1d is None else bin_edges_dim2_1d
     hists = []
     for itree, tree in enumerate(trees):
         hist = ROOT.TH2F('HistMerge' + str(itree), 'HistMerge' + str(itree), len(bin_edges_dim1_1d) - 1, np.array(bin_edges_dim1_1d), len(bin_edges_dim2_1d) - 1, np.array(bin_edges_dim2_1d))
@@ -88,23 +106,69 @@ def merge_bins(obs, trees=[], root_cut='', threshold=1.0, bin_edges_dim1_1d=[], 
     return bin_edges_dim2_merge
 
 
+class Cut:
+
+    def __init__(self, root_cut, npy_cut=None):
+        self.root_cut = root_cut
+        self.npy_cut = npy_cut
+
+cuts = {}
+for cut_type in CutType:
+    cuts[cut_type] = Cut( root_cuts[cut_type], np_cuts[cut_type])
+
+
+class HistDim:
+    
+    def __init__(self, is_gen=False, inner_dim=None):
+        self.is_gen = is_gen
+        self.bin_edges = None
+        self.root_var = ''
+        self.np_var  = ''
+        self.underflow = 0.
+        self.overflow = 0.
+        self.inner_dim = inner_dim
+
+    def from_config(self, config, isgen=False, inner_dim = None):
+        inner_dim_factor = 0
+        self.inner_dim = inner_dim
+        if self.inner_dim is not None:
+            inner_dim_factor = max(1, self.inner_dim.length() )
+        if isgen:
+            if self.inner_dim is None:
+                self.bin_edges = config['binedgesgen'] 
+            else:
+                self.bin_edges = [config['binedgesgen']] * inner_dim_factor
+            self.root_var = config['gen']
+            self.np_var = config['gen_key']
+        else:
+            if self.inner_dim is None:
+                self.bin_edges = config['binedgesreco'] 
+            else:
+                self.bin_edges = [config['binedgesreco']] * inner_dim_factor
+            self.root_var = config['reco']
+            self.np_var = config['reco_key']
+
+    def length(self):
+        if self.bin_edges is None or len(self.bin_edges) == 0: 
+            return 0
+        return len(self.bin_edges) - 1
+
+
+
 class hist_list:
 
+
     def __init__(self, name, tag=''):
-        self.name = name
+        self.htype = None
+        self._name = name
         self.tag = tag
         self.legend = ''
         self.color = ROOT.kBlack
         self.style = None
         self.bin_values = None
-        self.bin_edges_dim1 = None
-        self.bin_edges_dim2 = None
-        self.root_variable_dim1 = ''
-        self.root_variable_dim2 = ''
-        self.np_variable_dim1 = ''
-        self.np_variable_dim2 = ''
-        self.root_cut = ''
-        self.npy_cut = None
+        self.dim1 = HistDim()
+        self.dim2 = HistDim()
+        self.cut = Cut('',None)
         self.root_hists = None
         self.root_2Dhist = None
         self.root_flat_hist = None
@@ -120,59 +184,104 @@ class hist_list:
         self.norm = 0.0
         return
 
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def nd1(self):
+        return self.dim1.length()
+
+    @property
+    def nd2(self):
+        return self.dim1.length()
+
+    @property
+    def root_cut(self):
+        return self.cut.root_cut
+
+    @root_cut.setter
+    def root_cut(self, root_cut):
+        self.cut.root_cut = root_cut
+
+    @property
+    def npy_cut(self):
+        return self.cut.npy_cut
+
+    @npy_cut.setter
+    def npy_cut(self, npy_cut):
+        self.cut.npy_cut = npy_cut
+
     def fill_root_hists_name(self):
-        for i in range(len(self.bin_edges_dim1) - 1):
-            self.root_hists_name.append(self.name + '_' + self.root_variable_dim1 + '_' + str(i + 1) + self.tag)
+        for i in range(self.dim1.length()):
+            self.root_hists_name.append(self.name + '_' + self.dim1.np_var + '_' + str(i + 1) + self.tag)
+
+    @property
+    def bin_edges_dim1(self):
+        return self.dim1.bin_edges
+
+    @property
+    def bin_edges_dim2(self):
+        return self.dim2.bin_edges
+
+    @property
+    def root_variable_dim1(self):
+        return self.dim1.root_var
+
+    @property
+    def root_variable_dim2(self):
+        return self.dim2.root_var
+
+    @property
+    def np_variable_dim1(self):
+        return self.dim1.np_variable
+
+    @property
+    def np_variable_dim2(self):
+        return self.dim2.np_variable
+
 
     def read_settings_from_config_dim1(self, config, isgen=False):
-        if isgen:
-            self.bin_edges_dim1 = config['binedgesgen']
-            self.root_variable_dim1 = config['gen']
-            self.np_variable_dim1 = config['gen_key']
-        else:
-            self.bin_edges_dim1 = config['binedgesreco']
-            self.root_variable_dim1 = config['reco']
-            self.np_variable_dim1 = config['reco_key']
+        self.dim1.from_config( config, isgen=isgen )
 
     def read_settings_from_config_dim2(self, config, isgen=False):
-        if isgen:
-            self.bin_edges_dim2 = [
-             config['binedgesgen']] * (len(self.bin_edges_dim1) - 1)
-            self.root_variable_dim2 = config['gen']
-            self.np_variable_dim2 = config['gen_key']
+        self.dim2.from_config( config, isgen=isgen, inner_dim=self.dim1 )
+
+    def fill_hist( self, event_info, from_root, weightarray=None, genWeight=''):
+        if from_root:
+            self.fill_hist_from_root( event_info, genWeight=genWeight)
         else:
-            self.bin_edges_dim2 = [
-             config['binedgesreco']] * (len(self.bin_edges_dim1) - 1)
-            self.root_variable_dim2 = config['reco']
-            self.np_variable_dim2 = config['reco_key']
+            self.fill_hist_from_npz( event_info, weightarray= weightarray, genWeight=genWeight )
 
     def fill_hist_from_root(self, tree, genWeight=''):
-        if len(self.bin_edges_dim1) - 1 != len(self.bin_edges_dim2):
-            raise ValueError(('bin_edges_dim1 (length {0}) and bin_edges_dim2 (length {1}) not compatible').format(len(self.bin_edges_dim1), len(self.bin_edges_dim2)))
-        if len(self.root_hists_name) != len(self.bin_edges_dim2):
+        if len(self.dim1.bin_edges) - 1 != len(self.dim2.bin_edges):
+            raise ValueError(('bin_edges_dim1 (length {0}) and bin_edges_dim2 (length {1}) not compatible').format(len(self.dim1.bin_edges), len(self.dim2.bin_edges)))
+        if len(self.root_hists_name) != len(self.dim2.bin_edges):
             raise ValueError('root_hists_name does not have the same length as bin_edges_dim2. Run fill_root_hists_name() first')
-        self.root_hists = [ ROOT.TH1F(hist_name, hist_name, len(self.bin_edges_dim2[ibin1]) - 1, np.array(self.bin_edges_dim2[ibin1])) for ibin1, hist_name in enumerate(self.root_hists_name) ]
+        self.root_hists = [ ROOT.TH1F(hist_name, hist_name, len(self.dim2.bin_edges[ibin1]) - 1, np.array(self.dim2.bin_edges[ibin1])) for ibin1, hist_name in enumerate(self.root_hists_name) ]
         string_weight = ''
         if genWeight != '':
             string_weight = '*' + genWeight
-        for ihist in range(len(self.bin_edges_dim1) - 1):
-            print self.root_cut + string_weight + ('*({var1}>={var1_low})*({var1}<{var1_high})').format(var1=self.root_variable_dim1, var1_low=self.bin_edges_dim1[ihist], var1_high=self.bin_edges_dim1[ihist + 1])
-            print tree.GetEntries(self.root_cut + string_weight + ('*({var1}>={var1_low})*({var1}<{var1_high})').format(var1=self.root_variable_dim1, var1_low=self.bin_edges_dim1[ihist], var1_high=self.bin_edges_dim1[ihist + 1]))
-            tree.Draw(self.root_variable_dim2 + '>>' + self.root_hists_name[ihist], self.root_cut + string_weight + ('*({var1}>={var1_low})*({var1}<{var1_high})').format(var1=self.root_variable_dim1, var1_low=self.bin_edges_dim1[ihist], var1_high=self.bin_edges_dim1[ihist + 1]))
+        base_cut_str = self.root_cut + string_weight
+        for ihist in range(len(self.dim1.bin_edges) - 1):
+            cut_str = base_cut_str + ('*({var1}>={var1_low})*({var1}<{var1_high})').format(var1=self.dim1.root_var, var1_low=self.dim1.bin_edges[ihist], var1_high=self.dim1.bin_edges[ihist + 1])
+            print cut_str
+            print tree.GetEntries(cut_str)
+            tree.Draw(self.dim2.root_var + '>>' + self.root_hists_name[ihist], cut_str)
             self.bin_sum.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin + 1) for ibin in range(self.root_hists[ihist].GetNbinsX()) ]))
             self.bin_norm.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin) for ibin in range(self.root_hists[ihist].GetNbinsX() + 2) ]))
 
-        self.dim1_underflow = tree.GetEntries(self.root_cut + string_weight + ('*({var1}<{var1_low})').format(var1=self.root_variable_dim1, var1_low=self.bin_edges_dim1[0]))
-        self.dim1_overflow = tree.GetEntries(self.root_cut + string_weight + ('*({var1}>={var1_high})').format(var1=self.root_variable_dim1, var1_high=self.bin_edges_dim1[len(self.bin_edges_dim1) - 1]))
+        self.dim1_underflow = tree.GetEntries(base_cut_str + ('*({var1}<{var1_low})').format(var1=self.dim1.root_var, var1_low=self.dim1.bin_edges[0]))
+        self.dim1_overflow = tree.GetEntries(base_cut_str + ('*({var1}>={var1_high})').format(var1=self.dim1.root_var, var1_high=self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]))
         self.total = np.sum(self.bin_sum)
         self.norm = np.sum(self.bin_norm) + self.dim1_overflow + self.dim1_underflow
 
     def fill_hist_from_npz(self, files, weightarray=None, genWeight=''):
-        if len(self.bin_edges_dim1) - 1 != len(self.bin_edges_dim2):
-            raise ValueError(('bin_edges_dim1 (length {0}) and bin_edges_dim2 (length {1}) not compatible').format(len(self.bin_edges_dim1), len(self.bin_edges_dim2)))
-        if len(self.root_hists_name) != len(self.bin_edges_dim2):
+        if len(self.dim1.bin_edges) - 1 != len(self.dim2.bin_edges):
+            raise ValueError(('bin_edges_dim1 (length {0}) and bin_edges_dim2 (length {1}) not compatible').format(len(self.dim1.bin_edges), len(self.dim2.bin_edges)))
+        if len(self.root_hists_name) != len(self.dim2.bin_edges):
             raise ValueError('root_hists_name does not have the same length as bin_edges_dim2. Run fill_root_hists_name() first')
-        self.root_hists = [ ROOT.TH1F(hist_name, hist_name, len(self.bin_edges_dim2[ibin1]) - 1, np.array(self.bin_edges_dim2[ibin1])) for ibin1, hist_name in enumerate(self.root_hists_name) ]
+        self.root_hists = [ ROOT.TH1F(hist_name, hist_name, len(self.dim2.bin_edges[ibin1]) - 1, np.array(self.dim2.bin_edges[ibin1])) for ibin1, hist_name in enumerate(self.root_hists_name) ]
         if isinstance(files, list):
             f_list = [ np.load(str(file_one), allow_pickle=True) for file_one in files ]
             obs_arrays = {}
@@ -193,20 +302,41 @@ class hist_list:
         else:
             weight = weightarray
         filter_cut = filter_np_cut(obs_arrays, self.npy_cut)
-        for ihist in range(len(self.bin_edges_dim1) - 1):
-            for ibin in range(self.root_hists[ihist].GetNbinsX()):
-                self.root_hists[ihist].SetBinContent(ibin + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[ihist][ibin]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[ihist][ibin + 1])]))
-                self.root_hists[ihist].SetBinError(ibin + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[ihist][ibin]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[ihist][ibin + 1])]))))
+        inf_weight_mask = np.isinf(weight) != True
 
-            self.root_hists[ihist].SetBinContent(0, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[ihist][0])]))
-            self.root_hists[ihist].SetBinError(0, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[ihist][0])]))))
-            self.root_hists[ihist].SetBinContent(self.root_hists[ihist].GetNbinsX() + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[ihist][len(self.bin_edges_dim2[ihist]) - 1])]))
-            self.root_hists[ihist].SetBinError(self.root_hists[ihist].GetNbinsX() + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[ihist][len(self.bin_edges_dim2[ihist]) - 1])]))))
+        for ihist in range(len(self.dim1.bin_edges) - 1):
+            bind1_low_cut = obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]
+            bind1_high_cut = obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist+1]
+            bd1_cut = bind1_low_cut & bind1_high_cut
+            d1_cut = inf_weight_mask & bd1_cut
+
+            for ibin in range(self.root_hists[ihist].GetNbinsX()):
+                bind2_low_cut = obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[ihist][ibin]
+                bind2_high_cut = obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[ihist][ibin+1]
+                bd2_cut = bind2_low_cut & bind2_high_cut
+
+                full_sel = d1_cut & bd2_cut
+
+                self.root_hists[ihist].SetBinContent(ibin + 1, np.sum(weight[full_sel]) )
+                self.root_hists[ihist].SetBinError( ibin + 1, np.sqrt(np.sum(np.square(weight[full_sel]))) )
+
+            d2_undfl_cut = obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[ihist][0]
+            full_sel = d1_cut & d2_undfl_cut
+
+            self.root_hists[ihist].SetBinContent(0, np.sum(weight[full_sel]) )
+            self.root_hists[ihist].SetBinContent(0, np.sqrt(np.sum(np.square(weight[full_sel]))) )
+
+            d2_ovfl_cut = obs_arrays[self.dim2.np_var ] > self.dim2.bin_edges[ihist][-1]
+            full_sel = d1_cut & d2_ovfl_cut
+
+            self.root_hists[ihist].SetBinContent(self.root_hists[ihist].GetNbinsX() + 1, np.sum(weight[full_sel]) )
+            self.root_hists[ihist].SetBinError(self.root_hists[ihist].GetNbinsX() + 1, np.sqrt(np.sum(np.square(weight[full_sel]) )))
+
             self.bin_sum.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin + 1) for ibin in range(self.root_hists[ihist].GetNbinsX()) ]))
             self.bin_norm.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin) for ibin in range(self.root_hists[ihist].GetNbinsX() + 2) ]))
 
-        self.dim1_underflow = np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[0])])
-        self.dim1_overflow = np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[len(self.bin_edges_dim1) - 1])])
+        self.dim1_underflow = np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0])])
+        self.dim1_overflow = np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1])])
         self.total = np.sum(self.bin_sum)
         self.norm = np.sum(weight[(np.isinf(weight) != True) & filter_cut])
         return
@@ -236,14 +366,20 @@ class hist_list:
                 self.root_flat_hist.SetBinError(ibin_merge + 1, Hist.GetBinError(ibin + 1))
                 ibin_merge += 1
 
+    def fill_2Dhist(self, event_data, from_root, hist_name=None, weightarray=None, genWeight=''):
+        if from_root:
+            self.fill_2Dhist_from_root( event_data, hist_name=hist_name, genWeight=genWeight )
+        else:
+            self.fill_2Dhist_from_npz( event_data, hist_name=hist_name, weightarray=weightarray, genWeight=genWeight)
+
     def fill_2Dhist_from_root(self, tree, hist_name=None, genWeight=''):
         if hist_name is None:
             hist_name = self.name
-        self.root_2Dhist = ROOT.TH2F(hist_name, hist_name, len(self.bin_edges_dim1) - 1, np.array(self.bin_edges_dim1), len(self.bin_edges_dim2[0]) - 1, np.array(self.bin_edges_dim2[0]))
+        self.root_2Dhist = ROOT.TH2F(hist_name, hist_name, len(self.dim1.bin_edges) - 1, np.array(self.dim1.bin_edges), len(self.dim2.bin_edges[0]) - 1, np.array(self.dim2.bin_edges[0]))
         string_weight = ''
         if genWeight != '':
             string_weight = '*' + genWeight
-        tree.Draw(self.root_variable_dim2 + ':' + self.root_variable_dim1 + '>>' + hist_name, self.root_cut + string_weight, 'colzgoff')
+        tree.Draw(self.dim2.root_var + ':' + self.dim1.root_var + '>>' + hist_name, self.root_cut + string_weight, 'colzgoff')
         self.bin_sum = [ np.sum([ self.root_2Dhist.GetBinContent(ibin1, ibin2) for ibin2 in range(1, self.root_2Dhist.GetNbinsY() + 1) ]) for ibin1 in range(1, self.root_2Dhist.GetNbinsX() + 1) ]
         self.bin_norm = [ np.sum([ self.root_2Dhist.GetBinContent(ibin1, ibin2) for ibin2 in range(self.root_2Dhist.GetNbinsY() + 2) ]) for ibin1 in range(1, self.root_2Dhist.GetNbinsX() + 1) ]
         self.dim1_underflow = np.sum([ self.root_2Dhist.GetBinContent(0, ibin2) for ibin2 in range(self.root_2Dhist.GetNbinsY() + 2) ])
@@ -255,7 +391,7 @@ class hist_list:
     def fill_2Dhist_from_npz(self, files, hist_name=None, weightarray=None, genWeight=''):
         if hist_name is None:
             hist_name = self.name
-        self.root_2Dhist = ROOT.TH2F(hist_name, hist_name, len(self.bin_edges_dim1) - 1, np.array(self.bin_edges_dim1), len(self.bin_edges_dim2[0]) - 1, np.array(self.bin_edges_dim2[0]))
+        self.root_2Dhist = ROOT.TH2F(hist_name, hist_name, len(self.dim1.bin_edges) - 1, np.array(self.dim1.bin_edges), len(self.dim2.bin_edges[0]) - 1, np.array(self.dim2.bin_edges[0]))
         if isinstance(files, list):
             f_list = [ np.load(str(file_one), allow_pickle=True) for file_one in files ]
             obs_arrays = {}
@@ -276,42 +412,61 @@ class hist_list:
         else:
             weight = weightarray
         filter_cut = filter_np_cut(obs_arrays, self.npy_cut)
+        base_cut = (~(np.isinf(weight)) & filter_cut )
         for ihist in range(self.root_2Dhist.GetNbinsX()):
+            ihist_cut = (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]) & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist + 1]) 
             for ibin in range(self.root_2Dhist.GetNbinsY()):
-                self.root_2Dhist.SetBinContent(ihist + 1, ibin + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[ihist][ibin]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[ihist][ibin + 1])]))
-                self.root_2Dhist.SetBinError(ihist + 1, ibin + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[ihist][ibin]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[ihist][ibin + 1])]))))
+                wgts = weight[base_cut & ihist_cut & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[ihist][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[ihist][ibin + 1])]
+                self.root_2Dhist.SetBinContent(ihist + 1, ibin + 1, np.sum(wgts) )
+                self.root_2Dhist.SetBinError(ihist + 1, ibin + 1, np.sqrt(np.sum(np.square(wgts))) )
 
-            self.root_2Dhist.SetBinContent(ihist + 1, 0, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[ihist][0])]))
-            self.root_2Dhist.SetBinError(ihist + 1, 0, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[ihist][0])]))))
-            self.root_2Dhist.SetBinContent(ihist + 1, self.root_2Dhist.GetNbinsY() + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[ihist][len(self.bin_edges_dim2[ihist]) - 1])]))
-            self.root_2Dhist.SetBinError(ihist + 1, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[ihist]) & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[ihist + 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[ihist][len(self.bin_edges_dim2[ihist]) - 1])]))))
+            wgts = weight[ base_cut &  ihist_cut & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[ihist][0])]
+            self.root_2Dhist.SetBinContent(ihist + 1, 0, np.sum(wgts) )
+            self.root_2Dhist.SetBinError(ihist + 1, 0, np.sqrt(np.sum(np.square(wgts))) )
+
+            wgts = weight[ base_cut & ihist_cut & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[ihist][len(self.dim2.bin_edges[ihist]) - 1])]
+            self.root_2Dhist.SetBinContent(ihist + 1, self.root_2Dhist.GetNbinsY() + 1, np.sum(wgts) )
+            self.root_2Dhist.SetBinError(ihist + 1, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(wgts))) )
+
             self.bin_sum.append(np.sum([ self.root_2Dhist.GetBinContent(ihist + 1, ibin + 1) for ibin in range(self.root_2Dhist.GetNbinsX()) ]))
             self.bin_norm.append(np.sum([ self.root_2Dhist.GetBinContent(ihist + 1, ibin) for ibin in range(self.root_2Dhist.GetNbinsX() + 2) ]))
 
         for ibin in range(self.root_2Dhist.GetNbinsY()):
-            self.root_2Dhist.SetBinContent(0, ibin + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[0]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[0][ibin]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[0][ibin + 1])]))
-            self.root_2Dhist.SetBinError(0, ibin + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[0]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[0][ibin]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[0][ibin + 1])]))))
-            self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, ibin + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[len(self.bin_edges_dim1) - 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[0][ibin]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[0][ibin + 1])]))
-            self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, ibin + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[len(self.bin_edges_dim1) - 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[0][ibin]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[0][ibin + 1])]))))
+            wgts = weight[ base_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][ibin + 1])]
+            self.root_2Dhist.SetBinContent(0, ibin + 1, np.sum(wgts) )
+            self.root_2Dhist.SetBinError(0, ibin + 1, np.sqrt(np.sum(np.square(wgts)) ) )
 
-        self.root_2Dhist.SetBinContent(0, 0, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[0]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[0][0])]))
-        self.root_2Dhist.SetBinError(0, 0, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[0]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[0][0])]))))
-        self.root_2Dhist.SetBinContent(0, self.root_2Dhist.GetNbinsY() + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[0]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[0][len(self.bin_edges_dim2[0]) - 1])]))
-        self.root_2Dhist.SetBinError(0, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[0]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[0][len(self.bin_edges_dim2[0]) - 1])]))))
-        self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, 0, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[len(self.bin_edges_dim1) - 1]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[0][0])]))
-        self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, 0, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[len(self.bin_edges_dim1) - 1]) & (obs_arrays[self.np_variable_dim2] < self.bin_edges_dim2[0][0])]))))
-        self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, self.root_2Dhist.GetNbinsY() + 1, np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[len(self.bin_edges_dim1) - 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[0][len(self.bin_edges_dim2[0]) - 1])]))
-        self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[len(self.bin_edges_dim1) - 1]) & (obs_arrays[self.np_variable_dim2] >= self.bin_edges_dim2[0][len(self.bin_edges_dim2[0]) - 1])]))))
-        self.dim1_underflow = np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] < self.bin_edges_dim1[0])])
-        self.dim1_overflow = np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.np_variable_dim1] >= self.bin_edges_dim1[len(self.bin_edges_dim1) - 1])])
+            wgts = weight[ base_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][ibin + 1])] 
+            self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, ibin + 1, np.sum(wgts) )
+            self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, ibin + 1, np.sqrt(np.sum(np.square(wgts))) )
+
+        wgts = weight[ base_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][0])]
+        self.root_2Dhist.SetBinContent(0, 0, np.sum(wgts) )
+        self.root_2Dhist.SetBinError(0, 0, np.sqrt(np.sum(np.square(wgts) ) ) )
+
+        wgts = weight[base_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][len(self.dim2.bin_edges[0]) - 1])]
+        self.root_2Dhist.SetBinContent(0, self.root_2Dhist.GetNbinsY() + 1, np.sum(wgts) )
+        self.root_2Dhist.SetBinError(0, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(wgts))) )
+
+        wgts = weight[base_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] < self.dim2.bin_edges[0][0])]
+        self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, 0, np.sum(wgts) )
+        self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, 0, np.sqrt(np.sum(np.square(wgts))) )
+
+        wgts = weight[base_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][len(self.dim2.bin_edges[0]) - 1])]
+        
+        self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, self.root_2Dhist.GetNbinsY() + 1, np.sum(wgts) )
+        self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(wgts))) )
+
+        self.dim1_underflow = np.sum(weight[base_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0])])
+        self.dim1_overflow = np.sum(weight[base_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1])])
         self.total = np.sum(self.bin_sum)
         self.norm = np.sum(weight[(np.isinf(weight) != True) & filter_cut])
         return
 
     def get_hist_from_division(self, hist_list_1, hist_list_2):
         if self.root_hists is None:
-            self.root_hists = [ ROOT.TH1F(hist_name, hist_name, len(self.bin_edges_dim2[ibin1]) - 1, np.array(self.bin_edges_dim2[ibin1])) for ibin1, hist_name in enumerate(self.root_hists_name) ]
-        for ihist in range(len(self.bin_edges_dim1) - 1):
+            self.root_hists = [ ROOT.TH1F(hist_name, hist_name, len(self.dim2.bin_edges[ibin1]) - 1, np.array(self.dim2.bin_edges[ibin1])) for ibin1, hist_name in enumerate(self.root_hists_name) ]
+        for ihist in range(len(self.dim1.bin_edges) - 1):
             for ibin in range(self.root_hists[ihist].GetNbinsX() + 2):
                 bin_value_hist1 = hist_list_1.root_hists[ihist].GetBinContent(ibin)
                 bin_error_hist1 = hist_list_1.root_hists[ihist].GetBinError(ibin)
@@ -332,8 +487,8 @@ class hist_list:
 
     def get_hist_from_multiplication(self, hist1, hist2):
         if self.root_hists is None:
-            self.root_hists = [ ROOT.TH1F(hist_name, hist_name, len(self.bin_edges_dim2) - 1, np.array(self.bin_edges_dim2[ibin1])) for ibin1, hist_name in enumerate(self.root_hists_name) ]
-        for ihist in range(len(self.bin_edges_dim1) - 1):
+            self.root_hists = [ ROOT.TH1F(hist_name, hist_name, len(self.dim2.bin_edges) - 1, np.array(self.dim2.bin_edges[ibin1])) for ibin1, hist_name in enumerate(self.root_hists_name) ]
+        for ihist in range(len(self.dim1.bin_edges) - 1):
             for ibin in range(self.root_hists[ihist].GetNbinsX() + 2):
                 bin_value_hist1 = hist_list_1.root_hists[ihist].GetBinContent(ibin)
                 bin_error_hist1 = hist_list_1.root_hists[ihist].GetBinError(ibin)
@@ -436,3 +591,7 @@ class hist_list:
 
     def write_2Dhist(self):
         self.root_2Dhist.Write()
+
+    def write_all(self):
+        self.write_2Dhist()
+        self.write_hist_list()
