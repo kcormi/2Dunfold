@@ -43,15 +43,15 @@ def GetRefoldIter(File):
   names=[key.GetName() for key in File.GetListOfKeys() if ("HistRecoInclusive_MC" in key.GetName() and "iter" in key.GetName())]
   #extract heads and remove duplicates
   heads=list(dict.fromkeys([name.split("iter")[0] for name in names]))
-  print heads
+  print(heads)
   heads_sort=sorted(heads,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])
-  print heads_sort
+  print(heads_sort)
   if any("iter0" in s for s in names):
     start_iter=0
   else:
     start_iter=1
   names_rank=[[head+"iter"+str(i) for head in heads_sort] for i in range(start_iter,len(names)/len(heads_sort)+start_iter)]
-  print names_rank
+  print(names_rank)
   names_data=[key.GetName() for key in File.GetListOfKeys() if "HistRecoInclusive_Pseudodata" in key.GetName()]
   if len(names_data)>0:
     names_data_sort=sorted(names_data,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])

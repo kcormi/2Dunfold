@@ -49,9 +49,9 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
 
   for _, hist in hists.items():
     hist.fill_root_hists_name()
-    print "histograms:", hist.root_hists_name
+    print("histograms:", hist.root_hists_name)
     hist.fill_hist(source, from_root, weightarray=weight_array,genWeight=genWeight)
-  print "filled"
+  print("filled")
 
   mig = None
   if store_mig:
@@ -81,7 +81,7 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
 
         mig[i][j].fill_2Dhist(source, from_root=from_root, weightarray=weight_array, genWeight=genWeight)
         mig[i][j].binwise_normalize_2Dhist()
-        print "filled histogram:",mig[i][j].name
+        print("filled histogram:",mig[i][j].name)
 
   hists["mig"] = mig
   return hists
@@ -217,7 +217,7 @@ if __name__=="__main__":
             hist.multiply(mc_norm_factor)
 
     if not os.path.exists(config[args.method]["weight"]):
-      print "Cannot find weight file ",config[args.method]["weight"]
+      print("Cannot find weight file ",config[args.method]["weight"])
       exit(0)
 
     weights=np.load(config[args.method]["weight"],allow_pickle=True)
@@ -225,9 +225,9 @@ if __name__=="__main__":
 
     fout = ROOT.TFile(config["outputdir"]+"/unfold_"+config["var1"]+"_"+config["var2"]+"_"+config["MCtag"]+"_optimize_"+args.method+("_step1" if args.step1 else "")+".root","recreate")
 
-    niter = len(weights)/weights_per_iter
+    niter = len(weights)//weights_per_iter
     for i in range(0,niter+1):
-      offset = weights_per_iter / 2 if (args.step1 and i > 0 ) else 0
+      offset = weights_per_iter // 2 if (args.step1 and i > 0 ) else 0
       weight_iter = weights[weights_per_iter*i - offset ]
       store_mig = i in args.migiter
 
