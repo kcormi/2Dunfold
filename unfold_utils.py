@@ -379,7 +379,7 @@ class hist_list:
         string_weight = ''
         if genWeight != '':
             string_weight = '*' + genWeight
-        tree.Draw(self.dim2.np_var + ':' + self.dim1.np_var + '>>' + hist_name, self.root_cut + string_weight, 'colzgoff')
+        tree.Draw(self.dim2.root_var + ':' + self.dim1.root_var + '>>' + hist_name, self.root_cut + string_weight, 'colzgoff')
         self.bin_sum = [ np.sum([ self.root_2Dhist.GetBinContent(ibin1, ibin2) for ibin2 in range(1, self.root_2Dhist.GetNbinsY() + 1) ]) for ibin1 in range(1, self.root_2Dhist.GetNbinsX() + 1) ]
         self.bin_norm = [ np.sum([ self.root_2Dhist.GetBinContent(ibin1, ibin2) for ibin2 in range(self.root_2Dhist.GetNbinsY() + 2) ]) for ibin1 in range(1, self.root_2Dhist.GetNbinsX() + 1) ]
         self.dim1_underflow = np.sum([ self.root_2Dhist.GetBinContent(0, ibin2) for ibin2 in range(self.root_2Dhist.GetNbinsY() + 2) ])
