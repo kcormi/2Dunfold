@@ -293,7 +293,7 @@ class hist_list:
         if isinstance(files, list):
             f_list = [ np.load(str(file_one), allow_pickle=True) for file_one in files ]
             obs_arrays = {}
-            for key in f_list[0].keys():
+            for key in list(f_list[0].keys()):
                 if key != 'tracks' and key != 'charged':
                     obs_arrays[key] = np.concatenate([ f[key] for f in f_list ], axis=0)
 
@@ -403,7 +403,7 @@ class hist_list:
         if isinstance(files, list):
             f_list = [ np.load(str(file_one), allow_pickle=True) for file_one in files ]
             obs_arrays = {}
-            for key in f_list[0].keys():
+            for key in list(f_list[0].keys()):
                 if key != 'tracks' and key != 'charged':
                     obs_arrays[key] = np.concatenate([ f[key] for f in f_list ], axis=0)
 
