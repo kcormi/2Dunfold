@@ -220,9 +220,17 @@ class hist_list:
     def bin_edges_dim1(self):
         return self.dim1.bin_edges
 
+    @bin_edges_dim1.setter
+    def bin_edges_dim1(self, edges):
+        self.dim1.bin_edges = edges
+
     @property
     def bin_edges_dim2(self):
         return self.dim2.bin_edges
+
+    @bin_edges_dim2.setter
+    def bin_edges_dim2(self, edges):
+        self.dim2.bin_edges = edges
 
     @property
     def root_variable_dim1(self):
@@ -265,8 +273,8 @@ class hist_list:
         base_cut_str = self.root_cut + string_weight
         for ihist in range(len(self.dim1.bin_edges) - 1):
             cut_str = base_cut_str + ('*({var1}>={var1_low})*({var1}<{var1_high})').format(var1=self.dim1.root_var, var1_low=self.dim1.bin_edges[ihist], var1_high=self.dim1.bin_edges[ihist + 1])
-            print cut_str
-            print tree.GetEntries(cut_str)
+            print(cut_str)
+            print(tree.GetEntries(cut_str))
             tree.Draw(self.dim2.root_var + '>>' + self.root_hists_name[ihist], cut_str)
             self.bin_sum.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin + 1) for ibin in range(self.root_hists[ihist].GetNbinsX()) ]))
             self.bin_norm.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin) for ibin in range(self.root_hists[ihist].GetNbinsX() + 2) ]))
@@ -297,7 +305,7 @@ class hist_list:
             if genWeight in obs_arrays.keys():
                 weight = weightarray * obs_arrays[genWeight]
             else:
-                print genWeight, 'is not a key in ', files, ', skip it'
+                print(genWeight, 'is not a key in ', files, ', skip it')
                 weight = weightarray
         else:
             weight = weightarray
@@ -407,7 +415,7 @@ class hist_list:
             if genWeight in obs_arrays.keys():
                 weight = weightarray * obs_arrays[genWeight]
             else:
-                print genWeight, 'is not a key in ', files, ', skip it'
+                print(genWeight, 'is not a key in ', files, ', skip it')
                 weight = weightarray
         else:
             weight = weightarray
