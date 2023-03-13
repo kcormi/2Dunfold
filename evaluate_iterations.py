@@ -47,7 +47,7 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
     reco_passgen.cut = cuts[CutType.PassReco_PassGen]
     hists["reco_passgen"] = reco_passgen
 
-  for _, hist in list(hists.items()):
+  for _, hist in hists.items():
     hist.fill_root_hists_name()
     print("histograms:", hist.root_hists_name)
     hist.fill_hist(source, from_root, weightarray=weight_array,genWeight=genWeight)
