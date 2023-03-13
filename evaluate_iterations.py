@@ -47,11 +47,11 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
     reco_passgen.cut = cuts[CutType.PassReco_PassGen]
     hists["reco_passgen"] = reco_passgen
 
-  for _, hist in hists.items():
+  for _, hist in list(hists.items()):
     hist.fill_root_hists_name()
-    print "histograms:", hist.root_hists_name
+    print("histograms:", hist.root_hists_name)
     hist.fill_hist(source, from_root, weightarray=weight_array,genWeight=genWeight)
-  print "filled"
+  print("filled")
 
   mig = None
   if store_mig:
@@ -81,14 +81,14 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
 
         mig[i][j].fill_2Dhist(source, from_root=from_root, weightarray=weight_array, genWeight=genWeight)
         mig[i][j].binwise_normalize_2Dhist()
-        print "filled histogram:",mig[i][j].name
+        print("filled histogram:",mig[i][j].name)
 
   hists["mig"] = mig
   return hists
 
 def get_sys_variations( config ):
     tree_sys_list = []
-    for sys in config["inputfilesim_sys"].keys():
+    for sys in list(config["inputfilesim_sys"].keys()):
       for vari in ["up", "down"]:
         fin_sys_vari = ROOT.TFile(config["inputfilesim_sys"][sys][vari])
         default = fin_sys_vari.Get("ntuplizer/tree")
@@ -120,7 +120,7 @@ def get_bin_edges( conf, v1_dct, v2_dct, trees):
 
 
 def write_all_hists( hist_dict ):
-    for key, hist in hist_dict.items():
+    for key, hist in list(hist_dict.items()):
         if hist == None:
             continue
 
@@ -155,13 +155,13 @@ if __name__=="__main__":
     fin = ROOT.TFile(config["inputfilesim"],"READ")
     tree = fin.Get("ntuplizer/tree") if fin.Get("ntuplizer/tree") else fin.Get("tree")
 
-    weightname=config["reweight"] if ("reweight" in config.keys() and config["reweight"]!="") else "genWeight"
+    weightname=config["reweight"] if ("reweight" in list(config.keys()) and config["reweight"]!="") else "genWeight"
 
     tree_sys_list=[]
     if config["addsys"]:
         tree_syst_list = get_sys_variations( config )
 
-    FineBin = ("binedgesreco" in var1_dct.keys()) and ("binedgesreco" in var2_dct.keys())
+    FineBin = ("binedgesreco" in list(var1_dct.keys())) and ("binedgesreco" in list(var2_dct.keys()))
 
     all_trees = [tree] + tree_sys_list
     bin_edges_reco, bin_edges_gen = get_bin_edges( config, var1_dct, var2_dct, all_trees)
@@ -212,12 +212,12 @@ if __name__=="__main__":
     normalization_hist = pseudo_hists["reco_inclusive"] if config["pseudodata"] else data_hists["reco_inclusive"]
     mc_norm_factor = normalization_hist.norm / mc_hists["reco_inclusive"].norm
 
-    for key, hist in mc_hists.items():
+    for key, hist in list(mc_hists.items()):
         if not (key == 'mig'):
             hist.multiply(mc_norm_factor)
 
     if not os.path.exists(config[args.method]["weight"]):
-      print "Cannot find weight file ",config[args.method]["weight"]
+      print("Cannot find weight file ",config[args.method]["weight"])
       exit(0)
 
     weights=np.load(config[args.method]["weight"],allow_pickle=True)
