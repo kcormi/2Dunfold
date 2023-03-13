@@ -70,16 +70,16 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
         mig[i][j].read_settings_from_config_dim2(var2_config,isgen=False)
 
         gen_cuts_root = " ({}>={}) * ({}<{}) ".format(var1_config["gen"], edge_i, var1_config["gen"], edge_ip1)
-        reco_cuts_root = " ({}>={}) * ({}<{}) ".format(var1_config["reco"], edge_j, var1_config["gen"], edge_jp1)
+        reco_cuts_root = " ({}>={}) * ({}<{}) ".format(var1_config["reco"], edge_j, var1_config["reco"], edge_jp1)
         all_cuts_root = root_cuts[CutType.PassReco_PassGen] + "*" + gen_cuts_root + "*" + reco_cuts_root
         mig[i][j].root_cut = all_cuts_root
 
         gen_cuts_np = [[var1_config["gen_key"],">=",str(edge_i)], [var1_config["gen_key"],"<",str(edge_ip1)]]
         reco_cuts_np = [[var1_config["reco_key"], ">=", str(edge_j)], [var1_config["reco_key"],"<",str(edge_jp1)]]
         all_cuts_np = np_cuts[CutType.PassReco_PassGen] + gen_cuts_np + reco_cuts_np
-        mig[i][j].py_cut = all_cuts_np
+        mig[i][j].npy_cut = all_cuts_np
 
-        mig[i][j].fill_2Dhist(source, from_root=from_root, weightarray=weight_array,genWeight=genWeight)
+        mig[i][j].fill_2Dhist(source, from_root=from_root, weightarray=weight_array, genWeight=genWeight)
         mig[i][j].binwise_normalize_2Dhist()
         print "filled histogram:",mig[i][j].name
 
