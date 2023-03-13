@@ -96,7 +96,7 @@ if __name__=="__main__":
         config = json.load(configjson)
     with open(config["varunfold"], 'r') as fjson:
         info_var = json.load(fjson)
-    FineBin = "binedgesreco" in list(info_var[config["var1"]].keys()) and "binedgesreco" in list(info_var[config["var2"]].keys())
+    FineBin = "binedgesreco" in info_var[config["var1"]].keys() and "binedgesreco" in info_var[config["var2"]].keys()
     TextListReco=[]
     TextListGen=[]
     if FineBin:

@@ -88,7 +88,7 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
 
 def get_sys_variations( config ):
     tree_sys_list = []
-    for sys in list(config["inputfilesim_sys"].keys()):
+    for sys in config["inputfilesim_sys"].keys():
       for vari in ["up", "down"]:
         fin_sys_vari = ROOT.TFile(config["inputfilesim_sys"][sys][vari])
         default = fin_sys_vari.Get("ntuplizer/tree")
@@ -120,7 +120,7 @@ def get_bin_edges( conf, v1_dct, v2_dct, trees):
 
 
 def write_all_hists( hist_dict ):
-    for key, hist in list(hist_dict.items()):
+    for key, hist in hist_dict.items():
         if hist == None:
             continue
 
@@ -155,13 +155,13 @@ if __name__=="__main__":
     fin = ROOT.TFile(config["inputfilesim"],"READ")
     tree = fin.Get("ntuplizer/tree") if fin.Get("ntuplizer/tree") else fin.Get("tree")
 
-    weightname=config["reweight"] if ("reweight" in list(config.keys()) and config["reweight"]!="") else "genWeight"
+    weightname=config["reweight"] if ("reweight" in config.keys() and config["reweight"]!="") else "genWeight"
 
     tree_sys_list=[]
     if config["addsys"]:
         tree_syst_list = get_sys_variations( config )
 
-    FineBin = ("binedgesreco" in list(var1_dct.keys())) and ("binedgesreco" in list(var2_dct.keys()))
+    FineBin = ("binedgesreco" in var1_dct.keys()) and ("binedgesreco" in var2_dct.keys())
 
     all_trees = [tree] + tree_sys_list
     bin_edges_reco, bin_edges_gen = get_bin_edges( config, var1_dct, var2_dct, all_trees)
@@ -212,7 +212,7 @@ if __name__=="__main__":
     normalization_hist = pseudo_hists["reco_inclusive"] if config["pseudodata"] else data_hists["reco_inclusive"]
     mc_norm_factor = normalization_hist.norm / mc_hists["reco_inclusive"].norm
 
-    for key, hist in list(mc_hists.items()):
+    for key, hist in mc_hists.items():
         if not (key == 'mig'):
             hist.multiply(mc_norm_factor)
 
@@ -225,9 +225,9 @@ if __name__=="__main__":
 
     fout = ROOT.TFile(config["outputdir"]+"/unfold_"+config["var1"]+"_"+config["var2"]+"_"+config["MCtag"]+"_optimize_"+args.method+("_step1" if args.step1 else "")+".root","recreate")
 
-    niter = len(weights)/weights_per_iter
+    niter = len(weights)//weights_per_iter
     for i in range(0,niter+1):
-      offset = weights_per_iter / 2 if (args.step1 and i > 0 ) else 0
+      offset = weights_per_iter // 2 if (args.step1 and i > 0 ) else 0
       weight_iter = weights[weights_per_iter*i - offset ]
       store_mig = i in args.migiter
 
