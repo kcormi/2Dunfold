@@ -25,6 +25,45 @@ import matplotlib.pyplot as plt
 from plot_utils import *
 from unfold_utils import *
 
+from dataclasses import dataclass, field, asdict
+
+@dataclass
+class ResultPlotSettings:
+    '''A class which keeps track of plot settings for different result types'''
+    color: int
+    legend: str
+    tag: str
+    sys_reweight: bool = field(init=False)
+    color_unfold: int
+
+    @property
+    def legend_refold(self):
+        return f'{self.legend} refold' if not self.sys_reweight else f'{self.legend} reweight'
+
+    @property
+    def legend_unfold(self):
+        return f'{self.legend} unfold' if not self.sys_reweight else f'{self.legend} reweight'
+    
+default_rps = ResultPlotSettings( color =4, color_unfold =6, tag="MLE", legend="MLE")
+omnifold_rps = ResultPlotSettings( color=608, color_unfold=6, tag="omnifold", legend="omnifold")
+multifold_rps = ResultPlotSettings( color=812, color_unfold=8, tag="multifold", legend="multifold")
+unifold_rps = ResultPlotSettings( color=46, color_unfold=2, tag="unifold", legend="unifold")
+
+@dataclass
+class HistConfig:
+    hist: hist_list
+    stat: int
+    color: int
+    style: str
+    legend: str
+
+@dataclass
+class PlotList:
+    ref: HistConfig
+    compare: list[HistConfig]
+    name: str
+    ratio: str
+
 def GOF(HistList1,HistList2):
   assert len(HistList1) == len(HistList2)
   wchi2 = 0.
@@ -94,6 +133,20 @@ def GetPseudoDataTruth(File):
     names_sort = sorted(names,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])
   return names_sort
 
+def make_iter_hist( folding, unc, names):
+    hist = rt.TH1F(f'{folding}_chi2_{unc}', f'{folding} #chi^{2}/n.d.o.f', len(names), 0, len(names) )
+    hist.GetXaxis().SetTitle("iterations")
+    hist.GetYaxis().SetTitle('#chi^{2}/n.d.o.f')
+    return hist
+
+def prepare_histlist( list_name, hist_name, hist_file):
+    hlist = hist_list(list_name)
+    hlist.root_hists_name = hist_name
+    hlist.read_hist_from_file(hist_file)
+    hlist.divide_by_bin_width()
+    hlist.flatten_hist()
+
+    return hlist
 
 if __name__=="__main__":
 
@@ -126,102 +179,54 @@ if __name__=="__main__":
 
     f = rt.TFile(args.input,"READ")
 
-    names_refold,name_data,name_MCreco = GetRefoldIter(f)
-    names_unfold,name_MC = GetUnfoldIter(f)
-    names_psedodata_truth = GetPseudoDataTruth(f)
+    names_refold, name_data, name_MCreco = GetRefoldIter(f)
+    names_unfold, name_MC = GetUnfoldIter(f)
+    names_pseudodata_truth = GetPseudoDataTruth(f)
 
     fout = rt.TFile(args.output,"RECREATE")
 
-    hist_chi2_iter_dataMCunc = rt.TH1F("Refold_chi2_dataMCunc","Refold #chi^{2}/n.d.o.f",len(names_refold),0,len(names_refold))
-    hist_chi2_iter_dataMCunc.GetXaxis().SetTitle("iterations")
-    hist_chi2_iter_dataMCunc.GetYaxis().SetTitle("#chi^{2}/n.d.o.f")
-    hist_chi2_iter_dataunc = rt.TH1F("Refold_chi2_dataunc","Refold #chi^{2}/n.d.o.f",len(names_refold),0,len(names_refold))
-    hist_chi2_iter_dataunc.GetXaxis().SetTitle("iterations")
-    hist_chi2_iter_dataunc.GetYaxis().SetTitle("#chi^{2}/n.d.o.f")
 
-    hist_chi2_iter_MC = rt.TH1F("Unfold_chi2_MC","Unfold #chi^{2}/n.d.o.f",len(names_unfold),0,len(names_unfold))
-    hist_chi2_iter_MC.GetXaxis().SetTitle("iterations")
-    hist_chi2_iter_MC.GetYaxis().SetTitle("#chi^{2}/n.d.o.f")
-
-    hist_chi2_iter_MC_MCunfoldunc = rt.TH1F("Unfold_chi2_MC_MCunfoldunc","Unfold #chi^{2}/n.d.o.f",len(names_unfold),0,len(names_unfold))
-    hist_chi2_iter_MC_MCunfoldunc.GetXaxis().SetTitle("iterations")
-    hist_chi2_iter_MC_MCunfoldunc.GetYaxis().SetTitle("#chi^{2}/n.d.o.f")
+    hist_chi2_iter_dataMCunc = make_iter_hist( "Refold", "dataMCunc", names_refold)
+    hist_chi2_iter_dataunc = make_iter_hist( "Refold", "dataunc", names_refold)
+    hist_chi2_iter_MC = make_iter_hist( "Unfold", "MC", names_unfold)
+    hist_chi2_iter_MC_MCunfoldunc = make_iter_hist("Unfold", "MC_MCunfoldunc",names_unfold)
 
     hist_p_iter_MC_MCunfoldunc = rt.TH1F("Unfold_p_MC_MCunfoldunc","Unfold p",len(names_unfold),0,len(names_unfold))
     hist_p_iter_MC_MCunfoldunc.GetXaxis().SetTitle("iterations")
     hist_p_iter_MC_MCunfoldunc.GetYaxis().SetTitle("p-value")
 
-    if not(names_psedodata_truth is None):
+    if not(names_pseudodata_truth is None):
 
-      hist_chi2_iter_truth_dataunc = rt.TH1F("Unfold_chi2_pseudodatatruth_dataunc","Unfold #chi^{2}/n.d.o.f",len(names_unfold),0,len(names_unfold))
-      hist_chi2_iter_truth_dataunc.GetXaxis().SetTitle("iterations")
-      hist_chi2_iter_truth_dataunc.GetYaxis().SetTitle("#chi^{2}/n.d.o.f")
-      hist_chi2_iter_truth_dataMCunc = rt.TH1F("Unfold_chi2_pseudodatatruth_dataMCunc","Unfold #chi^{2}/n.d.o.f",len(names_unfold),0,len(names_unfold))
-      hist_chi2_iter_truth_dataMCunc.GetXaxis().SetTitle("iterations")
-      hist_chi2_iter_truth_dataMCunc.GetYaxis().SetTitle("#chi^{2}/n.d.o.f")
+      hist_chi2_iter_truth_dataunc = make_iter_hist("Unfold","pseudodatatruth_dataunc",names_unfold)
+      hist_chi2_iter_truth_dataMCunc = make_iter_hist("Unfold","pseudodatatruth_dataMCunc",names_unfold)
 
 
     _,_,_,wchi2_per_ndof_MCdatareco,wchi2_hist2unc_per_ndof_MCdatareco,p_MCdatareco,_  = GOF([f.Get(name) for name in name_MCreco],[f.Get(name) for name in name_data])
-    if not(names_psedodata_truth is None):
-      _,_,_,wchi2_per_ndof_MCdatagen,wchi2_hist2unc_per_ndof_MCdatagen,_,_ = GOF([f.Get(name) for name in name_MC],[f.Get(name) for name in names_psedodata_truth])
+    if not(names_pseudodata_truth is None):
+      _,_,_,wchi2_per_ndof_MCdatagen,wchi2_hist2unc_per_ndof_MCdatagen,_,_ = GOF([f.Get(name) for name in name_MC],[f.Get(name) for name in names_pseudodata_truth])
 
-    hist_list_data = hist_list("Data")
-    hist_list_data.root_hists_name = name_data
-    hist_list_data.read_hist_from_file(f)
-    hist_list_data.divide_by_bin_width()
-    hist_list_data.flatten_hist()
+    hist_list_data = prepare_histlist("Data", name_data, f)
+    hist_list_MCgeninclusive = prepare_histlist("MCGenInclusive", name_MC, f)
+    hist_list_MCrecoinclusive = prepare_histlist("MCRecoInclusive", name_MCreco, f)
 
-    hist_list_MCgeninclusive = hist_list("MCGenInclusive")
-    hist_list_MCgeninclusive.root_hists_name = name_MC
-    hist_list_MCgeninclusive.read_hist_from_file(f)
-    hist_list_MCgeninclusive.divide_by_bin_width()
-    hist_list_MCgeninclusive.flatten_hist()
-
-    hist_list_MCrecoinclusive = hist_list("MCRecoInclusive")
-    hist_list_MCrecoinclusive.root_hists_name = name_MCreco
-    hist_list_MCrecoinclusive.read_hist_from_file(f)
-    hist_list_MCrecoinclusive.divide_by_bin_width()
-    hist_list_MCrecoinclusive.flatten_hist()
-
-    if not(names_psedodata_truth is None):
-      hist_list_pseudodatatruthinclusive = hist_list("PseudodataTruthInclusive")
-      hist_list_pseudodatatruthinclusive.root_hists_name = names_psedodata_truth
-      hist_list_pseudodatatruthinclusive.read_hist_from_file(f)
-      hist_list_pseudodatatruthinclusive.divide_by_bin_width()
-      hist_list_pseudodatatruthinclusive.flatten_hist()
+    if not(names_pseudodata_truth is None):
+      hist_list_pseudodatatruthinclusive = prepare_histlist("PseduodataTruthInclusive", names_pseudodata_truth, f)
     else:
       hist_list_pseudodatatruthinclusive = None
 
     Config = {}
     if args.plot:
-      Config["Data"] = {
-        "hist":hist_list_data,
-        "stat":0,
-        "color":1,
-        "style":"cross",
-        "legend":("Data" if names_psedodata_truth is None else "Pseudo-data") if not args.sysreweight else "sys variation: "+config["syslegend"][0]
-      }
-      Config["MCGenInclusive"] = {
-        "hist":hist_list_MCgeninclusive,
-        "stat":0,
-        "color":rt.kAzure-2,
-        "style":"fillederror",
-        "legend":str(config["MClegend"])
-      }
-      Config["MCRecoInclusive"] = {
-        "hist":hist_list_MCrecoinclusive,
-        "stat":0,
-        "color":rt.kAzure-2,
-        "style":"fillederror",
-        "legend":str(config["MClegend"])
-      }
-      Config["PseudodataTruthInclusive"] = {
-        "hist":hist_list_pseudodatatruthinclusive,
-        "stat":0,
-        "color":800,
-        "style":"triangle",
-        "legend":"Pseudo-data truth" if not args.sysreweight else "sys variation: "+config["syslegend"][0]
-      }
+
+      data_legend = "Data" if names_pseudodata_truth is None else "Pseudo-data"
+      if args.sysreweight:
+          data_legend = "sys variation: {config['syslegend'][0]}"
+      Config["Data"] = asdict(HistConfig(hist_list_data, 0, 1, "cross", data_legend)) 
+      Config["MCGenInclusive"] = asdict(HistConfig(hist_list_MCgeninclusive, 0, rt.kAzure-2, "fillederror", config["MClegend"])) 
+      Config["MCRecoInclusive"] = asdict(HistConfig( hist_list_MCrecoinclusive, 0, rt.kAzure-2, "fillederror", config["MClegend"])) 
+
+      ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]}" 
+      Config["PseudodataTruthInclusive"] = asdict(HistConfig(hist_list_pseudodatatruthinclusive, 0, 800, "triangle", ps_legend)) 
+
     PlotLists= {}
 
     def PlotConfig(PlotName):
@@ -259,12 +264,13 @@ if __name__=="__main__":
       hist_p_iter_MC_MCunfoldunc.SetBinContent(i+1,p)
       hist_p_iter_MC_MCunfoldunc.SetBinError(i+1,0)
 
-      if not(names_psedodata_truth is None):
-        _, _, _, wchi2_per_ndof, wchi2_hist2unc_per_ndof, _, _ = GOF([f.Get(name) for name in name_unfold],[f.Get(name) for name in names_psedodata_truth])
+      if not(names_pseudodata_truth is None):
+        _, _, _, wchi2_per_ndof, wchi2_hist2unc_per_ndof, _, _ = GOF([f.Get(name) for name in name_unfold],[f.Get(name) for name in names_pseudodata_truth])
         hist_chi2_iter_truth_dataunc.SetBinContent(i+1,wchi2_hist2unc_per_ndof)
         hist_chi2_iter_truth_dataunc.SetBinError(i+1,0)
         hist_chi2_iter_truth_dataMCunc.SetBinContent(i+1,wchi2_per_ndof)
         hist_chi2_iter_truth_dataMCunc.SetBinError(i+1,0)
+
 
       if args.plot:
         color = 4
@@ -291,32 +297,13 @@ if __name__=="__main__":
           color_unfold = 2
           legend_unfold = "unifold unfold" if not args.sysreweight else "unifold reweight"
 
-        hist_list_refold= hist_list("Refold_iter"+iter_index)
-        hist_list_refold.root_hists_name = names_refold[i]
-        hist_list_refold.read_hist_from_file(f)
-        hist_list_refold.divide_by_bin_width()
-        hist_list_refold.flatten_hist() 
+        hist_list_refold = prepare_histlist(f"Refold_iter{iter_index}", names_refold[i], f)
 
-        hist_list_unfold = hist_list("Unfold_iter"+iter_index)
-        hist_list_unfold.root_hists_name = names_unfold[i]
-        hist_list_unfold.read_hist_from_file(f)
-        hist_list_unfold.divide_by_bin_width()
-        hist_list_unfold.flatten_hist() 
+        hist_list_unfold = prepare_histlist(f"Unfolder_iter{iter_index}", names_unfold[i], f)
 
-        Config["Refold_iter"+iter_index] = {
-          "hist":hist_list_refold,
-          "stat":0,
-          "color":color,
-          "style":"filled",
-          "legend":legend
-        }
-        Config["Unfold_iter"+iter_index] = {
-          "hist":hist_list_unfold,
-          "stat":0,
-          "color":color_unfold,
-          "style":"marker",
-          "legend":legend_unfold
-        }
+        Config["Refold_iter"+iter_index] = asdict(HistConfig(hist_list_refold, 0, color, "filled", legend))  
+        Config["Unfold_iter"+iter_index] =  asdict(HistConfig(hist_list_unfold, 0, color_unfold, "marker", legend_unfold)) 
+
         PlotLists["Refoldcompare_iter"+iter_index] = {
           "ref":Config["Data"],
           "compare":[Config["Refold_iter"+iter_index],Config["MCRecoInclusive"]],
@@ -339,7 +326,7 @@ if __name__=="__main__":
         PlotConfig(PlotLists["Refoldcompare_iter"+iter_index])
         print("plotting")
         PlotConfig(PlotLists["Unfoldcompare_iter"+iter_index])
-        if not(names_psedodata_truth is None):
+        if not(names_pseudodata_truth is None):
           PlotConfig(PlotLists["Unfoldcomparepseudodata_iter"+iter_index])
 
     hist_chi2_iter_dataMCunc.Write()
@@ -361,7 +348,7 @@ if __name__=="__main__":
     line_reco_dataMCunc_p.SetLineColor(rt.kRed)
     line_reco_dataMCunc_p.Write("p_dataMC_reco_dataMCunc")
 
-    if not(names_psedodata_truth is None):
+    if not(names_pseudodata_truth is None):
       hist_chi2_iter_truth_dataunc.Write()
       hist_chi2_iter_truth_dataMCunc.Write()
 
