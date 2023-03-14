@@ -50,7 +50,7 @@ def GetRefoldIter(File):
     start_iter=0
   else:
     start_iter=1
-  names_rank=[[head+"iter"+str(i) for head in heads_sort] for i in range(int(start_iter),int(len(names)/len(heads_sort)+start_iter))]
+  names_rank=[[head+"iter"+str(i) for head in heads_sort] for i in range(int(start_iter),len(names)//len(heads_sort)+start_iter)]
   print(names_rank)
   names_data=[key.GetName() for key in File.GetListOfKeys() if "HistRecoInclusive_Pseudodata" in key.GetName()]
   if len(names_data)>0:
@@ -70,7 +70,7 @@ def GetUnfoldIter(File):
     start_iter=0
   else:
     start_iter=1
-  names_rank=[[head+"iter"+str(i) for head in heads_sort] for i in range(int(start_iter),int(len(names)/len(heads_sort)+start_iter))]
+  names_rank=[[head+"iter"+str(i) for head in heads_sort] for i in range(int(start_iter),len(names)//len(heads_sort)+start_iter)]
   names_MC=[key.GetName() for key in File.GetListOfKeys() if "HistGenInclusive_MC" in key.GetName() and "iter" not in key.GetName()]
   names_MC_sort=sorted(names_MC,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])
   return names_rank,names_MC_sort
