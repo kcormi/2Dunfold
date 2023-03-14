@@ -4,9 +4,13 @@
 # [Clang 4.0.1 (tags/RELEASE_401/final)]
 # Embedded file name: /work/jinw/CMSSW_10_2_15_patch2/src/cleanup_2Dunfold/Plotting_cfg.py
 # Compiled at: 2023-03-06 11:36:35
-import CMS_lumi, ROOT as rt
+
+import CMS_lumi
+import ROOT as rt
 rt.PyConfig.IgnoreCommandLineOptions = True
-import array, numpy as np
+import array
+import numpy as np
+
 histLineColor = rt.kBlack
 markerSize = 1.0
 histFillColor = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#a65628', '#f781bf', 

@@ -4,23 +4,27 @@
 # [Clang 4.0.1 (tags/RELEASE_401/final)]
 # Embedded file name: /work/jinw/CMSSW_10_2_15_patch2/src/cleanup_2Dunfold/plot_utils.py
 # Compiled at: 2023-03-06 19:29:44
-import numpy as np, json
+import numpy as np
 from argparse import ArgumentParser
-import os, ast, time
+import os
 from math import *
-import sys, ROOT as rt, tdrstyle, CMS_lumi
+import ROOT as rt
+import tdrstyle
 from Plotting_cfg import *
-import itertools, h5py, pandas as pd, matplotlib as mpl
+
+import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from sklearn import metrics
+
 from unfold_utils import *
+
 rt.PyConfig.IgnoreCommandLineOptions = True
 rt.gROOT.SetBatch(True)
 rt.gStyle.SetOptStat(0)
 tdrstyle.setTDRStyle()
 rt.TH1.SetDefaultSumw2()
 rt.TH2.SetDefaultSumw2()
+
 colors = [rt.kBlue - 7, rt.kAzure + 5, rt.kCyan]
 fillcolors = [38, 30, 42, 49, 14]
 linecolors = [1, 2, 4, 7, 800, 880]

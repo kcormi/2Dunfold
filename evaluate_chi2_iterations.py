@@ -1,22 +1,9 @@
 import numpy as np
 import json
 from argparse import ArgumentParser
-import os,ast
-import time
-import math
-import sys,stat
+import os
 import ROOT as rt
-import itertools
-import  tdrstyle
-import CMS_lumi
 from Plotting_cfg import *
-import h5py
-import pandas as pd
-import itertools
-from math import sqrt
-from array import array
-import glob
-from sklearn import metrics
 from scipy.stats import chi2 as CHI2
 import re
 import matplotlib as mpl

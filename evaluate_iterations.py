@@ -1,18 +1,8 @@
 import numpy as np
 import json
 from argparse import ArgumentParser
-import os,ast
-import time
-import math
-import sys,stat
+import os
 import ROOT
-import itertools
-import h5py
-import pandas as pd
-import itertools
-from math import sqrt
-from array import array
-import glob
 from unfold_utils import *
 
 def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,genWeight="",from_root=True,weight_array=None,store_mig=False,tag="", reco_only=False):

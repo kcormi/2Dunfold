@@ -6,11 +6,9 @@
 # Compiled at: 2023-03-06 20:32:07
 import numpy as np, json
 from argparse import ArgumentParser
-import os, ast, time, math, sys, stat, ROOT, itertools, h5py, pandas as pd, itertools
-from math import sqrt
-from array import array
+import os 
+import ROOT 
 from enum import Enum
-import glob
 
 class CutType(Enum):
     PassReco = 1
@@ -484,7 +482,7 @@ class HistList:
                 bin_error_hist2 = hist_list_2.root_hists[ihist].GetBinError(ibin)
                 if bin_value_hist2 != 0:
                     self.root_hists[ihist].SetBinContent(ibin, bin_value_hist1 / bin_value_hist2)
-                    self.root_hists[ihist].SetBinError(ibin, sqrt(bin_error_hist1 ** 2 / bin_value_hist2 ** 2 + bin_value_hist1 ** 2 * bin_error_hist2 ** 2 / bin_value_hist2 ** 4))
+                    self.root_hists[ihist].SetBinError(ibin, np.sqrt(bin_error_hist1 ** 2 / bin_value_hist2 ** 2 + bin_value_hist1 ** 2 * bin_error_hist2 ** 2 / bin_value_hist2 ** 4))
 
             self.bin_sum.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin + 1) for ibin in range(self.root_hists[ihist].GetNbinsX()) ]))
             self.bin_norm.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin) for ibin in range(self.root_hists[ihist].GetNbinsX() + 2) ]))
@@ -505,7 +503,7 @@ class HistList:
                 bin_value_hist2 = hist_list_2.root_hists[ihist].GetBinContent(ibin)
                 bin_error_hist2 = hist_list_2.root_hists[ihist].GetBinError(ibin)
                 self.root_hists[ihist].SetBinContent(ibin, bin_value_hist1 * bin_value_hist2)
-                self.root_hists[ihist].SetBinError(ibin, sqrt(bin_error_hist1 ** 2 * bin_value_hist2 ** 2 + bin_error_hist2 ** 2 * bin_value_hist1 ** 2))
+                self.root_hists[ihist].SetBinError(ibin, np.sqrt(bin_error_hist1 ** 2 * bin_value_hist2 ** 2 + bin_error_hist2 ** 2 * bin_value_hist1 ** 2))
 
             self.bin_sum.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin + 1) for ibin in range(self.root_hists[ihist].GetNbinsX()) ]))
             self.bin_norm.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin) for ibin in range(self.root_hists[ihist].GetNbinsX() + 2) ]))
