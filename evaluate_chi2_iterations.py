@@ -82,6 +82,20 @@ def GetPseudoDataTruth(File):
     names_sort=sorted(names,key=lambda s: np.array(re.findall(r'\d+', s),dtype=int)[-1])
   return names_sort
 
+def GetEffAcc(f,label,names_gen,names_reco):
+  hist_list_geneff=hist_list(label+"GenEff")
+  hist_list_geneff.root_hists_name=[name_gen.replace("Inclusive","Eff") for name_gen in names_gen]
+  if hist_list_geneff.read_hist_from_file(f)==-1:
+    hist_list_geneff=None
+  else:
+    hist_list_geneff.flatten_hist()
+  hist_list_recoacc=hist_list(label+"RecoAcc")
+  hist_list_recoacc.root_hists_name=[name_reco.replace("Inclusive","Acc") for name_reco in names_reco]
+  if hist_list_recoacc.read_hist_from_file(f)==-1:
+    hist_list_recoacc=None
+  else:
+    hist_list_recoacc.flatten_hist()
+  return {"Eff":hist_list_geneff, "Acc":hist_list_recoacc}
 
 if __name__=="__main__":
     parser = ArgumentParser()
@@ -158,14 +172,17 @@ if __name__=="__main__":
     hist_list_MCrecoinclusive.read_hist_from_file(f)
     hist_list_MCrecoinclusive.divide_by_bin_width()
     hist_list_MCrecoinclusive.flatten_hist()
+    hist_list_MC_eff_acc = GetEffAcc(f,"MC",name_MC,name_MCreco)
     if not(names_psedodata_truth is None):
       hist_list_pseudodatatruthinclusive=hist_list("PseudodataTruthInclusive")
       hist_list_pseudodatatruthinclusive.root_hists_name=names_psedodata_truth
       hist_list_pseudodatatruthinclusive.read_hist_from_file(f)
       hist_list_pseudodatatruthinclusive.divide_by_bin_width()
       hist_list_pseudodatatruthinclusive.flatten_hist()
+      hist_list_pseudodata_eff_acc = GetEffAcc(f,"Pseudodata",names_psedodata_truth,name_data)
     else:
       hist_list_pseudodatatruthinclusive=None
+      hist_list_pseudodata_eff_acc = {"Eff":None, "Acc":None}
 
     Config={}
     if args.plot:
@@ -190,12 +207,47 @@ if __name__=="__main__":
         "style":"fillederror",
         "legend":str(config["MClegend"])
       }
+      Config["MCGenEff"]={
+        "hist":hist_list_MC_eff_acc["Eff"],
+        "stat":0,
+        "color":rt.kAzure-2,
+        "style":"cross",
+        "legend":str(config["MClegend"])+" Eff."
+      }
+      Config["MCRecoAcc"]={
+        "hist":hist_list_MC_eff_acc["Acc"],
+        "stat":0,
+        "color":rt.kAzure-2,
+        "style":"cross",
+        "legend":str(config["MClegend"])+" Acc."
+      }
+      Config["MCRecoInclusive"]={
+        "hist":hist_list_MCrecoinclusive,
+        "stat":0,
+        "color":rt.kAzure-2,
+        "style":"fillederror",
+        "legend":str(config["MClegend"])
+      }
       Config["PseudodataTruthInclusive"]={
         "hist":hist_list_pseudodatatruthinclusive,
         "stat":0,
         "color":800,
         "style":"triangle",
         "legend":"Pseudo-data truth" if not args.sysreweight else "sys variation: "+config["syslegend"][0]
+      }
+      Config["PseudodataTruthEff"]={
+        "hist":hist_list_pseudodata_eff_acc["Eff"],
+        "stat":0,
+        "color":800,
+        "style":"triangle",
+        "legend":("Pseudo-data truth" if not args.sysreweight else "sys variation: "+config["syslegend"][0])+" Eff."
+      }
+      Config["PseudodataTruthAcc"]={
+        "hist":hist_list_pseudodata_eff_acc["Acc"],
+        "stat":0,
+        "color":800,
+        "style":"triangle",
+        "legend":("Pseudo-data truth" if not args.sysreweight else "sys variation: "+config["syslegend"][0])+" Acc."
       }
     PlotLists={}
     def PlotConfig(PlotName):
@@ -211,8 +263,12 @@ if __name__=="__main__":
         axis_title=info_var[config["var2"]]["reco_name"]
       else:
         axis_title=info_var[config["var2"]]["gen_name"]
-      plot_flat_hists(PlotName["ref"]["hist"], comparehists, PlotName["ref"]["legend"], comparelegends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=PlotName["ref"]["stat"], text_list=(TextListReco if ("reco" in PlotName["name"] or "refold" in PlotName["name"]) else TextListGen), style_ref=PlotName["ref"]["style"], color_ref=PlotName["ref"]["color"], list_style_compare=comparestyles, list_color_compare=comparecolors, labelY='Normalized Events/Bin Width', label_ratio=PlotName["ratio"])
-      return path+"_logy.png"
+      if "eff" in PlotName["name"] or "acc" in PlotName["name"]:
+        plot_flat_hists(PlotName["ref"]["hist"], comparehists, PlotName["ref"]["legend"], comparelegends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=PlotName["ref"]["stat"], text_list=(TextListReco if ("reco" in PlotName["name"] or "refold" in PlotName["name"]) else TextListGen), style_ref=PlotName["ref"]["style"], color_ref=PlotName["ref"]["color"], list_style_compare=comparestyles, list_color_compare=comparecolors, labelY='Normalized Events/Bin Width', label_ratio=PlotName["ratio"], range_ratio=0.1)
+        return path+".png"
+      else:
+        plot_flat_hists(PlotName["ref"]["hist"], comparehists, PlotName["ref"]["legend"], comparelegends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=PlotName["ref"]["stat"], text_list=(TextListReco if ("reco" in PlotName["name"] or "refold" in PlotName["name"]) else TextListGen), style_ref=PlotName["ref"]["style"], color_ref=PlotName["ref"]["color"], list_style_compare=comparestyles, list_color_compare=comparecolors, labelY='Normalized Events/Bin Width', label_ratio=PlotName["ratio"])
+        return path+"_logy.png"
 
     print(name_data)
     for i,name_refold in enumerate(names_refold):
@@ -272,6 +328,7 @@ if __name__=="__main__":
         hist_list_unfold.read_hist_from_file(f)
         hist_list_unfold.divide_by_bin_width()
         hist_list_unfold.flatten_hist() 
+        hist_list_unfold_eff_acc = GetEffAcc(f,"Unfold_iter"+iter_index,names_unfold[i],names_refold[i])
         Config["Refold_iter"+iter_index]={
           "hist":hist_list_refold,
           "stat":0,
@@ -286,6 +343,21 @@ if __name__=="__main__":
           "style":"marker",
           "legend":legend_unfold
         }
+        Config["Unfold_iter"+iter_index+"Eff"]={
+          "hist":hist_list_unfold_eff_acc["Eff"],
+          "stat":0,
+          "color":color_unfold,
+          "style":"cross",
+          "legend":legend_unfold+" Eff."
+        }
+        Config["Unfold_iter"+iter_index+"Acc"]={
+          "hist":hist_list_unfold_eff_acc["Acc"],
+          "stat":0,
+          "color":color_unfold,
+          "style":"cross",
+          "legend":legend_unfold+" Acc."
+        }
+
         PlotLists["Refoldcompare_iter"+iter_index]={
           "ref":Config["Data"],
           "compare":[Config["Refold_iter"+iter_index],Config["MCRecoInclusive"]],
@@ -298,17 +370,51 @@ if __name__=="__main__":
           "name":"MC_unfold_"+tag+"_iter"+iter_index,
           "ratio":"Unfold / MC" if not args.sysreweight else "Reweight / MC"
         }
+        PlotLists["Unfoldcompareeff_iter"+iter_index]={
+          "ref":Config["MCGenEff"],
+          "compare":[Config["Unfold_iter"+iter_index+"Eff"]],
+          "name":"MC_unfoldeff_"+tag+"_iter"+iter_index,
+          "ratio":"Unfold / MC" if not args.sysreweight else "Reweight / MC"
+        }
+        PlotLists["Unfoldcompareacc_iter"+iter_index]={
+          "ref":Config["MCRecoAcc"],
+          "compare":[Config["Unfold_iter"+iter_index+"Acc"]],
+          "name":"MC_unfoldacc_"+tag+"_iter"+iter_index,
+          "ratio":"Unfold / MC" if not args.sysreweight else "Reweight / MC"
+        } 
+        PlotLists["Unfoldcompare_iter"+iter_index]={
+          "ref":Config["MCGenInclusive"],
+          "compare":[Config["Unfold_iter"+iter_index]],
+          "name":"MC_unfold_"+tag+"_iter"+iter_index,
+          "ratio":"Unfold / MC" if not args.sysreweight else "Reweight / MC"
+        }
         PlotLists["Unfoldcomparepseudodata_iter"+iter_index]={
           "ref":Config["PseudodataTruthInclusive"],
           "compare":[Config["Unfold_iter"+iter_index],Config["MCGenInclusive"]],
           "name":"pseudodatatruth_unfold_"+tag+"_iter"+iter_index,
           "ratio":"Unfold / Truth" if not args.sysreweight else "Reweight / sys. var."
         }
+        PlotLists["Unfoldcomparepseudodataeff_iter"+iter_index]={
+          "ref":Config["PseudodataTruthEff"],
+          "compare":[Config["Unfold_iter"+iter_index+"Eff"],Config["MCGenEff"]],
+          "name":"pseudodatatruth_unfoldeff_"+tag+"_iter"+iter_index,
+          "ratio":"Unfold / Truth" if not args.sysreweight else "Reweight / sys. var."
+        }
+        PlotLists["Unfoldcomparepseudodataacc_iter"+iter_index]={
+          "ref":Config["PseudodataTruthAcc"],
+          "compare":[Config["Unfold_iter"+iter_index+"Acc"],Config["MCRecoAcc"]],
+          "name":"pseudodatatruth_unfoldacc_"+tag+"_iter"+iter_index,
+          "ratio":"Unfold / Truth" if not args.sysreweight else "Reweight / sys. var."
+        }
         PlotConfig(PlotLists["Refoldcompare_iter"+iter_index])
+        PlotConfig(PlotLists["Unfoldcompareeff_iter"+iter_index])
         print("plotting")
         PlotConfig(PlotLists["Unfoldcompare_iter"+iter_index])
+        PlotConfig(PlotLists["Unfoldcompareacc_iter"+iter_index])
         if not(names_psedodata_truth is None):
           PlotConfig(PlotLists["Unfoldcomparepseudodata_iter"+iter_index])
+          PlotConfig(PlotLists["Unfoldcomparepseudodataeff_iter"+iter_index])
+          PlotConfig(PlotLists["Unfoldcomparepseudodataacc_iter"+iter_index])
     hist_chi2_iter_dataMCunc.Write()
     hist_chi2_iter_dataunc.Write()
     hist_chi2_iter_MC.Write()

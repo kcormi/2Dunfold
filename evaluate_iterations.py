@@ -47,7 +47,7 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
     reco_passgen.cut = cuts[CutType.PassReco_PassGen]
     hists["reco_passgen"] = reco_passgen
 
-    gen_eff = hist_list("HistGenEff"+dataset,tag)
+    gen_eff = hist_list("HistGenEff_"+dataset,tag)
     gen_eff.read_settings_from_config_dim1(var1_config,isgen=True)
     gen_eff.read_settings_from_config_dim2(var2_config,isgen=True)
     gen_eff.bin_edges_dim2 = edges_gen
@@ -232,7 +232,7 @@ if __name__=="__main__":
     mc_norm_factor = normalization_hist.norm / mc_hists["reco_inclusive"].norm
 
     for key, hist in mc_hists.items():
-        if not (key == 'mig'):
+        if not (key == 'mig' or key == "eff" or key == "acc"):
             hist.multiply(mc_norm_factor)
 
     if not os.path.exists(config[args.method]["weight"]):
@@ -256,7 +256,7 @@ if __name__=="__main__":
       unf_norm_factor = normalization_hist.norm / unfold_hists["reco_inclusive"].norm
 
       for key, hist in unfold_hists.items():
-        if not (key == 'mig'):
+        if not (key == 'mig' or key == "eff" or key == "acc"):
             hist.multiply(unf_norm_factor)
 
       write_all_hists(unfold_hists)
