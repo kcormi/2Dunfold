@@ -18,7 +18,7 @@ from unfold_utils import *
 def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,genWeight="",from_root=True,weight_array=None,store_mig=False,tag="", reco_only=False):
   hists = {}
 
-  reco_inclusive=hist_list("HistRecoInclusive_"+dataset,tag)
+  reco_inclusive=HistList("HistRecoInclusive_"+dataset,tag)
   reco_inclusive.read_settings_from_config_dim1(var1_config,isgen=False)
   reco_inclusive.read_settings_from_config_dim2(var2_config,isgen=False)
   reco_inclusive.bin_edges_dim2 = edges_reco
@@ -26,21 +26,21 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
   hists["reco_inclusive"] = reco_inclusive
 
   if not reco_only:
-    gen_passreco=hist_list("HistGen_"+dataset,tag)
+    gen_passreco=HistList("HistGen_"+dataset,tag)
     gen_passreco.read_settings_from_config_dim1(var1_config,isgen=True)
     gen_passreco.read_settings_from_config_dim2(var2_config,isgen=True)
     gen_passreco.bin_edges_dim2 = edges_gen
     gen_passreco.cut = cuts[CutType.PassReco_PassGen]
     hists["gen_passreco"] = gen_passreco
 
-    gen_inclusive=hist_list("HistGenInclusive_"+dataset,tag)
+    gen_inclusive=HistList("HistGenInclusive_"+dataset,tag)
     gen_inclusive.read_settings_from_config_dim1(var1_config,isgen=True)
     gen_inclusive.read_settings_from_config_dim2(var2_config,isgen=True)
     gen_inclusive.bin_edges_dim2 = edges_gen
     gen_inclusive.cut = cuts[CutType.PassGen]
     hists["gen_inclusive"] = gen_inclusive
 
-    reco_passgen=hist_list("HistReco_"+dataset,tag)
+    reco_passgen=HistList("HistReco_"+dataset,tag)
     reco_passgen.read_settings_from_config_dim1(var1_config,isgen=False)
     reco_passgen.read_settings_from_config_dim2(var2_config,isgen=False)
     reco_passgen.bin_edges_dim2 = edges_reco
@@ -63,7 +63,7 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
         edge_jp1 = var1_config["binedgesreco"][j+1]
 
         #mig_ij
-        this_mig = hist_list(f'HistMig_{dataset}_{var1_config["gen_key"]}{edge_i}-{edge_ip1}_{var1_config["reco_key"]}{edge_j}-{edge_jp1}{tag}')
+        this_mig = HistList(f'HistMig_{dataset}_{var1_config["gen_key"]}{edge_i}-{edge_ip1}_{var1_config["reco_key"]}{edge_j}-{edge_jp1}{tag}')
         mig[i].append(this_mig)
 
         mig[i][j].read_settings_from_config_dim1(var2_config,isgen=True)
@@ -169,7 +169,7 @@ if __name__=="__main__":
     mc_hists = fill_hist_lists("MC", var1_dct, var2_dct, bin_edges_gen, bin_edges_reco, tree, genWeight=weightname, store_mig=True)
 
     #efficiency=reconstructed and generated / generated
-    gen_inveff = hist_list("HistGenInvEff")
+    gen_inveff = HistList("HistGenInvEff")
     gen_inveff.read_settings_from_config_dim1(var1_dct,isgen=True)
     gen_inveff.read_settings_from_config_dim2(var2_dct,isgen=True)
     gen_inveff.bin_edges_dim2 = bin_edges_gen

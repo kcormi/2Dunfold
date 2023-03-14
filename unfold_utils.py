@@ -155,7 +155,7 @@ class HistDim:
 
 
 
-class hist_list:
+class HistList:
 
 
     def __init__(self, name, tag=''):
