@@ -311,12 +311,11 @@ class hist_list:
             weight = weightarray
         filter_cut = filter_np_cut(obs_arrays, self.npy_cut)
         inf_weight_mask = np.isinf(weight) != True
-
         for ihist in range(len(self.dim1.bin_edges) - 1):
             bind1_low_cut = obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]
             bind1_high_cut = obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist+1]
             bd1_cut = bind1_low_cut & bind1_high_cut
-            d1_cut = inf_weight_mask & bd1_cut
+            d1_cut = filter_cut & inf_weight_mask & bd1_cut
 
             for ibin in range(self.root_hists[ihist].GetNbinsX()):
                 bind2_low_cut = obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[ihist][ibin]
@@ -343,10 +342,10 @@ class hist_list:
             self.bin_sum.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin + 1) for ibin in range(self.root_hists[ihist].GetNbinsX()) ]))
             self.bin_norm.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin) for ibin in range(self.root_hists[ihist].GetNbinsX() + 2) ]))
 
-        self.dim1_underflow = np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0])])
-        self.dim1_overflow = np.sum(weight[(np.isinf(weight) != True) & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1])])
+        self.dim1_underflow = np.sum(weight[inf_weight_mask & filter_cut & (obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[0])])
+        self.dim1_overflow = np.sum(weight[inf_weight_mask & filter_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1])])
         self.total = np.sum(self.bin_sum)
-        self.norm = np.sum(weight[(np.isinf(weight) != True) & filter_cut])
+        self.norm = np.sum(weight[inf_weight_mask & filter_cut])
         return
 
     def flatten_hist(self):
@@ -515,6 +514,10 @@ class hist_list:
         return
 
     def read_hist_from_file(self, f):
+        for hist_name in self.root_hists_name:
+          if hist_name not in f.GetListOfKeys():
+            print(hist_name,"is not found")
+            return -1
         self.root_hists = [ f.Get(hist_name).Clone(hist_name + '_Clone') for hist_name in self.root_hists_name ]
         for ihist in range(len(self.root_hists)):
             self.bin_sum.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin + 1) for ibin in range(self.root_hists[ihist].GetNbinsX()) ]))
@@ -522,6 +525,7 @@ class hist_list:
 
         self.total = np.sum(self.bin_sum)
         self.norm = np.sum(self.total)
+        return 0
 
     def binwise_multiply(self, scalar_list=[], scalar_underflow=0.0, scalar_overflow=0.0):
         if len(scalar_list) != len(self.root_hists):

@@ -183,7 +183,7 @@ def DrawPlotStyle(HistList, PlotStyle, Color, Pad):
     return LegendStyle
 
 
-def plot_flat_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title, is_logY, do_ratio, output_path, hist_ref_stat=0, text_list=[], style_ref='marker', color_ref=rt.kBlack, list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC'):
+def plot_flat_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title, is_logY, do_ratio, output_path, hist_ref_stat=0, text_list=[], style_ref='marker', color_ref=rt.kBlack, list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3):
     W_merge = W_long
     if len(hist_ref.root_hists) > 3:
         W_merge = W_long * (float(len(hist_ref.root_hists)) / 3.0)
@@ -216,21 +216,21 @@ def plot_flat_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare
     yAxis.SetTitleOffset(0.5 + 0.8 / len(hist_ref.root_hists))
     yAxis.SetTickLength(yAxis.GetTickLength() / float(len(hist_ref.root_hists)))
     ymax = max([ hist_ref.root_flat_hist.GetBinContent(ibin + 1) + hist_ref.root_flat_hist.GetBinError(ibin + 1) for ibin in range(hist_ref.root_flat_hist.GetNbinsX()) ])
-    ymin = min([ hist_ref.root_flat_hist.GetBinContent(ibin + 1) for ibin in range(hist_ref.root_flat_hist.GetNbinsX()) ])
+    ymin = min([ hist_ref.root_flat_hist.GetBinContent(ibin + 1) - hist_ref.root_flat_hist.GetBinError(ibin + 1) for ibin in range(hist_ref.root_flat_hist.GetNbinsX()) ])
     for hist_compare in list_hist_compare:
         ymax = max(ymax, max([ hist_compare.root_flat_hist.GetBinContent(ibin + 1) + hist_compare.root_flat_hist.GetBinError(ibin + 1) for ibin in range(hist_compare.root_flat_hist.GetNbinsX()) ]))
-        ymin = min(ymin, min([ hist_compare.root_flat_hist.GetBinContent(ibin + 1) for ibin in range(hist_compare.root_flat_hist.GetNbinsX()) ]))
+        ymin = min(ymin, min([ hist_compare.root_flat_hist.GetBinContent(ibin + 1) - hist_compare.root_flat_hist.GetBinError(ibin + 1)for ibin in range(hist_compare.root_flat_hist.GetNbinsX()) ]))
 
-    Y_up = ymax * 200 if is_logY else ymax * 1.8
-    hist_ref.root_flat_hist.SetAxisRange(ymin * 0.1 + 1e-06 if is_logY else 0, Y_up, 'Y')
+    Y_up = ymax * 200 if is_logY else ymax * 1.2
+    hist_ref.root_flat_hist.SetAxisRange(ymin * 0.1 + 1e-06 if is_logY else ymin * 0.8, Y_up, 'Y')
     hist_ref.root_flat_hist.SetMarkerSize(0.5)
     hist_ref.root_flat_hist.Draw('pe')
     xAxis.SetLabelSize(0)
     xAxis.SetAxisColor(0)
     pad1.Update()
-    newxAxis = [ rt.TGaxis(hist_ref.flat_xAxisLabel_low[ifun], ymin * 0.1 + 1e-06 if is_logY else 0, hist_ref.flat_xAxisLabel_up[ifun], ymin * 0.1 + 1e-06 if is_logY else 0, ('labels{}').format(ifun)) for ifun, fun in enumerate(hist_ref.flat_xAxisLabel) ]
+    newxAxis = [ rt.TGaxis(hist_ref.flat_xAxisLabel_low[ifun], ymin * 0.1 + 1e-06 if is_logY else ymin * 0.8, hist_ref.flat_xAxisLabel_up[ifun], ymin * 0.1 + 1e-06 if is_logY else ymin * 0.8, ('labels{}').format(ifun)) for ifun, fun in enumerate(hist_ref.flat_xAxisLabel) ]
     newxAxis_up = [ rt.TGaxis(hist_ref.flat_xAxisLabel_low[ifun], Y_up, hist_ref.flat_xAxisLabel_up[ifun], Y_up, ('labels{}').format(ifun)) for ifun, fun in enumerate(hist_ref.flat_xAxisLabel) ]
-    yAxis_division = [ rt.TLine(hist_ref.flat_xAxisLabel_up[i], ymin * 0.1 + 1e-06 if is_logY else 0, hist_ref.flat_xAxisLabel_up[i], Y_up) for i in range(len(hist_ref.flat_xAxisLabel) - 1) ]
+    yAxis_division = [ rt.TLine(hist_ref.flat_xAxisLabel_up[i], ymin * 0.1 + 1e-06 if is_logY else ymin * 0.8, hist_ref.flat_xAxisLabel_up[i], Y_up) for i in range(len(hist_ref.flat_xAxisLabel) - 1) ]
     if do_ratio:
         for axis in newxAxis:
             axis.SetLabelSize(0)
@@ -361,7 +361,7 @@ def plot_flat_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare
                 hist_ref_stat_ratio.SetBinContent(ibin + 1, hist_ref_stat.root_flat_hist.GetBinContent(ibin + 1) / ndata if ndata > 0 else 0)
                 hist_ref_stat_ratio.SetBinError(ibin + 1, hist_ref_stat.root_flat_hist.GetBinError(ibin + 1) / ndata if ndata > 0 else 0)
 
-        hist_ref_ratio.SetAxisRange(max(0, ratio_min - 0.3), min(2, ratio_max + 0.3), 'Y')
+        hist_ref_ratio.SetAxisRange(max(0, ratio_min - range_ratio), min(2, ratio_max + range_ratio), 'Y')
         hist_ref_ratio.SetTitle('')
         hist_ref_ratio.GetXaxis().SetTitle(title)
         hist_ref_ratio.GetXaxis().SetTitleSize(RTSX)
@@ -381,7 +381,7 @@ def plot_flat_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare
         hist_ref_ratio.GetYaxis().SetNdivisions(4, 2, 0)
         p1r.cd()
         hist_ref_ratio.Draw('e2same')
-        newxAxisratio = [ rt.TGaxis(hist_ref.flat_xAxisLabel_low[ifun], max(0, ratio_min - 0.3), hist_ref.flat_xAxisLabel_up[ifun], max(0, ratio_min - 0.3), ('labels{}').format(ifun)) for ifun, fun in enumerate(hist_ref.flat_xAxisLabel) ]
+        newxAxisratio = [ rt.TGaxis(hist_ref.flat_xAxisLabel_low[ifun], max(0, ratio_min - range_ratio), hist_ref.flat_xAxisLabel_up[ifun], max(0, ratio_min - range_ratio), ('labels{}').format(ifun)) for ifun, fun in enumerate(hist_ref.flat_xAxisLabel) ]
         for iaxis, axis in enumerate(newxAxisratio):
             axis.SetLabelSize(0.05)
             axis.SetLabelOffset(0.02)
@@ -390,14 +390,14 @@ def plot_flat_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare
                 axis.ChangeLabel(-1, -1, -1, -1, -1, -1, ' ')
             axis.Draw('same')
 
-        newxAxisratio_up = [ rt.TGaxis(hist_ref.flat_xAxisLabel_low[ifun], min(2, ratio_max + 0.3), hist_ref.flat_xAxisLabel_up[ifun], min(2, ratio_max + 0.3), ('labels{}').format(ifun)) for ifun, fun in enumerate(hist_ref.flat_xAxisLabel) ]
+        newxAxisratio_up = [ rt.TGaxis(hist_ref.flat_xAxisLabel_low[ifun], min(2, ratio_max + range_ratio), hist_ref.flat_xAxisLabel_up[ifun], min(2, ratio_max + range_ratio), ('labels{}').format(ifun)) for ifun, fun in enumerate(hist_ref.flat_xAxisLabel) ]
         for iaxis, axis in enumerate(newxAxisratio_up):
             axis.SetNdivisions(205)
             axis.SetOption('-')
             axis.SetLabelSize(0)
             axis.Draw('same')
 
-        yAxisratio_division = [ rt.TLine(hist_ref.flat_xAxisLabel_up[i], max(0, ratio_min - 0.3), hist_ref.flat_xAxisLabel_up[i], min(2, ratio_max + 0.3)) for i in range(len(hist_ref.flat_xAxisLabel) - 1) ]
+        yAxisratio_division = [ rt.TLine(hist_ref.flat_xAxisLabel_up[i], max(0, ratio_min - range_ratio), hist_ref.flat_xAxisLabel_up[i], min(2, ratio_max + range_ratio)) for i in range(len(hist_ref.flat_xAxisLabel) - 1) ]
         for ydivratio in yAxisratio_division:
             ydivratio.SetLineColor(1)
             ydivratio.SetLineStyle(2)
