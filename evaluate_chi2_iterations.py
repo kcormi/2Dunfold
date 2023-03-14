@@ -43,11 +43,6 @@ class ResultPlotSettings:
     @property
     def legend_unfold(self):
         return f'{self.legend} unfold' if not self.sys_reweight else f'{self.legend} reweight'
-    
-default_rps = ResultPlotSettings( color =4, color_unfold =6, tag="MLE", legend="MLE")
-omnifold_rps = ResultPlotSettings( color=608, color_unfold=6, tag="omnifold", legend="omnifold")
-multifold_rps = ResultPlotSettings( color=812, color_unfold=8, tag="multifold", legend="multifold")
-unifold_rps = ResultPlotSettings( color=46, color_unfold=2, tag="unifold", legend="unifold")
 
 @dataclass
 class HistConfig:
@@ -63,6 +58,10 @@ class PlotList:
     compare: list[HistConfig]
     name: str
     ratio: str
+
+    def __post_init__(self):
+        self.ref = asdict(self.ref)
+        self.compare =[ asdict(c) for c in self.compare ]
 
 def GOF(HistList1,HistList2):
   assert len(HistList1) == len(HistList2)
@@ -148,6 +147,12 @@ def prepare_histlist( list_name, hist_name, hist_file):
 
     return hlist
 
+
+def draw_initial_line( chi2_val, n_iter, hist_name ):
+    line = rt.TLine(0, chi2_val, n_iter, chi2_val)
+    line.SetLineColor(rt.kRed)
+    line.Write(hist_name)
+
 if __name__=="__main__":
 
     parser = ArgumentParser()
@@ -220,12 +225,12 @@ if __name__=="__main__":
       data_legend = "Data" if names_pseudodata_truth is None else "Pseudo-data"
       if args.sysreweight:
           data_legend = "sys variation: {config['syslegend'][0]}"
-      Config["Data"] = asdict(HistConfig(hist_list_data, 0, 1, "cross", data_legend)) 
-      Config["MCGenInclusive"] = asdict(HistConfig(hist_list_MCgeninclusive, 0, rt.kAzure-2, "fillederror", config["MClegend"])) 
-      Config["MCRecoInclusive"] = asdict(HistConfig( hist_list_MCrecoinclusive, 0, rt.kAzure-2, "fillederror", config["MClegend"])) 
+      Config["Data"] = HistConfig(hist_list_data, 0, 1, "cross", data_legend)
+      Config["MCGenInclusive"] = HistConfig(hist_list_MCgeninclusive, 0, rt.kAzure-2, "fillederror", config["MClegend"])
+      Config["MCRecoInclusive"] = HistConfig( hist_list_MCrecoinclusive, 0, rt.kAzure-2, "fillederror", config["MClegend"])
 
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]}" 
-      Config["PseudodataTruthInclusive"] = asdict(HistConfig(hist_list_pseudodatatruthinclusive, 0, 800, "triangle", ps_legend)) 
+      Config["PseudodataTruthInclusive"] = HistConfig(hist_list_pseudodatatruthinclusive, 0, 800, "triangle", ps_legend)
 
     PlotLists= {}
 
@@ -273,55 +278,54 @@ if __name__=="__main__":
 
 
       if args.plot:
-        color = 4
-        legend = "MLE refold" if not args.sysreweight else "MLE reweight"
-        tag = "MLE"
-        color_unfold = 4
-        legend_unfold = "MLE unfold" if not args.sysreweight else "MLE reweight"
+
+        default_rps = ResultPlotSettings( color =4, color_unfold =6, tag="MLE", legend="MLE")
+        omnifold_rps = ResultPlotSettings( color=608, color_unfold=6, tag="omnifold", legend="omnifold")
+        multifold_rps = ResultPlotSettings( color=812, color_unfold=8, tag="multifold", legend="multifold")
+        unifold_rps = ResultPlotSettings( color=46, color_unfold=2, tag="unifold", legend="unifold")
+
+        result_settings = default_rps
         if "omnifold" in args.input:
-          color = 608
-          legend = "omnifold refold" if not args.sysreweight else "omnifold reweight"
-          tag = "omnifold"
-          color_unfold = 6
-          legend_unfold = "omnifold unfold" if not args.sysreweight else "omnifold reweight"
+          result_settings = omnifold_rps
         elif "multifold" in args.input:
-          color = 812
-          legend = "multifold refold" if not args.sysreweight else "multifold reweight"
-          tag = "multifold"
-          color_unfold = 8
-          legend_unfold = "multifold unfold" if not args.sysreweight else "multifold reweight"
+          result_settings = multifold_rps
         elif "unifold" in args.input:
-          color = 46
-          legend = "unifold refold" if not args.sysreweight else "unifold reweight"
-          tag = "unifold"
-          color_unfold = 2
-          legend_unfold = "unifold unfold" if not args.sysreweight else "unifold reweight"
+          result_settings = unifold_rps
+
+        result_settings.sys_reweight = args.sysreweight
+        color         = result_settings.color
+        legend        = result_settings.legend_refold
+        color_unfold  = result_settings.color_unfold
+        legend_unfold = result_settings.legend_unfold
+        tag           = result_settings.tag
 
         hist_list_refold = prepare_histlist(f"Refold_iter{iter_index}", names_refold[i], f)
 
         hist_list_unfold = prepare_histlist(f"Unfolder_iter{iter_index}", names_unfold[i], f)
 
-        Config["Refold_iter"+iter_index] = asdict(HistConfig(hist_list_refold, 0, color, "filled", legend))  
-        Config["Unfold_iter"+iter_index] =  asdict(HistConfig(hist_list_unfold, 0, color_unfold, "marker", legend_unfold)) 
+        Config["Refold_iter"+iter_index] = HistConfig(hist_list_refold, 0, color, "filled", legend)
+        Config["Unfold_iter"+iter_index] =  HistConfig(hist_list_unfold, 0, color_unfold, "marker", legend_unfold)
 
-        PlotLists["Refoldcompare_iter"+iter_index] = {
-          "ref":Config["Data"],
-          "compare":[Config["Refold_iter"+iter_index],Config["MCRecoInclusive"]],
-          "name":"data_refold_"+tag+"_iter"+iter_index,
-          "ratio":"Refold / data" if not args.sysreweight else "Reweight / sys. var."
-        }
-        PlotLists["Unfoldcompare_iter"+iter_index] = {
-          "ref":Config["MCGenInclusive"],
-          "compare":[Config["Unfold_iter"+iter_index]],
-          "name":"MC_unfold_"+tag+"_iter"+iter_index,
-          "ratio":"Unfold / MC" if not args.sysreweight else "Reweight / MC"
-        }
-        PlotLists["Unfoldcomparepseudodata_iter"+iter_index] = {
-          "ref":Config["PseudodataTruthInclusive"],
-          "compare":[Config["Unfold_iter"+iter_index],Config["MCGenInclusive"]],
-          "name":"pseudodatatruth_unfold_"+tag+"_iter"+iter_index,
-          "ratio":"Unfold / Truth" if not args.sysreweight else "Reweight / sys. var."
-        }
+        ratio = 'Refold / data' if not args.sysreweight else "Reweight / sys. var."
+        PlotLists["Refoldcompare_iter"+iter_index] = asdict(PlotList(
+                                                                      Config["Data"],
+                                                                      [Config[f"Refold_iter{iter_index}"],Config["MCRecoInclusive"]],
+                                                                      f'data_refold_{tag}_iter{iter_index}', 
+                                                                      ratio)) 
+
+        ratio = 'Unfold / data' if not args.sysreweight else "Reweight / MC"
+        PlotLists["Unfoldcompare_iter"+iter_index] = asdict(PlotList( 
+                                                                      Config["MCGenInclusive"], 
+                                                                      [Config[f"Unfold_iter{iter_index}"]], 
+                                                                      f"MC_unfold_{tag}_iter{iter_index}", 
+                                                                      ratio ))
+
+        ratio = 'Unfold / Truth' if not args.sysreweight else "Reweight / sys. var."
+        PlotLists["Unfoldcomparepseudodata_iter"+iter_index] = asdict(PlotList( 
+                                                                                Config["PseudodataTruthInclusive"], 
+                                                                                [Config[f"Unfold_iter{iter_index}"],Config["MCGenInclusive"]], 
+                                                                                f"pseudodata_truth_unfold_{tag}_iter{iter_index}", 
+                                                                                ratio)) 
 
         PlotConfig(PlotLists["Refoldcompare_iter"+iter_index])
         print("plotting")
@@ -336,29 +340,16 @@ if __name__=="__main__":
 
     hist_p_iter_MC_MCunfoldunc.Write()
 
-    line_reco_dataMCunc = rt.TLine(0,wchi2_per_ndof_MCdatareco,len(names_refold),wchi2_per_ndof_MCdatareco)
-    line_reco_dataMCunc.SetLineColor(rt.kRed)
-    line_reco_dataMCunc.Write("Chi2dataMC_reco_dataMCunc")
-
-    line_reco_dataunc = rt.TLine(0,wchi2_hist2unc_per_ndof_MCdatareco,len(names_refold),wchi2_hist2unc_per_ndof_MCdatareco)
-    line_reco_dataunc.SetLineColor(rt.kRed)
-    line_reco_dataunc.Write("Chi2dataMC_reco_dataunc")
-
-    line_reco_dataMCunc_p = rt.TLine(0,p_MCdatareco,len(names_refold),p_MCdatareco)
-    line_reco_dataMCunc_p.SetLineColor(rt.kRed)
-    line_reco_dataMCunc_p.Write("p_dataMC_reco_dataMCunc")
+    line_reco_dataMCunc = draw_initial_line( wchi2_per_ndof_MCdatareco, len(names_refold), "Chi2dataMC_reco_dataMCunc")
+    line_reco_dataunc = draw_initial_line( wchi2_hist2unc_per_ndof_MCdatareco, len(names_refold), "Chi2dataMC_reco_dataunc")
+    line_reco_dataMCunc_p = draw_initial_line(p_MCdatareco,len(names_refold), "p_dataMC_reco_dataMCunc")
 
     if not(names_pseudodata_truth is None):
       hist_chi2_iter_truth_dataunc.Write()
       hist_chi2_iter_truth_dataMCunc.Write()
 
-      line_gen_dataunc = rt.TLine(0,wchi2_hist2unc_per_ndof_MCdatagen,len(names_unfold),wchi2_hist2unc_per_ndof_MCdatagen)
-      line_gen_dataunc.SetLineColor(rt.kRed)
-      line_gen_dataunc.Write("Chi2pseudodataMC_gen_pseudodataunc")
-
-      line_gen_dataMCunc = rt.TLine(0,wchi2_per_ndof_MCdatagen,len(names_unfold),wchi2_per_ndof_MCdatagen)
-      line_gen_dataMCunc.SetLineColor(rt.kRed)
-      line_gen_dataMCunc.Write("Chi2pseudodataMC_gen_pseudodataMCunc")
+      line_gen_dataunc = draw_initial_line( wchi2_hist2unc_per_ndof_MCdatagen, len(names_unfold), "Chi2pseudodataMC_gen_pseudodataunc")
+      line_gen_dataMCunc = draw_initial_line( wchi2_per_ndof_MCdatagen, len(names_unfold), "Chi2pseudodataMC_gen_pseudodataMCunc")
 
     fout.Close()
 
