@@ -159,16 +159,16 @@ def draw_plot(plt_list, plotdir, var1_nm, var2_nm, v2_dct, txt_list):
     path = f'{plotdir}/{plt_list.name}_{var1_nm}_{var2_nm}'
     os.system(f"mkdir -p {plotdir}")
     axis_title = v2_dct["reco_name"] if plt_list.is_reco else v2_dct["gen_name"]
-    
+
     if "eff" in plt_list.name or "acc" in plt_list.name:
-        plot_flat_hists(plt_list.ref.hist, comparehists, plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=PlotName.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio, range_ratio=0.1)
+        plot_flat_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio, range_ratio=0.1)
         return path+".png"
     else:
         plot_flat_hists(plt_list.ref.hist, plt_list.hists , plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio)
         return path+"_logy.png"
 
 def GetEffAcc(f,label,names_gen,names_reco):
-  hist_list_geneff = HistLabel(label+"GenEff")
+  hist_list_geneff = HistList(label+"GenEff")
   hist_list_geneff.root_hists_name=[name_gen.replace("Inclusive","Eff") for name_gen in names_gen]
   if hist_list_geneff.read_hist_from_file(f)==-1:
     hist_list_geneff=None
@@ -247,7 +247,7 @@ if __name__=="__main__":
 
     if not(names_pseudodata_truth is None):
       hist_list_pseudodatatruthinclusive = prepare_histlist("PseduodataTruthInclusive", names_pseudodata_truth, f)
-      hist_list_pseudodata_eff_acc = GetEffAcc(f,"Pseudodata",names_psedodata_truth,name_data)
+      hist_list_pseudodata_eff_acc = GetEffAcc(f,"Pseudodata",names_pseudodata_truth,name_data)
 
     else:
       hist_list_pseudodatatruthinclusive = None
@@ -267,16 +267,16 @@ if __name__=="__main__":
 
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]}" 
       histCfg["PseudodataTruthInclusive"] = HistConfig(hist_list_pseudodatatruthinclusive, 0, 800, "triangle", ps_legend)
-      
+
       histCfg["MCGenEff"] = HistConfig( hist_list_MC_eff_acc["Eff"], 0, rt.kAzure-2, "cross", f'{config["MClegend"]} Eff.')
       histCfg["MCRecoAcc"] = HistConfig( hist_list_MC_eff_acc["Acc"], 0, rt.kAzure-2, "cross", f'{config["MClegend"]} Acc.')
 
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]} Eff."
       histCfg["PseudodataTruthEff"]= HistConfig( hist_list_pseudodata_eff_acc["Eff"], 0, 800, "triangle", ps_legend )
-      
+
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]} Eff."
       histCfg["PseudodataTruthAcc"]= HistConfig(hist_list_pseudodata_eff_acc["Acc"], 0, 800, "triangle", ps_legend )
- 
+
 
     pltLists= {}
 
@@ -332,7 +332,7 @@ if __name__=="__main__":
 
         hist_list_refold = prepare_histlist(f"Refold_iter{iter_index}", names_refold[i], f)
         hist_list_unfold = prepare_histlist(f"Unfolder_iter{iter_index}", names_unfold[i], f)
-        
+
         hist_list_unfold_eff_acc = GetEffAcc(f,"Unfold_iter"+iter_index,names_unfold[i],names_refold[i])
 
 
@@ -340,7 +340,7 @@ if __name__=="__main__":
         histCfg["Unfold_iter"+iter_index] =  HistConfig(hist_list_unfold, 0, color_unfold, "marker", legend_unfold)
         histCfg[f"Unfold_iter{iter_index}Eff"] = HistConfig( hist_list_unfold_eff_acc["Eff"], 0, color_unfold, "cross", f'{legend_unfold} Eff.')
         histCfg[f"Unfold_iter{iter_index}Acc"] = HistConfig( hist_list_unfold_eff_acc["Acc"], 0, color_unfold, "cross", f'{legend_unfold} Acc.')
-     
+
         ratio = 'Refold / data' if not args.sysreweight else "Reweight / sys. var."
         pltLists["Refoldcompare_iter"+iter_index] = PlotList(
                                                               histCfg["Data"],
@@ -368,24 +368,24 @@ if __name__=="__main__":
                                                               [histCfg[f"Unfold_iter{iter_index}Eff"]],
                                                               f'MC_unfoldedeff_{tag}_iter{iter_index}',
                                                               ratio )
-     
+
         pltLists["Unfoldcompareacc_iter"+iter_index]= PlotList( histCfg["MCRecoAcc"],
                                                                 [histCfg[f"Unfold_iter{iter_index}Acc"]],
                                                                 f'MC_unfoldacc_{tag}_iter{iter_index}',
                                                                 ratio )
-        
+
         ratio = 'Unfold / Truth' if not args.sysreweight else "Reweight / sys. var"
         pltLists["Unfoldcomparepseudodataeff_iter"+iter_index]= PlotList( 
                                                               histCfg["PseudodataTruthEff"],
                                                               [histCfg[f"Unfold_iter{iter_index}Eff"], histCfg["MCGenEff"]],
                                                               f'pseudodatatruth_unfoldedeff_{tag}_iter{iter_index}',
                                                               ratio )
-     
+
         pltLists["Unfoldcomparepseudodataacc_iter"+iter_index]= PlotList( histCfg["PseudodataTruthAcc"],
                                                                 [histCfg[f"Unfold_iter{iter_index}Acc"],histCfg["MCRecoAcc"]],
                                                                 f'pseudodatatruth_unfoldacc_{tag}_iter{iter_index}',
                                                                 ratio )
-        
+
         to_plot = [f'Refoldcompare_iter{iter_index}', f'Unfoldcompare_iter{iter_index}', f'Unfoldcompareeff_iter{iter_index}', f'Unfoldcompareacc_iter{iter_index}' ]
         if names_pseudodata_truth is not None:
             to_plot += [ f'Unfoldcomparepseudodata_iter{iter_index}', f"Unfoldcomparepseudodataeff_iter{iter_index}", f"Unfoldcomparepseudodataacc_iter{iter_index}" ]

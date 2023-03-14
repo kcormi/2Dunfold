@@ -311,10 +311,10 @@ class HistList:
         filter_cut = filter_np_cut(obs_arrays, self.npy_cut)
         inf_weight_mask = np.isinf(weight) != True
 
-        for ihist, edge_i in enumerate(self.dim1.bin_edges[:-1]): 
+        for ihist, edge_i in enumerate(self.dim1.bin_edges[:-1]):
             edge_ip1 = self.dim1.bin_edges[ihist+1]
-            bind1_low_cut = obs_arrays[self.dim1.np_var] >= edge_i 
-            bind1_high_cut = obs_arrays[self.dim1.np_var] < edge_ip1 
+            bind1_low_cut = obs_arrays[self.dim1.np_var] >= edge_i
+            bind1_high_cut = obs_arrays[self.dim1.np_var] < edge_ip1
 
             bd1_cut = bind1_low_cut & bind1_high_cut
             d1_cut = filter_cut & inf_weight_mask & bd1_cut
@@ -462,7 +462,7 @@ class HistList:
         self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, 0, np.sqrt(np.sum(np.square(wgts))) )
 
         wgts = weight[base_cut & (obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]) & (obs_arrays[self.dim2.np_var] >= self.dim2.bin_edges[0][len(self.dim2.bin_edges[0]) - 1])]
-        
+
         self.root_2Dhist.SetBinContent(self.root_2Dhist.GetNbinsX() + 1, self.root_2Dhist.GetNbinsY() + 1, np.sum(wgts) )
         self.root_2Dhist.SetBinError(self.root_2Dhist.GetNbinsX() + 1, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(wgts))) )
 

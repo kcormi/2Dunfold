@@ -37,14 +37,13 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
     reco_passgen.cut = cuts[CutType.PassReco_PassGen]
     hists["reco_passgen"] = reco_passgen
 
-    gen_eff = hist_list("HistGenEff_"+dataset,tag)
+    gen_eff = HistList("HistGenEff_"+dataset,tag)
     gen_eff.read_settings_from_config_dim1(var1_config,isgen=True)
     gen_eff.read_settings_from_config_dim2(var2_config,isgen=True)
     gen_eff.bin_edges_dim2 = edges_gen
     gen_eff.fill_root_hists_name()
 
-
-    reco_acc=hist_list("HistRecoAcc_"+dataset,tag)
+    reco_acc = HistList("HistRecoAcc_"+dataset,tag)
     reco_acc.read_settings_from_config_dim1(var1_config,isgen=False)
     reco_acc.read_settings_from_config_dim2(var2_config,isgen=False)
     reco_acc.bin_edges_dim2 = edges_reco
