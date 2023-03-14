@@ -50,6 +50,10 @@ class PlotList:
         self.ref = asdict(self.ref)
         self.compare =[ asdict(c) for c in self.compare ]
 
+    @property
+    def is_reco(self):
+        return ('reco' in self.name) or ('refold' in self.name)
+
 def GOF(HistList1,HistList2):
   assert len(HistList1) == len(HistList2)
   wchi2 = 0.
@@ -133,6 +137,24 @@ def prepare_histlist( list_name, hist_name, hist_file):
     hlist.flatten_hist()
 
     return hlist
+
+
+def plot_config(PlotName, plotdir, var1_nm, var2_nm, v2_dct, txt_list):
+  comparehists= [c["hist"] for c in PlotName["compare"] if c["hist"] is not None]
+  if len(comparehists) == 0:
+    return
+  comparecolors= [c["color"] for c in PlotName["compare"] if c["hist"] is not None]
+  comparestyles= [c["style"] for c in PlotName["compare"] if c["hist"] is not None]
+  comparelegends= [c["legend"] for c in PlotName["compare"] if c["hist"] is not None]
+  path =str(f'{plotdir}/{PlotName["name"]}_{var1_nm}_{var2_nm}')
+  os.system(f"mkdir -p {plotdir}")
+  if "reco" in PlotName["name"] or "refold" in PlotName["name"]:
+    axis_title = v2_dct["reco_name"]
+  else:
+    axis_title = v2_dct["gen_name"]
+  plot_flat_hists(PlotName["ref"]["hist"], comparehists, PlotName["ref"]["legend"], comparelegends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=PlotName["ref"]["stat"], text_list=txt_list, style_ref=PlotName["ref"]["style"], color_ref=PlotName["ref"]["color"], list_style_compare=comparestyles, list_color_compare=comparecolors, labelY='Normalized Events/Bin Width', label_ratio=PlotName["ratio"])
+  return path+"_logy.png"
+
 
 
 def draw_initial_line( chi2_val, n_iter, hist_name ):
@@ -221,22 +243,6 @@ if __name__=="__main__":
 
     pltLists= {}
 
-    def PlotConfig(PlotName):
-      comparehists= [c["hist"] for c in PlotName["compare"] if c["hist"] is not None]
-      if len(comparehists) == 0:
-        return
-      comparecolors= [c["color"] for c in PlotName["compare"] if c["hist"] is not None]
-      comparestyles= [c["style"] for c in PlotName["compare"] if c["hist"] is not None]
-      comparelegends= [c["legend"] for c in PlotName["compare"] if c["hist"] is not None]
-      path =str(args.plotdir+"/"+PlotName["name"]+"_"+config["var1"]+"_"+config["var2"])
-      os.system("mkdir -p "+args.plotdir)
-      if "reco" in PlotName["name"] or "refold" in PlotName["name"]:
-        axis_title = v2_dct["reco_name"]
-      else:
-        axis_title = v2_dct["gen_name"]
-      plot_flat_hists(PlotName["ref"]["hist"], comparehists, PlotName["ref"]["legend"], comparelegends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=PlotName["ref"]["stat"], text_list=(TextListReco if ("reco" in PlotName["name"] or "refold" in PlotName["name"]) else TextListGen), style_ref=PlotName["ref"]["style"], color_ref=PlotName["ref"]["color"], list_style_compare=comparestyles, list_color_compare=comparecolors, labelY='Normalized Events/Bin Width', label_ratio=PlotName["ratio"])
-      return path+"_logy.png"
-
     print(name_data)
     for i, name_refold in enumerate(names_refold):
       print(name_refold)
@@ -294,31 +300,35 @@ if __name__=="__main__":
         histCfg["Unfold_iter"+iter_index] =  HistConfig(hist_list_unfold, 0, color_unfold, "marker", legend_unfold)
 
         ratio = 'Refold / data' if not args.sysreweight else "Reweight / sys. var."
-        pltLists["Refoldcompare_iter"+iter_index] = asdict(PlotList(
-                                                                      histCfg["Data"],
-                                                                      [histCfg[f"Refold_iter{iter_index}"],histCfg["MCRecoInclusive"]],
-                                                                      f'data_refold_{tag}_iter{iter_index}', 
-                                                                      ratio)) 
+        pltLists["Refoldcompare_iter"+iter_index] = PlotList(
+                                                              histCfg["Data"],
+                                                              [histCfg[f"Refold_iter{iter_index}"],histCfg["MCRecoInclusive"]],
+                                                              f'data_refold_{tag}_iter{iter_index}', 
+                                                              ratio) 
 
         ratio = 'Unfold / data' if not args.sysreweight else "Reweight / MC"
-        pltLists["Unfoldcompare_iter"+iter_index] = asdict(PlotList( 
-                                                                      histCfg["MCGenInclusive"], 
-                                                                      [histCfg[f"Unfold_iter{iter_index}"]], 
-                                                                      f"MC_unfold_{tag}_iter{iter_index}", 
-                                                                      ratio ))
+        pltLists["Unfoldcompare_iter"+iter_index] = PlotList( 
+                                                              histCfg["MCGenInclusive"], 
+                                                              [histCfg[f"Unfold_iter{iter_index}"]], 
+                                                              f"MC_unfold_{tag}_iter{iter_index}", 
+                                                              ratio )
 
         ratio = 'Unfold / Truth' if not args.sysreweight else "Reweight / sys. var."
-        pltLists["Unfoldcomparepseudodata_iter"+iter_index] = asdict(PlotList( 
-                                                                                histCfg["PseudodataTruthInclusive"], 
-                                                                                [histCfg[f"Unfold_iter{iter_index}"],histCfg["MCGenInclusive"]], 
-                                                                                f"pseudodata_truth_unfold_{tag}_iter{iter_index}", 
-                                                                                ratio)) 
+        pltLists["Unfoldcomparepseudodata_iter"+iter_index] = PlotList( 
+                                                                        histCfg["PseudodataTruthInclusive"], 
+                                                                        [histCfg[f"Unfold_iter{iter_index}"],histCfg["MCGenInclusive"]], 
+                                                                        f"pseudodata_truth_unfold_{tag}_iter{iter_index}", 
+                                                                        ratio) 
 
-        PlotConfig(pltLists["Refoldcompare_iter"+iter_index])
+
+        to_plot = [f'Refoldcompare_iter{iter_index}', f'Unfoldcompare_iter{iter_index}']
+        if names_pseudodata_truth is not None:
+            to_plot.append(f'Unfoldcomparepseudodata_iter{iter_index}')
+
         print("plotting")
-        PlotConfig(pltLists["Unfoldcompare_iter"+iter_index])
-        if not(names_pseudodata_truth is None):
-          PlotConfig(pltLists["Unfoldcomparepseudodata_iter"+iter_index])
+        for plt_type in to_plot:
+            txt_list = TextListReco if pltLists[plt_type].is_reco else TextListGen
+            plot_config( asdict(pltLists[plt_type]), args.plotdir, config["var1"], config["var2"], v2_dct, txt_list )
 
     hist_chi2_iter_dataMCunc.Write()
     hist_chi2_iter_dataunc.Write()
