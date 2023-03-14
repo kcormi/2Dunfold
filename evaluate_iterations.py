@@ -37,11 +37,30 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
     reco_passgen.cut = cuts[CutType.PassReco_PassGen]
     hists["reco_passgen"] = reco_passgen
 
+    gen_eff = hist_list("HistGenEff_"+dataset,tag)
+    gen_eff.read_settings_from_config_dim1(var1_config,isgen=True)
+    gen_eff.read_settings_from_config_dim2(var2_config,isgen=True)
+    gen_eff.bin_edges_dim2 = edges_gen
+    gen_eff.fill_root_hists_name()
+
+
+    reco_acc=hist_list("HistRecoAcc_"+dataset,tag)
+    reco_acc.read_settings_from_config_dim1(var1_config,isgen=False)
+    reco_acc.read_settings_from_config_dim2(var2_config,isgen=False)
+    reco_acc.bin_edges_dim2 = edges_reco
+    reco_acc.fill_root_hists_name()
+
   for _, hist in hists.items():
     hist.fill_root_hists_name()
     print("histograms:", hist.root_hists_name)
     hist.fill_hist(source, from_root, weightarray=weight_array,genWeight=genWeight)
   print("filled")
+
+  if not reco_only:
+    gen_eff.get_hist_from_division(gen_passreco,gen_inclusive)
+    reco_acc.get_hist_from_division(reco_passgen,reco_inclusive)
+    hists["eff"] = gen_eff
+    hists["acc"] = reco_acc
 
   mig = None
   if store_mig:
@@ -203,7 +222,7 @@ if __name__=="__main__":
     mc_norm_factor = normalization_hist.norm / mc_hists["reco_inclusive"].norm
 
     for key, hist in mc_hists.items():
-        if not (key == 'mig'):
+        if not (key == 'mig' or key == "eff" or key == "acc"):
             hist.multiply(mc_norm_factor)
 
     if not os.path.exists(config[args.method]["weight"]):
@@ -224,11 +243,11 @@ if __name__=="__main__":
 
       unfold_hists = fill_hist_lists("MC_"+args.method,var1_dct,var2_dct,bin_edges_gen,bin_edges_reco,config[args.method]["sim"],genWeight=weightname,from_root=False,weight_array=weight_iter,store_mig=store_mig,tag="_iter"+str(i))
       if args.eff_from_nominal:
-        gen_unfold_inclusive.get_hist_from_multiplication(unfold_hists["gen_passreco"],gen_inveff)
+        unfold_hists["gen_inclusive"].get_hist_from_multiplication(unfold_hists["gen_passreco"],gen_inveff)
       unf_norm_factor = normalization_hist.norm / unfold_hists["reco_inclusive"].norm
 
       for key, hist in unfold_hists.items():
-        if not (key == 'mig'):
+        if not (key == 'mig' or key == "eff" or key == "acc"):
             hist.multiply(unf_norm_factor)
 
       write_all_hists(unfold_hists)
