@@ -76,8 +76,8 @@ def merge_bins(obs, trees=[], root_cut='', threshold=1.0, bin_edges_dim1_1d=None
     bin_edges_dim2_1d = [] if bin_edges_dim2_1d is None else bin_edges_dim2_1d
     hists = []
     for itree, tree in enumerate(trees):
-        hist = ROOT.TH2F('HistMerge' + str(itree), 'HistMerge' + str(itree), len(bin_edges_dim1_1d) - 1, np.array(bin_edges_dim1_1d), len(bin_edges_dim2_1d) - 1, np.array(bin_edges_dim2_1d))
-        tree.Draw(obs[1] + ':' + obs[0] + '>>HistMerge' + str(itree), root_cut, 'colzgoff')
+        hist = ROOT.TH2F(f'HistMerge{itree}', f'HistMerge{itree}', len(bin_edges_dim1_1d) - 1, np.array(bin_edges_dim1_1d), len(bin_edges_dim2_1d) - 1, np.array(bin_edges_dim2_1d))
+        tree.Draw(f'{obs[1]}:{obs[0]}>>HistMerge{itree}', root_cut, 'colzgoff')
         hists.append(hist)
 
     bin_edges_dim2_merge = []
@@ -214,7 +214,7 @@ class hist_list:
 
     def fill_root_hists_name(self):
         for i in range(self.dim1.length()):
-            self.root_hists_name.append(self.name + '_' + self.dim1.np_var + '_' + str(i + 1) + self.tag)
+            self.root_hists_name.append(f'{self.name}_{self.dim1.np_var}_{i+1}{self.tag}')
 
     @property
     def bin_edges_dim1(self):
@@ -271,16 +271,17 @@ class hist_list:
         if genWeight != '':
             string_weight = '*' + genWeight
         base_cut_str = self.root_cut + string_weight
-        for ihist in range(len(self.dim1.bin_edges) - 1):
-            cut_str = base_cut_str + ('*({var1}>={var1_low})*({var1}<{var1_high})').format(var1=self.dim1.root_var, var1_low=self.dim1.bin_edges[ihist], var1_high=self.dim1.bin_edges[ihist + 1])
+        for ihist, edge_i in enumerate(self.dim1.bin_edges[:-1]): 
+            edge_ip1 = self.dim1.bin_edges[ihist + 1]
+            cut_str = f'{base_cut_str}*({self.dim1.root_var}>={edge_i})*({self.dim1.root_var}<{edge_ip1})'
             print(cut_str)
             print(tree.GetEntries(cut_str))
-            tree.Draw(self.dim2.root_var + '>>' + self.root_hists_name[ihist], cut_str)
+            tree.Draw(f'{self.dim2.root_var}>>{self.root_hists_name[ihist]}', cut_str)
             self.bin_sum.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin + 1) for ibin in range(self.root_hists[ihist].GetNbinsX()) ]))
             self.bin_norm.append(np.sum([ self.root_hists[ihist].GetBinContent(ibin) for ibin in range(self.root_hists[ihist].GetNbinsX() + 2) ]))
 
-        self.dim1_underflow = tree.GetEntries(base_cut_str + ('*({var1}<{var1_low})').format(var1=self.dim1.root_var, var1_low=self.dim1.bin_edges[0]))
-        self.dim1_overflow = tree.GetEntries(base_cut_str + ('*({var1}>={var1_high})').format(var1=self.dim1.root_var, var1_high=self.dim1.bin_edges[len(self.dim1.bin_edges) - 1]))
+        self.dim1_underflow = tree.GetEntries(f'{base_cut_str}*({self.dim1.root_var}<{self.dim1.bin_edges[0]})')
+        self.dim1_overflow = tree.GetEntries(f'{base_cut_str}*({self.dim1.root_var}>={self.dim1.bin_edges[-1]})')
         self.total = np.sum(self.bin_sum)
         self.norm = np.sum(self.bin_norm) + self.dim1_overflow + self.dim1_underflow
 
@@ -305,16 +306,17 @@ class hist_list:
             if genWeight in obs_arrays.keys():
                 weight = weightarray * obs_arrays[genWeight]
             else:
-                print(genWeight, 'is not a key in ', files, ', skip it')
+                print(f'{genWeight} is not a key in {files} skip it')
                 weight = weightarray
         else:
             weight = weightarray
         filter_cut = filter_np_cut(obs_arrays, self.npy_cut)
         inf_weight_mask = np.isinf(weight) != True
 
-        for ihist in range(len(self.dim1.bin_edges) - 1):
-            bind1_low_cut = obs_arrays[self.dim1.np_var] >= self.dim1.bin_edges[ihist]
-            bind1_high_cut = obs_arrays[self.dim1.np_var] < self.dim1.bin_edges[ihist+1]
+        for ihist, edge_i in enumerate(self.dim1.bin_edges[:-1]): 
+            edge_ip1 = self.dim1.bin_edges[ihist+1]
+            bind1_low_cut = obs_arrays[self.dim1.np_var] >= edge_i 
+            bind1_high_cut = obs_arrays[self.dim1.np_var] < edge_ip1 
             bd1_cut = bind1_low_cut & bind1_high_cut
             d1_cut = inf_weight_mask & bd1_cut
 
@@ -358,7 +360,7 @@ class hist_list:
         for ihist, Hist in enumerate(self.root_hists):
             self.flat_xAxisLabel_low.append(start + Hist.GetXaxis().GetBinLowEdge(1))
             self.flat_xAxisLabel_up.append(start + Hist.GetXaxis().GetBinUpEdge(Hist.GetNbinsX()))
-            self.flat_xAxisLabel.append(ROOT.TF1(('labels{}').format(ihist), 'x', Hist.GetXaxis().GetBinLowEdge(1), Hist.GetXaxis().GetBinUpEdge(Hist.GetNbinsX())))
+            self.flat_xAxisLabel.append(ROOT.TF1(f'labels{ihist}', 'x', Hist.GetXaxis().GetBinLowEdge(1), Hist.GetXaxis().GetBinUpEdge(Hist.GetNbinsX())))
             for ibin in range(Hist.GetNbinsX()):
                 BinEdges.append(Hist.GetXaxis().GetBinLowEdge(ibin + 1) + start)
 
@@ -387,7 +389,7 @@ class hist_list:
         string_weight = ''
         if genWeight != '':
             string_weight = '*' + genWeight
-        tree.Draw(self.dim2.root_var + ':' + self.dim1.root_var + '>>' + hist_name, self.root_cut + string_weight, 'colzgoff')
+        tree.Draw(f'{self.dim2.root_var}:{self.dim1.root_var}>>{hist_name}', self.root_cut + string_weight, 'colzgoff')
         self.bin_sum = [ np.sum([ self.root_2Dhist.GetBinContent(ibin1, ibin2) for ibin2 in range(1, self.root_2Dhist.GetNbinsY() + 1) ]) for ibin1 in range(1, self.root_2Dhist.GetNbinsX() + 1) ]
         self.bin_norm = [ np.sum([ self.root_2Dhist.GetBinContent(ibin1, ibin2) for ibin2 in range(self.root_2Dhist.GetNbinsY() + 2) ]) for ibin1 in range(1, self.root_2Dhist.GetNbinsX() + 1) ]
         self.dim1_underflow = np.sum([ self.root_2Dhist.GetBinContent(0, ibin2) for ibin2 in range(self.root_2Dhist.GetNbinsY() + 2) ])
@@ -415,7 +417,7 @@ class hist_list:
             if genWeight in obs_arrays.keys():
                 weight = weightarray * obs_arrays[genWeight]
             else:
-                print(genWeight, 'is not a key in ', files, ', skip it')
+                print(f'{genWeight} is not a key in {files} skip it')
                 weight = weightarray
         else:
             weight = weightarray
@@ -525,11 +527,11 @@ class hist_list:
 
     def binwise_multiply(self, scalar_list=[], scalar_underflow=0.0, scalar_overflow=0.0):
         if len(scalar_list) != len(self.root_hists):
-            raise ValueError('The length of the given list is not equal to the length of the histogram,' + str(len(self.root_hists)))
-        for ihist in range(len(self.root_hists)):
+            raise ValueError(f'The length of the given list is not equal to the length of the histogram, {len(self.root_hists)}')
+        for ihist, hist in enumerate(self.root_hists):
             for ibin in range(self.root_hists[ihist].GetNbinsX() + 2):
-                self.root_hists[ihist].SetBinContent(ibin, self.root_hists[ihist].GetBinContent(ibin) * scalar_list[ihist])
-                self.root_hists[ihist].SetBinError(ibin, self.root_hists[ihist].GetBinError(ibin) * scalar_list[ihist])
+                hist.SetBinContent(ibin, hist.GetBinContent(ibin) * scalar_list[ihist])
+                hist.SetBinError(ibin, hist.GetBinError(ibin) * scalar_list[ihist])
 
             self.bin_sum[ihist] *= scalar_list[ihist]
             self.bin_norm[ihist] *= scalar_list[ihist]
@@ -540,16 +542,16 @@ class hist_list:
         self.norm = self.total + self.dim1_underflow + self.dim1_overflow
 
     def divide_by_bin_width(self):
-        for ihist in range(len(self.root_hists)):
-            for ibin in range(self.root_hists[ihist].GetNbinsX()):
-                self.root_hists[ihist].SetBinContent(ibin + 1, self.root_hists[ihist].GetBinContent(ibin + 1) / self.root_hists[ihist].GetXaxis().GetBinWidth(ibin + 1))
-                self.root_hists[ihist].SetBinError(ibin + 1, self.root_hists[ihist].GetBinError(ibin + 1) / self.root_hists[ihist].GetXaxis().GetBinWidth(ibin + 1))
+        for hist in self.root_hists:
+            for ibin in range(hist.GetNbinsX()):
+                hist.SetBinContent(ibin + 1, hist.GetBinContent(ibin + 1) / hist.GetXaxis().GetBinWidth(ibin + 1))
+                hist.SetBinError(ibin + 1, hist.GetBinError(ibin + 1) / hist.GetXaxis().GetBinWidth(ibin + 1))
 
     def multiply(self, scalar):
-        for ihist in range(len(self.root_hists)):
-            for ibin in range(self.root_hists[ihist].GetNbinsX() + 2):
-                self.root_hists[ihist].SetBinContent(ibin, self.root_hists[ihist].GetBinContent(ibin) * scalar)
-                self.root_hists[ihist].SetBinError(ibin, self.root_hists[ihist].GetBinError(ibin) * scalar)
+        for ihist, hist in enumerate(self.root_hists):
+            for ibin in range(hist.GetNbinsX() + 2):
+                hist.SetBinContent(ibin, hist.GetBinContent(ibin) * scalar)
+                hist.SetBinError(ibin, hist.GetBinError(ibin) * scalar)
 
             self.bin_sum[ihist] *= scalar
             self.bin_norm[ihist] *= scalar
@@ -567,7 +569,7 @@ class hist_list:
 
     def binwise_multiply_2Dhist(self, scalar_list=[], scalar_underflow=0.0, scalar_overflow=0.0):
         if len(scalar_list) != self.root_2Dhist.GetNbinsX():
-            raise ValueError('The length of the given list is not equal to the length of the histogram,' + str(self.root_2Dhist.GetNbinsX()))
+            raise ValueError(f'The length of the given list is not equal to the length of the histogram, {self.root_2Dhist.GetNbinsX()}')
         for ibin1 in range(1, self.root_2Dhist.GetNbinsX() + 1):
             for ibin2 in range(self.root_2Dhist.GetNbinsY() + 2):
                 self.root_2Dhist.SetBinContent(ibin1, ibin2, self.root_2Dhist.GetBinContent(ibin1, ibin2) * scalar_list[ibin1 - 1])
