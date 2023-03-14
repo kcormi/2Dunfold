@@ -46,13 +46,25 @@ class PlotList:
     name: str
     ratio: str
 
-    def __post_init__(self):
-        self.ref = asdict(self.ref)
-        self.compare =[ asdict(c) for c in self.compare ]
-
     @property
     def is_reco(self):
         return ('reco' in self.name) or ('refold' in self.name)
+
+    @property
+    def hists(self):
+        return [ c.hist for c in self.compare if c.hist ]
+
+    @property
+    def colors(self):
+        return [ c.color for c in self.compare if c.hist ]
+
+    @property
+    def legends(self):
+        return [ c.legend for c in self.compare if c.hist ]
+
+    @property
+    def styles(self):
+        return [ c.style for c in self.compare if c.hist ]
 
 def GOF(HistList1,HistList2):
   assert len(HistList1) == len(HistList2)
@@ -139,28 +151,19 @@ def prepare_histlist( list_name, hist_name, hist_file):
     return hlist
 
 
-def plot_config(PlotName, plotdir, var1_nm, var2_nm, v2_dct, txt_list):
-  comparehists= [c["hist"] for c in PlotName["compare"] if c["hist"] is not None]
-  if len(comparehists) == 0:
-    return
-  comparecolors= [c["color"] for c in PlotName["compare"] if c["hist"] is not None]
-  comparestyles= [c["style"] for c in PlotName["compare"] if c["hist"] is not None]
-  comparelegends= [c["legend"] for c in PlotName["compare"] if c["hist"] is not None]
-  path =str(f'{plotdir}/{PlotName["name"]}_{var1_nm}_{var2_nm}')
-  os.system(f"mkdir -p {plotdir}")
-  if "reco" in PlotName["name"] or "refold" in PlotName["name"]:
-    axis_title = v2_dct["reco_name"]
-  else:
-    axis_title = v2_dct["gen_name"]
-  plot_flat_hists(PlotName["ref"]["hist"], comparehists, PlotName["ref"]["legend"], comparelegends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=PlotName["ref"]["stat"], text_list=txt_list, style_ref=PlotName["ref"]["style"], color_ref=PlotName["ref"]["color"], list_style_compare=comparestyles, list_color_compare=comparecolors, labelY='Normalized Events/Bin Width', label_ratio=PlotName["ratio"])
-  return path+"_logy.png"
-
-
-
 def draw_initial_line( chi2_val, n_iter, hist_name ):
     line = rt.TLine(0, chi2_val, n_iter, chi2_val)
     line.SetLineColor(rt.kRed)
     line.Write(hist_name)
+
+def draw_plot(plt_list, plotdir, var1_nm, var2_nm, v2_dct, txt_list):
+    path = f'{plotdir}/{plt_list.name}_{var1_nm}_{var2_nm}'
+    os.system(f"mkdir -p {plotdir}")
+    axis_title = v2_dct["reco_name"] if plt_list.is_reco else v2_dct["gen_name"]
+
+    plot_flat_hists(plt_list.ref.hist, plt_list.hists , plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio)
+    return path+"_logy.png"
+
 
 if __name__=="__main__":
 
@@ -310,14 +313,14 @@ if __name__=="__main__":
         pltLists["Unfoldcompare_iter"+iter_index] = PlotList( 
                                                               histCfg["MCGenInclusive"], 
                                                               [histCfg[f"Unfold_iter{iter_index}"]], 
-                                                              f"MC_unfold_{tag}_iter{iter_index}", 
+                                                              f'MC_unfold_{tag}_iter{iter_index}', 
                                                               ratio )
 
         ratio = 'Unfold / Truth' if not args.sysreweight else "Reweight / sys. var."
         pltLists["Unfoldcomparepseudodata_iter"+iter_index] = PlotList( 
                                                                         histCfg["PseudodataTruthInclusive"], 
                                                                         [histCfg[f"Unfold_iter{iter_index}"],histCfg["MCGenInclusive"]], 
-                                                                        f"pseudodata_truth_unfold_{tag}_iter{iter_index}", 
+                                                                        f'pseudodata_truth_unfold_{tag}_iter{iter_index}', 
                                                                         ratio) 
 
 
@@ -328,7 +331,7 @@ if __name__=="__main__":
         print("plotting")
         for plt_type in to_plot:
             txt_list = TextListReco if pltLists[plt_type].is_reco else TextListGen
-            plot_config( asdict(pltLists[plt_type]), args.plotdir, config["var1"], config["var2"], v2_dct, txt_list )
+            draw_plot( pltLists[plt_type], args.plotdir, config["var1"], config["var2"], v2_dct, txt_list )
 
     hist_chi2_iter_dataMCunc.Write()
     hist_chi2_iter_dataunc.Write()

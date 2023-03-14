@@ -194,7 +194,7 @@ def plot_flat_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare
     if text_list == []:
         text_list = [
          ''] * len(hist_ref.root_hists)
-    c = rt.TCanvas('c', 'c', int(W_merge), H_long)
+    c = rt.TCanvas(f'c_{hist_ref.name}_{title}_{output_path}', f'c_{hist_ref.name}_{title}_{output_path}', int(W_merge), H_long)
     pad1 = rt.TPad('pad1', 'pad1', 0.0, 0.5 if do_ratio else 0.0, 1, 1)
     pad1.SetRightMargin(0.03)
     pad1.Draw()
