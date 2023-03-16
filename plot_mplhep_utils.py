@@ -38,6 +38,8 @@ def latex_root_to_mpl(text):
   text=text.replace(' ','\ ')
   text = "$\mathrm{" + text + "}$"
   return text
+
+
 #temporary class from root histograms to arrays, will be replaced by boost hisograms
 class HistArray:
 
@@ -197,10 +199,6 @@ def plot_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare, tit
     for (hist_array,style,color,legend) in zip(order_hist_array,order_style,order_color,order_legend):
       draw_array(hist_array.nested_value[ihist], hist_array.nested_error[ihist],hist_array.nested_bins[ihist],style, axs[ihist],color,legend) 
       axs[ihist].text(.5,.65,latex_root_to_mpl(text_list[ihist]),horizontalalignment='center',transform=axs[ihist].transAxes)
-      #if do_ratio:
-      #  axs[ihist].tick_params(axis='x',labelbottom=False)
-      #if ihist>0:
-      #  axs[ihist].tick_params(axis='y',labelleft=False)
   axs[0].set_ylabel(labelY)
   axs[ihist].legend()
   bottom, top = axs[ihist].get_ylim()
@@ -223,8 +221,6 @@ def plot_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare, tit
     for iratio in range(len(hist_ref_arrays)):
       for (hist_array,style,color) in zip(order_hist_array_ratio,order_style_ratio,order_color_ratio):
         draw_array(hist_array.nested_value[iratio], hist_array.nested_error[iratio],hist_array.nested_bins[iratio],style, axs[iratio+len(hist_ref_arrays)],color,None)
-        #if iratio>hist_ref_arrays.length():
-        #  axs[iratio].tick_params(axis='y',labelleft=False)
     axs[len(hist_ref_arrays)].set_ylabel(label_ratio)
   axs[len(axs)-1].set_xlabel(latex_root_to_mpl(title))
   axs[len(axs)-1].set_xlim(left = hist_ref_arrays.nested_bins[0][0], right = hist_ref_arrays.nested_bins[0][-1])

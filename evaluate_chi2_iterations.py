@@ -159,7 +159,7 @@ def draw_initial_line( chi2_val, n_iter, hist_name ):
     line.SetLineColor(rt.kRed)
     line.Write(hist_name)
 
-def plot_rapper(plt_list,**kwargs):
+def plot_wrapper(plt_list,**kwargs):
   input_args = {}
   for key in kwargs.keys():
     if key != "use_root":
@@ -194,19 +194,8 @@ def draw_plot(plt_list, plotdir, var1_nm, var2_nm, v2_dct, txt_list,use_root=Tru
 
     if not("eff" in plt_list.name or "acc" in plt_list.name):
       plot_args["is_logY"] = 1
-      plot_rapper(plt_list,**plot_args)
-    #if "eff" in plt_list.name or "acc" in plt_list.name:
-    #    if use_root:
-    #      plot_flat_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio, range_ratio=0.1)
-    #    else:
-    #      plot_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio, range_ratio=0.1)
-    #    return path+".png"
-    #else:
-    #   if use_root:
-    #      plot_flat_hists(plt_list.ref.hist, plt_list.hists , plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio)
-    #    else:
-    #      plot_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio)
-    #    return path+"_logy.png"
+      plot_wrapper(plt_list,**plot_args)
+
 
 def GetEffAcc(f,label,names_gen,names_reco):
   hist_list_geneff = HistList(label+"GenEff")
