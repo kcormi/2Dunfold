@@ -102,23 +102,23 @@ class BinningConfig(ConfigBase):
     min: InitVar[float] = None
     max: InitVar[float] = None
     nbins: InitVar[int] = None
-    binedges: list[float] = field(default_factory=list)
+    edges: list[float] = field(default_factory=list)
 
     def __post_init__(self, min, max, nbins):
-         if len(self.binedges) == 0:
-             self.binedges = np.arange( min, max, (max-min)/nbins )
+         if len(self.edges) == 0:
+             self.edges = np.arange( min, max, (max-min)/nbins )
 
     @property
     def nbins(self):
-      return len(self.binedges[:-1])
+      return len(self.edges[:-1])
 
     @property
     def min(self):
-      return self.binedges[0]
+      return self.edges[0]
 
     @property
     def max(self):
-      return self.binedges[-1]
+      return self.edges[-1]
 
 @dataclass
 class VarConfig(ConfigBase):
@@ -161,6 +161,7 @@ class ObsConfig(ConfigBase):
    '''A class which keeps track of observables configuration, which are variables paired at reco and gen level'''
    reco: Union[VarConfig,dict]
    gen: Union[VarConfig,dict]
+   require_extra_file: int = 0
 
    def __post_init__(self):
         if isinstance( self.reco, dict):
@@ -176,5 +177,6 @@ class ObsConfig(ConfigBase):
 
 if __name__=='__main__':
 
-    varCfg = ObsConfig.from_json( 'vars_config.json', keys=['nparticle_eta2p4_pur'] )
-    print(varCfg)
+    for obs in ['nparticle', 'mass', 'spherocity', 'transverse_spherocity', 'thrust', 'transverse_thrust', 'broadening', 'isotropy']:
+        varCfg = ObsConfig.from_yaml( 'config/observables.yml', keys=[obs] )
+        print(varCfg)
