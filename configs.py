@@ -1,9 +1,50 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, InitVar
+from typing import Optional, Union
+import numpy as np
+import yaml
+import json
+
+from unfold_utils import HistList
 
 @dataclass
-class SampleTypePlotConfig:
+class ConfigBase:
+    '''An Base Class for configuration objects'''
+
+    @classmethod
+    def from_json( cls, fname, keys=None):
+        '''Return a class instance directly from a json file.'''
+        return cls._from_file( fname, keys, use_json=True)
+
+    @classmethod
+    def from_yaml( cls, fname, keys=None):
+        '''Return a class instance directly from a yaml file.'''
+        return cls._from_file( fname, keys)
+
+    @classmethod
+    def _from_file( cls, fname, keys=None, use_json=False ):
+        '''Return a class instance directly from a yaml or json file.
+
+        :param fname: the name of the yaml file.
+        :param keys: list of keys to be traversed to get to the object.
+
+        if the class object is the only one in the yaml or json file, no keys need to be passed
+        but if many objects are stored in the yaml file and you only want one, you can specify
+        which one with an ordered list of keys to be traversed.
+        '''
+        load_func = yaml.safe_load if not use_json else json.load
+        with open( fname, 'r') as fhandle:
+            dct = load_func( fhandle)
+
+        keys = [] if keys is None else keys
+        for k in keys:
+            dct = dct[k]
+        print( dct )
+        return cls( **dct )
+
+@dataclass
+class SampleTypePlotConfig(ConfigBase):
     '''A class which keeps track of plot settings for different result types
-    To ensure consist styling for the same result type across different plots'''
+    To ensure consist styling for the same result type across different plots.'''
     color: int
     legend: str
     tag: str
@@ -19,7 +60,7 @@ class SampleTypePlotConfig:
         return f'{self.legend} unfold' if not self.sys_reweight else f'{self.legend} reweight'
 
 @dataclass
-class HistConfig:
+class HistConfig(ConfigBase):
     '''A class which keepts track of plotting configurations for a given histogram'''
     hist: HistList
     stat: int
@@ -28,7 +69,7 @@ class HistConfig:
     legend: str
 
 @dataclass
-class PlotConfig:
+class PlotConfig(ConfigBase):
     '''A class which keeps track of plotting configuration for an entire plot, consisting of multiple histograms'''
     ref: HistConfig
     compare: list[HistConfig]
@@ -55,58 +96,85 @@ class PlotConfig:
     def styles(self):
         return [ c.style for c in self.compare if c.hist ]
 
+@dataclass
+class BinningConfig(ConfigBase):
+    '''A class for binning configuration'''
+    min: InitVar[float] = None
+    max: InitVar[float] = None
+    nbins: InitVar[int] = None
+    binedges: list[float] = field(default_factory=list)
+
+    def __post_init__(self, min, max, nbins):
+         if len(self.binedges) == 0:
+             self.binedges = np.arange( min, max, (max-min)/nbins )
+
+    @property
+    def nbins(self):
+      return len(self.binedges[:-1])
+
+    @property
+    def min(self):
+      return self.binedges[0]
+
+    @property
+    def max(self):
+      return self.binedges[-1]
 
 @dataclass
-def VarConfig:
-   '''A class which keeps track of a variables configuration'''
-   reco: str
-   gen: str
-   reco_name: str
-   gen_name: str
-   reco_shortname: str = field(init=False)
-   gen_shortname: str = field(init=False)
-   reco_key: str = field(init=False)
-   gen_key: str = field(init=False)
-   nbinsreco: int
-   minreco: float
-   maxreco: float
-   binedgesreco: list[float] = field(default_factory=list)
-   nbinsgen: int
-   mingen: float
-   maxgen: float
-   binedgesgen: list[float] = field(default_factor=list)
+class VarConfig(ConfigBase):
+    '''A class which keeps track of variable information.'''
+    name: str
+    np_column: str = None
+    root_branch: str = None
+    shortname: str = None
 
-  def __post_init__(self):
-        if len(binedgesreco) == 0:
-            self.binedgesreco = np.arange( self.minreco, self.maxreco, (self.maxreco-self.minreco)/self.nbinsreco )
-        if len(self.binedgesgen) == 0:
-            self.binedgesreco = np.arange( self.mingen, self.maxgen, (self.maxgen-self.mingen)/self.nbinsgen )
-        if self.gen_shortname is None:
-            self.gen_shortname = self.gen_name
-        if self.reco_shortname is None:
-            self.reco_shortname = self.reco_name
+    def __post_init__(self):
+        if self.np_column is None:
+            if self.root_branch is None:
+                self.np_column = name
+            else:
+                self.np_column = self.root_branch
+        if self.root_branch is None:
+            self.root_branch = self.np_column
+        if self.shortname is None:
+            self.shortname = self.name
 
-  @property
-  def nbinsreco(self):
-    return len(self.binedgesreco[:-1])
+    @property
+    def is_binned(self):
+        return False
 
-  @property
-  def minreco(self):
-    return self.binedgesreco[0]
+@dataclass
+class BinnedVarConfig(VarConfig):
+    '''A class which keeps track of variable configuration with a specific binning'''
+    binning: Union[BinningConfig,dict] = field(default_factory=dict)
 
-  @property
-  def maxreco(self):
-    return self.binedgesreco[-1]
+    def __post_init__(self):
+        if isinstance(self.binning, dict):
+            self.binning = BinningConfig( **self.binning )
 
-  @property
-  def nbinsgen(self):
-    return len(self.binedgesgen[:-1])
+    @property
+    def is_binned(self):
+        return True
 
-  @property
-  def mingen(self):
-    return self.binedgesgen[0]
+@dataclass
+class ObsConfig(ConfigBase):
+   '''A class which keeps track of observables configuration, which are variables paired at reco and gen level'''
+   reco: Union[VarConfig,dict]
+   gen: Union[VarConfig,dict]
 
-  @property
-  def maxgen(self):
-    return self.binedgesgem[-1]
+   def __post_init__(self):
+        if isinstance( self.reco, dict):
+            if "binning" in self.reco:
+                self.reco = BinnedVarConfig( **self.reco )
+            else:
+                self.reco = VarConfig( **self.reco )
+        if isinstance( self.gen, dict):
+            if "binning" in self.gen:
+                self.gen = BinnedVarConfig( **self.gen )
+            else:
+                self.get = VarConfig( **self.gen )
 
+if __name__=='__main__':
+
+    varCfg = ObsConfig.from_json( 'vars_config.json', keys=['nparticle_eta2p4_pur'] )
+    print(varCfg)
