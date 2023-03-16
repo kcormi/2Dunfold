@@ -54,41 +54,38 @@ class HistArray:
         self._nested_bins.append(np.array(bins))
     else:
       self._nested_bins = None
+  @property
+  def nested_value(self):
+    return self._nested_value
 
-  def value_array(self,i):
-    return self._nested_value[i]
+  @property
+  def nested_error(self):
+    return self._nested_error
 
-  def error_array(self,i):
-    return self._nested_error[i]
+  @property
+  def nested_bins(self):
+    return self._nested_bins
 
-  def bins_array(self,i):
-    return self._nested_bins[i]
-
-  def length(self):
+  def __len__(self):
     return len(self._nested_value)
 
   def __truediv__(self,other):
     result = HistArray()
     result._nested_bins = self._nested_bins
-    result._nested_value = [self._nested_value[i] / other._nested_value[i] for i in range(self.length())]
-    result._nested_error = [self._nested_error[i] / other._nested_value[i] for i in range(self.length())]
+    result._nested_value = [self._nested_value[i] / other._nested_value[i] for i in range(len(self))]
+    result._nested_error = [self._nested_error[i] / other._nested_value[i] for i in range(len(self))]
     return result
 
-def MapMarkerStyle(style):
-  if style == 'marker':
-    return 'o'
-  elif style == 'cross':
-    return '.'
-  elif style == 'triangle':
-    return '^'
-  elif style == 'triangle_down':
-    return 'v'
-  else:
-    return None
+def map_marker_style(style):
+  marker_dict = { 'marker' :'o', 
+                  'cross': '.',
+                  'triangle': '^',
+                  'triangle_down': 'v' }
+  return marker_dict.get( style, None)
 
 def draw_array(value,error,bins,style,ax,color,legend):
 
-  marker = MapMarkerStyle(style)
+  marker = map_marker_style(style)
   if marker is not None:
     center = [(bins[i] + bins[i+1])/2 for i in range(len(bins)-1)]
     xerrs = [(bins[i+1] - bins[i])/2 for i in range(len(bins)-1)]
@@ -168,18 +165,18 @@ def draw_array(value,error,bins,style,ax,color,legend):
     print(f"style {style} not recognized")
 
 
-def plot_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title, is_logY, do_ratio, output_path, hist_ref_stat=0, text_list=[], style_ref='marker', color_ref="black", list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3):
+def plot_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title="", is_logY=0, do_ratio=1, output_path="./", hist_ref_stat=0, text_list=[], style_ref='marker', color_ref="black", list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3):
 
   hist_ref_arrays = HistArray(hist_ref)
   hist_ref_stat_arrays = HistArray(hist_ref_stat) if hist_ref_stat != 0 else None
   list_hist_compare_arrays = [HistArray(hist_compare) for hist_compare in list_hist_compare]
   if do_ratio:
-    f, axs = plt.subplots(2,hist_ref_arrays.length(),sharex=True,sharey='row',gridspec_kw={"height_ratios": (2,1) })
+    f, axs = plt.subplots(2,len(hist_ref_arrays),sharex=True,sharey='row',gridspec_kw={"height_ratios": (2,1) })
   else:
-    f, axs = plt.subplots(1,hist_ref_arrays.length(),sharex=True,sharey='row')
+    f, axs = plt.subplots(1,len(hist_ref_arrays),sharex=True,sharey='row')
   axs = axs.flatten()
   hep.cms.label('Preliminary', data=False, rlabel="", loc=2, ax = axs[0])
-  hep.cms.lumitext(lumi_text(1.4817568788812e-08), ax = axs[hist_ref_arrays.length()-1])
+  hep.cms.lumitext(lumi_text(1.4817568788812e-08), ax = axs[len(hist_ref_arrays)-1])
 
   order_hist_array = list_hist_compare_arrays.copy()
   order_style = list_style_compare.copy()
@@ -196,9 +193,9 @@ def plot_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare, tit
      order_color.append(color_ref)
      order_legend.append(legend_ref)
 
-  for ihist in range(hist_ref_arrays.length()):
+  for ihist in range(len(hist_ref_arrays)):
     for (hist_array,style,color,legend) in zip(order_hist_array,order_style,order_color,order_legend):
-      draw_array(hist_array.value_array(ihist), hist_array.error_array(ihist),hist_array.bins_array(ihist),style, axs[ihist],color,legend) 
+      draw_array(hist_array.nested_value[ihist], hist_array.nested_error[ihist],hist_array.nested_bins[ihist],style, axs[ihist],color,legend) 
       axs[ihist].text(.5,.65,latex_root_to_mpl(text_list[ihist]),horizontalalignment='center',transform=axs[ihist].transAxes)
       #if do_ratio:
       #  axs[ihist].tick_params(axis='x',labelbottom=False)
@@ -207,7 +204,11 @@ def plot_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare, tit
   axs[0].set_ylabel(labelY)
   axs[ihist].legend()
   bottom, top = axs[ihist].get_ylim()
-  axs[ihist].set_ylim(top = top*1.4, bottom = 0.0)
+  axs[ihist].set_yscale('log' if is_logY else 'linear')
+  if is_logY:
+    axs[ihist].set_ylim(top = top*10)
+  else:
+    axs[ihist].set_ylim(top = top*1.4, bottom = max(bottom,0))
   if do_ratio:
     order_hist_array_ratio = [hist_compare_arrays / hist_ref_arrays for hist_compare_arrays in list_hist_compare_arrays]
     order_style_ratio = ["fillederror" if style_compare == "filled" else style_compare for style_compare in list_style_compare ]
@@ -219,19 +220,22 @@ def plot_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare, tit
       order_hist_array_ratio.insert(1,hist_ref_stat_arrays / hist_ref_arrays)
       order_style_ratio.insert(1,"fillederror")
       order_color_ratio.insert(1,"dimgray")
-    for iratio in range(hist_ref_arrays.length()):
+    for iratio in range(len(hist_ref_arrays)):
       for (hist_array,style,color) in zip(order_hist_array_ratio,order_style_ratio,order_color_ratio):
-        draw_array(hist_array.value_array(iratio), hist_array.error_array(iratio),hist_array.bins_array(iratio),style, axs[iratio+hist_ref_arrays.length()],color,None)
+        draw_array(hist_array.nested_value[iratio], hist_array.nested_error[iratio],hist_array.nested_bins[iratio],style, axs[iratio+len(hist_ref_arrays)],color,None)
         #if iratio>hist_ref_arrays.length():
         #  axs[iratio].tick_params(axis='y',labelleft=False)
-    axs[hist_ref_arrays.length()].set_ylabel(label_ratio)
+    axs[len(hist_ref_arrays)].set_ylabel(label_ratio)
   axs[len(axs)-1].set_xlabel(latex_root_to_mpl(title))
-  axs[len(axs)-1].set_xlim(left = hist_ref_arrays.bins_array(0)[0], right = hist_ref_arrays.bins_array(0)[-1])
+  axs[len(axs)-1].set_xlim(left = hist_ref_arrays.nested_bins[0][0], right = hist_ref_arrays.nested_bins[0][-1])
   ratio_bottom, ratio_top = axs[len(axs)-1].get_ylim()
   ratio_range_sym = max(1.0-ratio_bottom,ratio_top-1.0)
   ratio_bottom_sym, ratio_top_sym = 1.0-ratio_range_sym, 1.0+ratio_range_sym
   axs[len(axs)-1].set_ylim(bottom = max(0,ratio_bottom_sym), top = ratio_top_sym)
   plt.subplots_adjust(wspace=0, hspace=0)
+  if is_logY:
+    output_path += "_logy"
   plt.savefig(output_path + '.pdf')
   plt.savefig(output_path + '.png')
+  plt.close()
 

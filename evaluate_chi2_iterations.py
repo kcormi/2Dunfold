@@ -68,7 +68,7 @@ class PlotList:
         return [ c.style for c in self.compare if c.hist ]
 
 def read_rps(config):
-  return ResultPlotSettings(color = config["color"], color_unfold = config["color_unfold"], tag = config["tag"], legend = config["legend"])
+  return ResultPlotSettings(**config)
 
 def GOF(HistList1,HistList2):
   assert len(HistList1) == len(HistList2)
@@ -159,23 +159,54 @@ def draw_initial_line( chi2_val, n_iter, hist_name ):
     line.SetLineColor(rt.kRed)
     line.Write(hist_name)
 
+def plot_rapper(plt_list,**kwargs):
+  input_args = {}
+  for key in kwargs.keys():
+    if key != "use_root":
+      input_args[key] = kwargs[key]
+  input_args["hist_ref_stat"] = plt_list.ref.stat
+  input_args["style_ref"] = plt_list.ref.style
+  input_args["color_ref"] = plt_list.ref.color
+  input_args["list_style_compare"] = plt_list.styles
+  input_args["list_color_compare"] = plt_list.colors
+  input_args["label_ratio"] = plt_list.ratio
+  if kwargs["use_root"]:
+    plot_flat_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, **input_args)
+  else:
+    plot_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, **input_args)
+
 def draw_plot(plt_list, plotdir, var1_nm, var2_nm, v2_dct, txt_list,use_root=True):
     path = f'{plotdir}/{plt_list.name}_{var1_nm}_{var2_nm}'
     os.system(f"mkdir -p {plotdir}")
     axis_title = v2_dct["reco_name"] if plt_list.is_reco else v2_dct["gen_name"]
 
-    if "eff" in plt_list.name or "acc" in plt_list.name:
-        if use_root:
-          plot_flat_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio, range_ratio=0.1)
-        else:
-          plot_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio, range_ratio=0.1)
-        return path+".png"
-    else:
-        if use_root:
-          plot_flat_hists(plt_list.ref.hist, plt_list.hists , plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio)
-        else:
-          plot_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio, range_ratio=0.1)
-        return path+"_logy.png"
+    plot_args = {
+      "title": axis_title,
+      "is_logY": 0,
+      "do_ratio": 1,
+      "output_path": path,
+      "text_list": txt_list,
+      "labelY":'Normalized Events/Bin Width',
+      "range_ratio": 0.1 if "eff" in plt_list.name or "acc" in plt_list.name else 0.3,
+      "use_root": use_root
+    }
+    plot_rapper(plt_list,**plot_args)
+
+    if not("eff" in plt_list.name or "acc" in plt_list.name):
+      plot_args["is_logY"] = 1
+      plot_rapper(plt_list,**plot_args)
+    #if "eff" in plt_list.name or "acc" in plt_list.name:
+    #    if use_root:
+    #      plot_flat_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio, range_ratio=0.1)
+    #    else:
+    #      plot_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio, range_ratio=0.1)
+    #    return path+".png"
+    #else:
+    #   if use_root:
+    #      plot_flat_hists(plt_list.ref.hist, plt_list.hists , plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=1, do_ratio=1, output_path=path+"_logy", hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio)
+    #    else:
+    #      plot_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, title=axis_title, is_logY=0, do_ratio=1, output_path=path, hist_ref_stat=plt_list.ref.stat, text_list=txt_list, style_ref=plt_list.ref.style, color_ref=plt_list.ref.color, list_style_compare=plt_list.styles, list_color_compare=plt_list.colors, labelY='Normalized Events/Bin Width', label_ratio=plt_list.ratio)
+    #    return path+"_logy.png"
 
 def GetEffAcc(f,label,names_gen,names_reco):
   hist_list_geneff = HistList(label+"GenEff")
@@ -203,25 +234,31 @@ if __name__=="__main__":
     parser.add_argument('--plotdir',default="results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/plots_optimize")
     parser.add_argument('--sysreweight',action="store_true",default=False)
     parser.add_argument('--plot-software', type=str, choices=["root", "mpl"], default="mpl")
+    parser.add_argument('--config-style',type=str, default = None)
     args = parser.parse_args()
 
     with open(args.config, 'r') as configjson:
         config = json.load(configjson)
     with open(config["varunfold"], 'r') as fjson:
         info_var = json.load(fjson)
-    if args.plot_software == "root":
-        file_style = "Config_style_methods/Config_style_root.json"
-        data_color = 1
-        MC_color = rt.kAzure-2
-        pseudodata_color = 800
+
+    if args.config_style is not None:
+      file_style = args.config_style
+    elif args.plot_software == "root":
+      file_style = "Config_style_methods/Config_style_root.json"
     else:
-        file_style = "Config_style_methods/Config_style_mpl.json"
-        data_color = "black"
-        MC_color = "olive"
-        pseudodata_color = "darkorange"
+      file_style = "Config_style_methods/Config_style_mpl.json"
+
     with open(file_style, 'r') as style_json: 
         config_style = json.load(style_json)
-
+        if config_style["software"] == "root":
+          data_color = 1
+          MC_color = rt.kAzure-2
+          pseudodata_color = 800
+        else:
+          data_color = "black"
+          MC_color = "olive"
+          pseudodata_color = "darkorange"
     v1_dct = info_var[config["var1"]]
     v2_dct = info_var[config["var2"]]
 
@@ -295,10 +332,10 @@ if __name__=="__main__":
       histCfg["MCRecoAcc"] = HistConfig( hist_list_MC_eff_acc["Acc"], 0, MC_color, "cross", f'{config["MClegend"]} Acc.')
 
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]} Eff."
-      histCfg["PseudodataTruthEff"]= HistConfig( hist_list_pseudodata_eff_acc["Eff"], 0, MC_color, "triangle", ps_legend )
+      histCfg["PseudodataTruthEff"]= HistConfig( hist_list_pseudodata_eff_acc["Eff"], 0, pseudodata_color, "triangle", ps_legend )
 
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]} Eff."
-      histCfg["PseudodataTruthAcc"]= HistConfig(hist_list_pseudodata_eff_acc["Acc"], 0, MC_color, "triangle", ps_legend )
+      histCfg["PseudodataTruthAcc"]= HistConfig(hist_list_pseudodata_eff_acc["Acc"], 0, pseudodata_color, "triangle", ps_legend )
 
 
     pltLists= {}
