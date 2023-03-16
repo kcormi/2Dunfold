@@ -35,7 +35,7 @@ class ResultPlotSettings:
 @dataclass
 class HistConfig:
     hist: HistList
-    stat: int
+    stat: Union[int,HistList]
     color: Union[int,str]
     style: str
     legend: str
@@ -186,7 +186,6 @@ def GetEffAcc(f,label,names_gen,names_reco):
     hist_list_geneff.flatten_hist()
   hist_list_recoacc= HistList(label+"RecoAcc")
   hist_list_recoacc.root_hists_name=[name_reco.replace("Inclusive","Acc") for name_reco in names_reco]
-  plt.show()
   if hist_list_recoacc.read_hist_from_file(f)==-1:
     hist_list_recoacc=None
   else:
@@ -230,8 +229,8 @@ if __name__=="__main__":
     TextListReco = []
     TextListGen = []
     if FineBin:
-      TextListReco = [str(v1_dct["binedgesreco"][i])+"#leq"+v1_dct["reco_shortname"]+"<"+str(v1_dct["binedgesreco"][i+1]) for i in range(v1_dct["nbinsreco"])]
-      TextListGen = [str(v1_dct["binedgesgen"][i])+"#leq"+v1_dct["gen_shortname"]+"<"+str(v1_dct["binedgesgen"][i+1]) for i in range(v1_dct["nbinsgen"])]+(["background"] if config["addbkg"] else [])
+      TextListReco = [str(v1_dct["binedgesreco"][i])+" #leq "+v1_dct["reco_shortname"]+" < "+str(v1_dct["binedgesreco"][i+1]) for i in range(v1_dct["nbinsreco"])]
+      TextListGen = [str(v1_dct["binedgesgen"][i])+" #leq "+v1_dct["gen_shortname"]+" < "+str(v1_dct["binedgesgen"][i+1]) for i in range(v1_dct["nbinsgen"])]+(["background"] if config["addbkg"] else [])
     else:
       TextListReco = [str(v1_dct["minreco"]+(v1_dct["maxreco"]-v1_dct["minreco"])/v1_dct["nbinsreco"]*i)+"#leq"+v1_dct["reco_shortname"]+"<"+str(v1_dct["minreco"]+(v1_dct["maxreco"]-v1_dct["minreco"])/v1_dct["nbinsreco"]*(i+1)) for i in range(v1_dct["nbinsreco"])]
       TextListGen = [str(v1_dct["mingen"]+(v1_dct["maxgen"]-v1_dct["mingen"])/v1_dct["nbinsgen"]*i)+"#leq"+v1_dct["gen_shortname"]+"<"+str(v1_dct["mingen"]+(v1_dct["maxgen"]-v1_dct["mingen"])/v1_dct["nbinsgen"]*(i+1)) for i in range(v1_dct["nbinsgen"])]+(["background"] if config["addbkg"] else [])
