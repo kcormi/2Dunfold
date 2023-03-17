@@ -1,0 +1,27 @@
+{
+  "software":"root",
+  "MLE":{
+    "color":4,
+    "color_unfold":6,
+    "legend":"MLE",
+    "tag":"MLE"
+  },
+  "omnifold":{
+    "color":608,
+    "color_unfold":6,
+    "legend":"omnifold",
+    "tag":"omnifold"
+  },
+  "multifold":{
+    "color":812,
+    "color_unfold":8,
+    "legend":"multifold",
+    "tag":"multifold"
+  },
+  "unifold":{
+    "color":46,
+    "color_unfold":2,
+    "legend":"unifold",
+    "tag":"unifold"
+  }
+}

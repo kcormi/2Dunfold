@@ -187,7 +187,7 @@ def DrawPlotStyle(HistList, PlotStyle, Color, Pad):
     return LegendStyle
 
 
-def plot_flat_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title, is_logY, do_ratio, output_path, hist_ref_stat=0, text_list=[], style_ref='marker', color_ref=rt.kBlack, list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3):
+def plot_flat_hists_root(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title, is_logY, do_ratio, output_path, hist_ref_stat=0, text_list=[], style_ref='marker', color_ref=rt.kBlack, list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3):
     W_merge = W_long
     if len(hist_ref.root_hists) > 3:
         W_merge = W_long * (float(len(hist_ref.root_hists)) / 3.0)
