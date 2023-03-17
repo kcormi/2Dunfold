@@ -4,8 +4,6 @@ import numpy as np
 import yaml
 import json
 
-from unfold_utils import HistList
-
 @dataclass
 class ConfigBase:
     '''An Base Class for configuration objects'''
@@ -60,43 +58,6 @@ class SampleTypePlotConfig(ConfigBase):
         return f'{self.legend} unfold' if not self.sys_reweight else f'{self.legend} reweight'
 
 @dataclass
-class HistConfig(ConfigBase):
-    '''A class which keepts track of plotting configurations for a given histogram'''
-    hist: HistList
-    stat: int
-    color: int
-    style: str
-    legend: str
-
-@dataclass
-class PlotConfig(ConfigBase):
-    '''A class which keeps track of plotting configuration for an entire plot, consisting of multiple histograms'''
-    ref: HistConfig
-    compare: list[HistConfig]
-    name: str
-    ratio: str
-
-    @property
-    def is_reco(self):
-        return ('reco' in self.name) or ('refold' in self.name)
-
-    @property
-    def hists(self):
-        return [ c.hist for c in self.compare if c.hist ]
-
-    @property
-    def colors(self):
-        return [ c.color for c in self.compare if c.hist ]
-
-    @property
-    def legends(self):
-        return [ c.legend for c in self.compare if c.hist ]
-
-    @property
-    def styles(self):
-        return [ c.style for c in self.compare if c.hist ]
-
-@dataclass
 class BinningConfig(ConfigBase):
     '''A class for binning configuration'''
     min: InitVar[float] = None
@@ -106,7 +67,7 @@ class BinningConfig(ConfigBase):
 
     def __post_init__(self, min, max, nbins):
          if len(self.edges) == 0:
-             self.edges = np.arange( min, max, (max-min)/nbins )
+             self.edges = np.linspace( min, max, num=nbins+1 )
 
     @property
     def nbins(self):
@@ -124,18 +85,18 @@ class BinningConfig(ConfigBase):
 class VarConfig(ConfigBase):
     '''A class which keeps track of variable information.'''
     name: str
-    np_column: str = None
-    root_branch: str = None
+    np_var: str = None
+    root_var: str = None
     shortname: str = None
 
     def __post_init__(self):
-        if self.np_column is None:
-            if self.root_branch is None:
-                self.np_column = name
+        if self.np_var is None:
+            if self.root_var is None:
+                self.np_var = name
             else:
-                self.np_column = self.root_branch
-        if self.root_branch is None:
-            self.root_branch = self.np_column
+                self.np_var = self.root_var
+        if self.root_var is None:
+            self.root_var = self.np_var
         if self.shortname is None:
             self.shortname = self.name
 
@@ -144,13 +105,14 @@ class VarConfig(ConfigBase):
         return False
 
 @dataclass
-class BinnedVarConfig(VarConfig):
+class BinnedVarConfig(BinningConfig,VarConfig):
     '''A class which keeps track of variable configuration with a specific binning'''
-    binning: Union[BinningConfig,dict] = field(default_factory=dict)
+    #binning: Union[BinningConfig,dict] = field(default_factory=dict)
 
-    def __post_init__(self):
-        if isinstance(self.binning, dict):
-            self.binning = BinningConfig( **self.binning )
+    #def __post_init__(self):
+    #    pass
+    #    #if isinstance(self.binning, dict):
+    #    #    self.binning = BinningConfig( **self.binning )
 
     @property
     def is_binned(self):
@@ -158,22 +120,46 @@ class BinnedVarConfig(VarConfig):
 
 @dataclass
 class ObsConfig(ConfigBase):
-   '''A class which keeps track of observables configuration, which are variables paired at reco and gen level'''
-   reco: Union[VarConfig,dict]
-   gen: Union[VarConfig,dict]
-   require_extra_file: int = 0
+    '''A class which keeps track of observables configuration, which are variables paired at reco and gen level'''
+    reco: Union[VarConfig,dict]
+    gen: Union[VarConfig,dict]
+    require_extra_file: int = 0
 
-   def __post_init__(self):
-        if isinstance( self.reco, dict):
-            if "binning" in self.reco:
-                self.reco = BinnedVarConfig( **self.reco )
-            else:
-                self.reco = VarConfig( **self.reco )
-        if isinstance( self.gen, dict):
-            if "binning" in self.gen:
-                self.gen = BinnedVarConfig( **self.gen )
-            else:
-                self.get = VarConfig( **self.gen )
+    def __post_init__(self):
+         if isinstance( self.reco, dict):
+             if "edges" in self.reco or "nbins" in self.reco:
+                 self.reco = BinnedVarConfig( **self.reco )
+             else:
+                 self.reco = VarConfig( **self.reco )
+         if isinstance( self.gen, dict):
+             if "edges" in self.gen or "nbins" in self.gen:
+                 self.gen = BinnedVarConfig( **self.gen )
+             else:
+                 self.get = VarConfig( **self.gen )
+
+    def __getitem__(self, key):
+        if key == 'reco':
+            return self.reco
+        elif key == 'gen':
+            return self.gen
+        else:
+            raise KeyError(f'No key {key} if ObsConfig, keys are "reco" and "gen"')
+
+
+@dataclass
+class HistDim(BinnedVarConfig):
+    is_gen: bool = False
+    inner_dim: BinnedVarConfig = None
+    underflow: float = 0.
+    overflow: float = 0.
+
+    def __post_init__(self, *args):
+        #super().__post_init__(*args)
+        inner_dim_factor = 0
+        if self.inner_dim is not None:
+            inner_dim_factor = max(1, self.inner_dim.nbins )
+            self.edges = [self.edges] * inner_dim_factor
+
 
 if __name__=='__main__':
 
