@@ -168,10 +168,9 @@ def plot_wrapper(plt_list,**kwargs):
     "list_color_compare": plt_list.colors,
     "label_ratio":plt_list.ratio
   }
-  for key in kwargs.keys():
-    if key != "use_root":
-      input_args[key] = kwargs[key]
-  if kwargs["use_root"]:
+  use_root  = kwargs.pop("use_root")
+  input_args.update(kwargs)
+  if use_root:
     plot_flat_hists_root(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, **input_args)
   else:
     plot_flat_hists_mpl(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, **input_args)
