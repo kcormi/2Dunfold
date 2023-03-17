@@ -1,5 +1,8 @@
 {
   "software":"mpl",
+  "data_color":"black",
+  "MC_color":"olive",
+  "pseudodata_color":"darkorange",
   "MLE":{
     "color":"royalblue",
     "color_unfold":"blue",
