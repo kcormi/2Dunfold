@@ -1,0 +1,43 @@
+mpl:
+  software: "mpl"
+  data_color: "black"
+  MC_color: "olive"
+  pseudodata_color: "darkorange"
+  MLE:
+    color: "royalblue"
+    color_unfold: "blue"
+    legend: "MLE"
+  omnifold: 
+    color: "orchid"
+    color_unfold: "magenta"
+    legend: "omnifold"
+  multifold:
+    color: "mediumseagreen"
+    color_unfold: "darkgreen"
+    legend: "multifold"
+  unifold:
+    color: "salmon"
+    color_unfold: "firebrick"
+    legend: "unifold"
+
+root:
+  software: "root"
+  data_color: 1
+  MC_color: 858
+  pseudodata_color: 800
+  MLE:
+    color: 4
+    color_unfold: 6
+    legend: "MLE"
+  omnifold:
+    color: 608
+    color_unfold: 6
+    legend: "omnifold"
+  multifold:
+    color: 812
+    color_unfold: 8
+    legend: "multifold"
+  unifold:
+    color: 46
+    color_unfold: 2
+    legend: "unifold"

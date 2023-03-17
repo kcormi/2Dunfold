@@ -219,7 +219,7 @@ class HistList:
 
     def read_settings_from_config_dim2(self, config, isgen=False):
         binned_var = config.gen if isgen else config.reco
-        self.dim2 = HistDim( **asdict(binned_var) inner_dim=self.dim1 )
+        self.dim2 = HistDim( **asdict(binned_var), inner_dim=self.dim1 )
 
     def fill_hist( self, event_info, from_root, weightarray=None, genWeight=''):
         if from_root:
