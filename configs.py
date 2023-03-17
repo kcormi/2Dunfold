@@ -102,21 +102,13 @@ class VarConfig(ConfigBase):
 
     @property
     def is_binned(self):
-        return False
+        return self.getattr('edges',None) is not None
 
 @dataclass
 class BinnedVarConfig(BinningConfig,VarConfig):
     '''A class which keeps track of variable configuration with a specific binning'''
-    #binning: Union[BinningConfig,dict] = field(default_factory=dict)
 
-    #def __post_init__(self):
-    #    pass
-    #    #if isinstance(self.binning, dict):
-    #    #    self.binning = BinningConfig( **self.binning )
-
-    @property
-    def is_binned(self):
-        return True
+    pass
 
 @dataclass
 class ObsConfig(ConfigBase):
@@ -148,21 +140,15 @@ class ObsConfig(ConfigBase):
 
 @dataclass
 class HistDim(BinnedVarConfig):
-    is_gen: bool = False
+    '''Class containing information about the dimension of a histogram,
+        this may include bins of one variable nested inside another variable.'''
     inner_dim: BinnedVarConfig = None
     underflow: float = 0.
     overflow: float = 0.
 
     def __post_init__(self, *args):
-        #super().__post_init__(*args)
         inner_dim_factor = 0
         if self.inner_dim is not None:
             inner_dim_factor = max(1, self.inner_dim.nbins )
             self.edges = [self.edges] * inner_dim_factor
 
-
-if __name__=='__main__':
-
-    for obs in ['nparticle', 'mass', 'spherocity', 'transverse_spherocity', 'thrust', 'transverse_thrust', 'broadening', 'isotropy']:
-        varCfg = ObsConfig.from_yaml( 'config/observables.yml', keys=[obs] )
-        print(varCfg)

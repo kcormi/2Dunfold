@@ -10,7 +10,6 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
   hists = {}
 
   reco_inclusive=HistList("HistRecoInclusive_"+dataset,tag)
-  print(o1.reco.edges)
   reco_inclusive.read_settings_from_config_dim1(o1,isgen=False)
   reco_inclusive.read_settings_from_config_dim2(o2,isgen=False)
   reco_inclusive.bin_edges_dim2 = edges_reco
@@ -157,10 +156,6 @@ if __name__=="__main__":
 
     obs1 = ObsConfig.from_yaml( config["varunfold"], [config["var1"]] )
     obs2 = ObsConfig.from_yaml( config["varunfold"], [config["var2"]] )
-    #var1_dct = info_var[config["var1"]]
-    #var2_dct = info_var[config["var2"]]
-    print(obs1)
-    print(obs2)
 
     if not os.path.exists(config["outputdir"]):
       os.makedirs(config["outputdir"])

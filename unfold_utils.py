@@ -215,11 +215,11 @@ class HistList:
 
     def read_settings_from_config_dim1(self, config, isgen=False):
         binned_var = config.gen if isgen else config.reco
-        self.dim1 = HistDim( **asdict(binned_var), is_gen=isgen )
+        self.dim1 = HistDim( **asdict(binned_var) )
 
     def read_settings_from_config_dim2(self, config, isgen=False):
         binned_var = config.gen if isgen else config.reco
-        self.dim2 = HistDim( **asdict(binned_var), is_gen=isgen, inner_dim=self.dim1 )
+        self.dim2 = HistDim( **asdict(binned_var) inner_dim=self.dim1 )
 
     def fill_hist( self, event_info, from_root, weightarray=None, genWeight=''):
         if from_root:
