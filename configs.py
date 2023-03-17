@@ -36,7 +36,6 @@ class ConfigBase:
         keys = [] if keys is None else keys
         for k in keys:
             dct = dct[k]
-        print( dct )
         return cls( **dct )
 
 @dataclass

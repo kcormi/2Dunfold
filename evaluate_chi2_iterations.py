@@ -17,6 +17,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Union
 
 from plot_configs import ResultPlotSettings, HistConfig, PlotConfig
+from configs import ObsConfig
 
 
 def GOF(HistList1,HistList2):
@@ -124,10 +125,10 @@ def plot_wrapper(plt_list,**kwargs):
   else:
     plot_flat_hists_mpl(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, **input_args)
 
-def draw_plot(plt_list, plotdir, var1_nm, var2_nm, v2_dct, txt_list,use_root=True):
+def draw_plot(plt_list, plotdir, var1_nm, var2_nm, obs2, txt_list,use_root=True):
     path = f'{plotdir}/{plt_list.name}_{var1_nm}_{var2_nm}'
     os.system(f"mkdir -p {plotdir}")
-    axis_title = v2_dct["reco_name"] if plt_list.is_reco else v2_dct["gen_name"]
+    axis_title = obs2.reco.name if plt_list.is_reco else obs2.gen.name
 
     plot_args = {
       "title": axis_title,
@@ -147,18 +148,21 @@ def draw_plot(plt_list, plotdir, var1_nm, var2_nm, v2_dct, txt_list,use_root=Tru
 
 
 def GetEffAcc(f,label,names_gen,names_reco):
+
   hist_list_geneff = HistList(label+"GenEff")
   hist_list_geneff.root_hists_name=[name_gen.replace("Inclusive","Eff") for name_gen in names_gen]
   if hist_list_geneff.read_hist_from_file(f)==-1:
     hist_list_geneff=None
   else:
     hist_list_geneff.flatten_hist()
+
   hist_list_recoacc= HistList(label+"RecoAcc")
   hist_list_recoacc.root_hists_name=[name_reco.replace("Inclusive","Acc") for name_reco in names_reco]
   if hist_list_recoacc.read_hist_from_file(f)==-1:
     hist_list_recoacc=None
   else:
     hist_list_recoacc.flatten_hist()
+
   return {"Eff":hist_list_geneff, "Acc":hist_list_recoacc}
 
 
@@ -167,34 +171,38 @@ if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument('--input',default='results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/unfold_nparticle_eta2p4pt05_pur_1d_spherocity_eta2p4pt05_pur_1d_nominal_optimize_omnifold.root',help='The input root file containing the results in iterations')
     parser.add_argument('--output',default='results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/iter_nparticle_eta2p4pt05_pur_1d_spherocity_eta2p4pt05_pur_1d_nominal_omnifold.root',help='The output root file containing the refolfing chi^2 w.r.t. iterations')
-    parser.add_argument('--config',default="Config_plot/Config_sph_1d_v7_MCCP1ES_CP5sys.json",help="The configration file including the unfolding setup")
+    parser.add_argument('--config',default="Config_checkunfold/Config_sph_1d_v7_badtunesys.json",help="The configration file including the unfolding setup")
+    #parser.add_argument('--config',default="Config_plot/Config_sph_1d_v7_MCCP1ES_CP5sys.json",help="The configration file including the unfolding setup")
     parser.add_argument('--plot',action="store_true",default=False)
     parser.add_argument('--plotdir',default="results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/plots_optimize")
     parser.add_argument('--sysreweight',action="store_true",default=False)
     parser.add_argument('--plot-software', type=str, choices=["root", "mpl"], default="mpl")
-    parser.add_argument('--config-style',type=str, default = 'config/results_style.yml')
+    parser.add_argument('--config-style', type=str, default = 'config/results_style.yml')
     args = parser.parse_args()
 
     with open(args.config, 'r') as configjson:
         config = json.load(configjson)
-    with open(config["varunfold"], 'r') as fjson:
-        info_var = json.load(fjson)
 
     style_file = args.config_style
     with open(style_file, 'r') as style_json: 
         config_style = yaml.safe_load(style_json)
-    v1_dct = info_var[config["var1"]]
-    v2_dct = info_var[config["var2"]]
 
-    FineBin = "binedgesreco" in v1_dct.keys() and "binedgesreco" in v2_dct.keys()
+    obs1 = ObsConfig.from_yaml( config["varunfold"], [config["var1"]] )
+    obs2 = ObsConfig.from_yaml( config["varunfold"], [config["var2"]] )
+    #v1_dct = info_var[config["var1"]]
+    #v2_dct = info_var[config["var2"]]
+
+    #FineBin = "binedgesreco" in v1_dct.keys() and "binedgesreco" in v2_dct.keys()
+    FineBin = True
+
     TextListReco = []
     TextListGen = []
     if FineBin:
-      TextListReco = [str(v1_dct["binedgesreco"][i])+" #leq "+v1_dct["reco_shortname"]+" < "+str(v1_dct["binedgesreco"][i+1]) for i in range(v1_dct["nbinsreco"])]
-      TextListGen = [str(v1_dct["binedgesgen"][i])+" #leq "+v1_dct["gen_shortname"]+" < "+str(v1_dct["binedgesgen"][i+1]) for i in range(v1_dct["nbinsgen"])]+(["background"] if config["addbkg"] else [])
+      TextListReco = [f'{obs1.reco.edges[i]} #leq {obs1.reco.shortname} < {obs1.reco.edges[i+1]}' for i in range(obs1.reco.nbins)]
+      TextListGen = [f'{obs1.gen.edges[i]} #leq {obs1.gen.shortname} < {obs1.gen.edges[i+1]}' for i in range(obs1.gen.nbins)]+(["background"] if config["addbkg"] else [])
     else:
-      TextListReco = [str(v1_dct["minreco"]+(v1_dct["maxreco"]-v1_dct["minreco"])/v1_dct["nbinsreco"]*i)+"#leq"+v1_dct["reco_shortname"]+"<"+str(v1_dct["minreco"]+(v1_dct["maxreco"]-v1_dct["minreco"])/v1_dct["nbinsreco"]*(i+1)) for i in range(v1_dct["nbinsreco"])]
-      TextListGen = [str(v1_dct["mingen"]+(v1_dct["maxgen"]-v1_dct["mingen"])/v1_dct["nbinsgen"]*i)+"#leq"+v1_dct["gen_shortname"]+"<"+str(v1_dct["mingen"]+(v1_dct["maxgen"]-v1_dct["mingen"])/v1_dct["nbinsgen"]*(i+1)) for i in range(v1_dct["nbinsgen"])]+(["background"] if config["addbkg"] else [])
+      TextListReco = [str(obs1.reco.min+(obs1.reco.max-obs1.reco.min)/obs1.reco.nbins*i)+"#leq"+obs1.reco.shortname +"<"+str(obs1.reco.min +(obs1.reco.max -obs1.reco.min)/obs1.reco.nbins*(i+1)) for i in range(obs1.reco.nbins)]
+      TextListGen = [str(obs1.gen.min +(obs1.gen.max-obs1.gen.min)/obs1.gen.nbins*i)+"#leq"+obs1.gen.shortname+"<"+str(obs1.gen.min +(obs1.max.gen -obs1.gen.min)/obs1.gen.nbins*(i+1)) for i in range(obs1.gen.nbins)]+(["background"] if config["addbkg"] else [])
 
     f = rt.TFile(args.input,"READ")
 
@@ -378,10 +386,10 @@ if __name__=="__main__":
         if names_pseudodata_truth is not None:
             to_plot += [ f'Unfoldcomparepseudodata_iter{iter_index}', f"Unfoldcomparepseudodataeff_iter{iter_index}", f"Unfoldcomparepseudodataacc_iter{iter_index}" ]
 
+        print(f"plotting iteration {iter_index}")
         for plt_type in to_plot:
-            print(f"plotting {plt_type}")
             txt_list = TextListReco if pltLists[plt_type].is_reco else TextListGen
-            draw_plot( pltLists[plt_type], args.plotdir, config["var1"], config["var2"], v2_dct, txt_list, use_root = (args.plot_software == "root"))
+            draw_plot( pltLists[plt_type], args.plotdir, config["var1"], config["var2"], obs2, txt_list, use_root = (args.plot_software == "root"))
 
 
     hist_chi2_iter_dataMCunc.Write()
