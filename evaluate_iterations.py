@@ -4,48 +4,50 @@ from argparse import ArgumentParser
 import os
 import ROOT
 from unfold_utils import *
+from configs import ObsConfig
 
-def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,genWeight="",from_root=True,weight_array=None,store_mig=False,tag="", reco_only=False):
+def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_root=True,weight_array=None,store_mig=False,tag="", reco_only=False):
   hists = {}
 
   reco_inclusive=HistList("HistRecoInclusive_"+dataset,tag)
-  reco_inclusive.read_settings_from_config_dim1(var1_config,isgen=False)
-  reco_inclusive.read_settings_from_config_dim2(var2_config,isgen=False)
+  print(o1.reco.edges)
+  reco_inclusive.read_settings_from_config_dim1(o1,isgen=False)
+  reco_inclusive.read_settings_from_config_dim2(o2,isgen=False)
   reco_inclusive.bin_edges_dim2 = edges_reco
   reco_inclusive.cut = cuts[CutType.PassReco]
   hists["reco_inclusive"] = reco_inclusive
 
   if not reco_only:
     gen_passreco=HistList("HistGen_"+dataset,tag)
-    gen_passreco.read_settings_from_config_dim1(var1_config,isgen=True)
-    gen_passreco.read_settings_from_config_dim2(var2_config,isgen=True)
+    gen_passreco.read_settings_from_config_dim1(o1,isgen=True)
+    gen_passreco.read_settings_from_config_dim2(o2,isgen=True)
     gen_passreco.bin_edges_dim2 = edges_gen
     gen_passreco.cut = cuts[CutType.PassReco_PassGen]
     hists["gen_passreco"] = gen_passreco
 
     gen_inclusive=HistList("HistGenInclusive_"+dataset,tag)
-    gen_inclusive.read_settings_from_config_dim1(var1_config,isgen=True)
-    gen_inclusive.read_settings_from_config_dim2(var2_config,isgen=True)
+    gen_inclusive.read_settings_from_config_dim1(o1,isgen=True)
+    gen_inclusive.read_settings_from_config_dim2(o2,isgen=True)
     gen_inclusive.bin_edges_dim2 = edges_gen
     gen_inclusive.cut = cuts[CutType.PassGen]
     hists["gen_inclusive"] = gen_inclusive
 
     reco_passgen=HistList("HistReco_"+dataset,tag)
-    reco_passgen.read_settings_from_config_dim1(var1_config,isgen=False)
-    reco_passgen.read_settings_from_config_dim2(var2_config,isgen=False)
+    reco_passgen.read_settings_from_config_dim1(o1,isgen=False)
+    reco_passgen.read_settings_from_config_dim2(o2,isgen=False)
     reco_passgen.bin_edges_dim2 = edges_reco
     reco_passgen.cut = cuts[CutType.PassReco_PassGen]
     hists["reco_passgen"] = reco_passgen
 
     gen_eff = HistList("HistGenEff_"+dataset,tag)
-    gen_eff.read_settings_from_config_dim1(var1_config,isgen=True)
-    gen_eff.read_settings_from_config_dim2(var2_config,isgen=True)
+    gen_eff.read_settings_from_config_dim1(o1,isgen=True)
+    gen_eff.read_settings_from_config_dim2(o2,isgen=True)
     gen_eff.bin_edges_dim2 = edges_gen
     gen_eff.fill_root_hists_name()
 
     reco_acc = HistList("HistRecoAcc_"+dataset,tag)
-    reco_acc.read_settings_from_config_dim1(var1_config,isgen=False)
-    reco_acc.read_settings_from_config_dim2(var2_config,isgen=False)
+    reco_acc.read_settings_from_config_dim1(o1,isgen=False)
+    reco_acc.read_settings_from_config_dim2(o2,isgen=False)
     reco_acc.bin_edges_dim2 = edges_reco
     reco_acc.fill_root_hists_name()
 
@@ -64,26 +66,26 @@ def fill_hist_lists(dataset,var1_config,var2_config,edges_gen,edges_reco,source,
   mig = None
   if store_mig:
     mig = []
-    for i, edge_i in enumerate(var1_config["binedgesgen"][:-1]):
+    for i, edge_i in enumerate(o1.gen.edges[:-1]):
       mig.append([])
-      for j, edge_j in enumerate(var1_config["binedgesreco"][:-1]):
-        edge_ip1 = var1_config["binedgesgen"][i+1]
-        edge_jp1 = var1_config["binedgesreco"][j+1]
+      for j, edge_j in enumerate(o1.reco.edges[:-1]):
+        edge_ip1 = o1.gen.edges[i+1]
+        edge_jp1 = o1.reco.edges[j+1]
 
         #mig_ij
-        this_mig = HistList(f'HistMig_{dataset}_{var1_config["gen_key"]}{edge_i}-{edge_ip1}_{var1_config["reco_key"]}{edge_j}-{edge_jp1}{tag}')
+        this_mig = HistList(f'HistMig_{dataset}_{o1.gen.np_var}{edge_i}-{edge_ip1}_{o1.reco.np_var}{edge_j}-{edge_jp1}{tag}')
         mig[i].append(this_mig)
 
-        mig[i][j].read_settings_from_config_dim1(var2_config,isgen=True)
-        mig[i][j].read_settings_from_config_dim2(var2_config,isgen=False)
+        mig[i][j].read_settings_from_config_dim1(o2,isgen=True)
+        mig[i][j].read_settings_from_config_dim2(o2,isgen=False)
 
-        gen_cuts_root = f" ({var1_config['gen']}>={edge_i}) * ({var1_config['gen']}<{edge_ip1}) "
-        reco_cuts_root = f" ({var1_config['reco']}>={edge_j}) * ({var1_config['reco']}<{edge_jp1}) "
+        gen_cuts_root = f" ({o1.gen.root_var}>={edge_i}) * ({o1.gen.root_var}<{edge_ip1}) "
+        reco_cuts_root = f" ({o1.reco.root_var}>={edge_j}) * ({o1.reco.root_var}<{edge_jp1}) "
         all_cuts_root = root_cuts[CutType.PassReco_PassGen] + "*" + gen_cuts_root + "*" + reco_cuts_root
         mig[i][j].root_cut = all_cuts_root
 
-        gen_cuts_np = [[var1_config["gen_key"],">=",str(edge_i)], [var1_config["gen_key"],"<",str(edge_ip1)]]
-        reco_cuts_np = [[var1_config["reco_key"], ">=", str(edge_j)], [var1_config["reco_key"],"<",str(edge_jp1)]]
+        gen_cuts_np = [[o1.gen.np_var,">=",str(edge_i)], [o1.gen.np_var,"<",str(edge_ip1)]]
+        reco_cuts_np = [[o1.reco.np_var, ">=", str(edge_j)], [o1.reco.np_var,"<",str(edge_jp1)]]
         all_cuts_np = np_cuts[CutType.PassReco_PassGen] + gen_cuts_np + reco_cuts_np
         mig[i][j].npy_cut = all_cuts_np
 
@@ -108,19 +110,19 @@ def get_sys_variations( config ):
             tree_sys_list.append(tree)
     return tree_sys_list
 
-def get_bin_edges( conf, v1_dct, v2_dct, trees):
+def get_bin_edges( conf, var1, var2, trees):
 
     cut = root_cuts[CutType.PassReco_PassGen]
     bin_edges = []
     for lvl in ["reco","gen"]:
         do_merge = conf[f"merge{lvl}bin"]
         if do_merge:
-            edges = merge_bins(obs=[v1_dct[lvl] , v2_dct[lvl]], trees=trees, root_cut=cut, threshold=conf[f"mergethreshold{lvl}"], bin_edges_dim1_1d=v1_dct[f"binedges{lvl}"], bin_edges_dim2_1d=v2_dct[f"binedges{lvl}"])
+            edges = merge_bins(obs=[var1[lvl].root_var , var2[lvl].root_var], trees=trees, root_cut=cut, threshold=conf[f"mergethreshold{lvl}"], bin_edges_dim1_1d=var1[lvl].edges, bin_edges_dim2_1d=var2[lvl].edges)
         else:
             if FineBin:
-                edges = [v2_dct[f"binedges{lvl}"] * v1_dct[f"nbins{lvl}"] ]
+                edges = [var2[lvl].edges * var1[lvl].nbins ]
             else:
-                edges = [ v2_dct[f"min{lvl}"]+(v2_dct[f"ma{lvl}"] - v2_dct[f"min{lvl}"])/ v2_dct[f"nbins{lvl}"] * ibin for ibin in range(v2_dct[f"nbins{lvl}"])] * v1_dct[f"nbins{lvl}"]
+                edges = [ var2[lvl].min +(var2[lvl].max - var2[{lvl}].min)/ var2[lvl].nbins * ibin for ibin in range(var2[lvl].nbins)] * var1[lvl].nbins
         bin_edges.append(edges)
 
     return bin_edges
@@ -152,11 +154,13 @@ if __name__=="__main__":
 
     with open(args.config, 'r') as configjson:
         config = json.load(configjson)
-    with open(config["varunfold"], 'r') as fjson:
-        info_var = json.load(fjson)
 
-    var1_dct = info_var[config["var1"]]
-    var2_dct = info_var[config["var2"]]
+    obs1 = ObsConfig.from_yaml( config["varunfold"], [config["var1"]] )
+    obs2 = ObsConfig.from_yaml( config["varunfold"], [config["var2"]] )
+    #var1_dct = info_var[config["var1"]]
+    #var2_dct = info_var[config["var2"]]
+    print(obs1)
+    print(obs2)
 
     if not os.path.exists(config["outputdir"]):
       os.makedirs(config["outputdir"])
@@ -169,17 +173,18 @@ if __name__=="__main__":
     if config["addsys"]:
         tree_syst_list = get_sys_variations( config )
 
-    FineBin = ("binedgesreco" in var1_dct.keys()) and ("binedgesreco" in var2_dct.keys())
+    #FineBin = ("binedgesreco" in var1_dct.keys()) and ("binedgesreco" in var2_dct.keys())
+    FineBin = True
 
     all_trees = [tree] + tree_sys_list
-    bin_edges_reco, bin_edges_gen = get_bin_edges( config, var1_dct, var2_dct, all_trees)
+    bin_edges_reco, bin_edges_gen = get_bin_edges( config, obs1, obs2, all_trees)
 
-    mc_hists = fill_hist_lists("MC", var1_dct, var2_dct, bin_edges_gen, bin_edges_reco, tree, genWeight=weightname, store_mig=True)
+    mc_hists = fill_hist_lists("MC", obs1, obs2, bin_edges_gen, bin_edges_reco, tree, genWeight=weightname, store_mig=True)
 
     #efficiency=reconstructed and generated / generated
     gen_inveff = HistList("HistGenInvEff")
-    gen_inveff.read_settings_from_config_dim1(var1_dct,isgen=True)
-    gen_inveff.read_settings_from_config_dim2(var2_dct,isgen=True)
+    gen_inveff.read_settings_from_config_dim1(obs1,isgen=True)
+    gen_inveff.read_settings_from_config_dim2(obs2,isgen=True)
     gen_inveff.bin_edges_dim2 = bin_edges_gen
     gen_inveff.fill_root_hists_name()
     gen_inveff.get_hist_from_division(mc_hists["gen_inclusive"],mc_hists["gen_passreco"])
@@ -209,13 +214,13 @@ if __name__=="__main__":
       else:
         event_data = tree_data
         from_root = True
-      pseudo_hists = fill_hist_lists("Pseudodata",var1_dct,var2_dct,bin_edges_gen,bin_edges_reco,event_data,genWeight=weightname,from_root=from_root,weight_array=weight_pseudodata,store_mig=True)
+      pseudo_hists = fill_hist_lists("Pseudodata", obs1, obs2, bin_edges_gen, bin_edges_reco, event_data, genWeight=weightname, from_root=from_root, weight_array=weight_pseudodata,store_mig=True)
       reco_data_tree = tree_refdata
       tag = "_Ref"
     else:
       reco_data_tree = tree_data
       tag = ""
-    data_hists = fill_hist_lists("Data", var1_dct, var2_dct, None, bin_edges_reco, reco_data_tree, tag="_Ref", reco_only=True)
+    data_hists = fill_hist_lists("Data", obs1, obs2, None, bin_edges_reco, reco_data_tree, tag="_Ref", reco_only=True)
 
     normalization_hist = pseudo_hists["reco_inclusive"] if config["pseudodata"] else data_hists["reco_inclusive"]
     mc_norm_factor = normalization_hist.norm / mc_hists["reco_inclusive"].norm
@@ -240,7 +245,7 @@ if __name__=="__main__":
       weight_iter = weights[weights_per_iter*i - offset ]
       store_mig = i in args.migiter
 
-      unfold_hists = fill_hist_lists("MC_"+args.method,var1_dct,var2_dct,bin_edges_gen,bin_edges_reco,config[args.method]["sim"],genWeight=weightname,from_root=False,weight_array=weight_iter,store_mig=store_mig,tag="_iter"+str(i))
+      unfold_hists = fill_hist_lists("MC_"+args.method, obs1, obs2, bin_edges_gen,bin_edges_reco,config[args.method]["sim"],genWeight=weightname,from_root=False,weight_array=weight_iter,store_mig=store_mig,tag="_iter"+str(i))
       if args.eff_from_nominal:
         unfold_hists["gen_inclusive"].get_hist_from_multiplication(unfold_hists["gen_passreco"],gen_inveff)
       unf_norm_factor = normalization_hist.norm / unfold_hists["reco_inclusive"].norm
