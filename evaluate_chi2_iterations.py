@@ -240,14 +240,6 @@ if __name__=="__main__":
 
     with open(file_style, 'r') as style_json: 
         config_style = json.load(style_json)
-        if config_style["software"] == "root":
-          data_color = 1
-          MC_color = rt.kAzure-2
-          pseudodata_color = 800
-        else:
-          data_color = "black"
-          MC_color = "olive"
-          pseudodata_color = "darkorange"
     v1_dct = info_var[config["var1"]]
     v2_dct = info_var[config["var2"]]
 
@@ -310,6 +302,9 @@ if __name__=="__main__":
       data_legend = "Data" if names_pseudodata_truth is None else "Pseudo-data"
       if args.sysreweight:
           data_legend = "sys variation: {config['syslegend'][0]}"
+      data_color = config_style["data_color"]
+      MC_color = config_style["MC_color"]
+      pseudodata_color = config_style["pseudodata_color"]
       histCfg["Data"] = HistConfig(hist_list_data, 0, data_color, "cross", data_legend)
       histCfg["MCGenInclusive"] = HistConfig(hist_list_MCgeninclusive, 0, MC_color, "fillederror", config["MClegend"])
       histCfg["MCRecoInclusive"] = HistConfig( hist_list_MCrecoinclusive, 0, MC_color, "fillederror", config["MClegend"])

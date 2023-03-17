@@ -1,5 +1,8 @@
 {
   "software":"root",
+  "data_color": 1,
+  "MC_color": 858,
+  "pseudodata_color": 800,
   "MLE":{
     "color":4,
     "color_unfold":6,
