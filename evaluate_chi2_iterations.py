@@ -171,8 +171,7 @@ if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument('--input',default='results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/unfold_nparticle_eta2p4pt05_pur_1d_spherocity_eta2p4pt05_pur_1d_nominal_optimize_omnifold.root',help='The input root file containing the results in iterations')
     parser.add_argument('--output',default='results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/iter_nparticle_eta2p4pt05_pur_1d_spherocity_eta2p4pt05_pur_1d_nominal_omnifold.root',help='The output root file containing the refolfing chi^2 w.r.t. iterations')
-    parser.add_argument('--config',default="Config_checkunfold/Config_sph_1d_v7_badtunesys.json",help="The configration file including the unfolding setup")
-    #parser.add_argument('--config',default="Config_plot/Config_sph_1d_v7_MCCP1ES_CP5sys.json",help="The configration file including the unfolding setup")
+    parser.add_argument('--config',default="Config_plot/Config_sph_1d_v7_MCCP1ES_CP5sys.json",help="The configration file including the unfolding setup")
     parser.add_argument('--plot',action="store_true",default=False)
     parser.add_argument('--plotdir',default="results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/plots_optimize")
     parser.add_argument('--sysreweight',action="store_true",default=False)
@@ -205,36 +204,34 @@ if __name__=="__main__":
     hist_chi2_iter_dataMCunc = make_iter_hist( "Refold", "dataMCunc", names_refold)
     hist_chi2_iter_dataunc = make_iter_hist( "Refold", "dataunc", names_refold)
     hist_chi2_iter_MC = make_iter_hist( "Unfold", "MC", names_unfold)
-    hist_chi2_iter_MC_MCunfoldunc = make_iter_hist("Unfold", "MC_MCunfoldunc",names_unfold)
+    hist_chi2_iter_MC_MCunfoldunc = make_iter_hist("Unfold", "MC_MCunfoldunc", names_unfold)
 
-    hist_p_iter_MC_MCunfoldunc = rt.TH1F("Unfold_p_MC_MCunfoldunc","Unfold p",len(names_unfold),0,len(names_unfold))
+    hist_p_iter_MC_MCunfoldunc = rt.TH1F("Unfold_p_MC_MCunfoldunc", "Unfold p", len(names_unfold), 0, len(names_unfold))
     hist_p_iter_MC_MCunfoldunc.GetXaxis().SetTitle("iterations")
     hist_p_iter_MC_MCunfoldunc.GetYaxis().SetTitle("p-value")
 
     if not(names_pseudodata_truth is None):
 
-      hist_chi2_iter_truth_dataunc = make_iter_hist("Unfold","pseudodatatruth_dataunc",names_unfold)
-      hist_chi2_iter_truth_dataMCunc = make_iter_hist("Unfold","pseudodatatruth_dataMCunc",names_unfold)
+      hist_chi2_iter_truth_dataunc = make_iter_hist("Unfold", "pseudodatatruth_dataunc", names_unfold)
+      hist_chi2_iter_truth_dataMCunc = make_iter_hist("Unfold", "pseudodatatruth_dataMCunc", names_unfold)
 
 
-    _,_,_,wchi2_per_ndof_MCdatareco,wchi2_hist2unc_per_ndof_MCdatareco,p_MCdatareco,_  = GOF([f.Get(name) for name in name_MCreco],[f.Get(name) for name in name_data])
+    _, _, _, wchi2_per_ndof_MCdatareco, wchi2_hist2unc_per_ndof_MCdatareco, p_MCdatareco, _  = GOF([f.Get(name) for name in name_MCreco],[f.Get(name) for name in name_data])
     if not(names_pseudodata_truth is None):
-      _,_,_,wchi2_per_ndof_MCdatagen,wchi2_hist2unc_per_ndof_MCdatagen,_,_ = GOF([f.Get(name) for name in name_MC],[f.Get(name) for name in names_pseudodata_truth])
+      _, _, _, wchi2_per_ndof_MCdatagen, wchi2_hist2unc_per_ndof_MCdatagen, _, _ = GOF([f.Get(name) for name in name_MC],[f.Get(name) for name in names_pseudodata_truth])
 
     hist_list_data = prepare_histlist("Data", name_data, f)
     hist_list_MCgeninclusive = prepare_histlist("MCGenInclusive", name_MC, f)
     hist_list_MCrecoinclusive = prepare_histlist("MCRecoInclusive", name_MCreco, f)
-    hist_list_MC_eff_acc = GetEffAcc(f,"MC",name_MC,name_MCreco)
+    hist_list_MC_eff_acc = GetEffAcc(f, "MC", name_MC,name_MCreco)
 
     if not(names_pseudodata_truth is None):
       hist_list_pseudodatatruthinclusive = prepare_histlist("PseduodataTruthInclusive", names_pseudodata_truth, f)
-      hist_list_pseudodata_eff_acc = GetEffAcc(f,"Pseudodata",names_pseudodata_truth,name_data)
+      hist_list_pseudodata_eff_acc = GetEffAcc(f, "Pseudodata", names_pseudodata_truth, name_data)
 
     else:
       hist_list_pseudodatatruthinclusive = None
       hist_list_pseudodata_eff_acc = {"Eff":None, "Acc":None}
-
-
 
     histCfg = {}
     if args.plot:
@@ -246,21 +243,21 @@ if __name__=="__main__":
       MC_color = config_style[args.plot_software]["MC_color"]
       pseudodata_color = config_style[args.plot_software]["pseudodata_color"]
 
-      histCfg["Data"] = HistConfig(hist_list_data, 0, data_color, "cross", data_legend)
-      histCfg["MCGenInclusive"] = HistConfig(hist_list_MCgeninclusive, 0, MC_color, "fillederror", config["MClegend"])
+      histCfg["Data"] =            HistConfig(hist_list_data, 0, data_color, "cross", data_legend)
+      histCfg["MCGenInclusive"] =  HistConfig(hist_list_MCgeninclusive, 0, MC_color, "fillederror", config["MClegend"])
       histCfg["MCRecoInclusive"] = HistConfig( hist_list_MCrecoinclusive, 0, MC_color, "fillederror", config["MClegend"])
 
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]}" 
       histCfg["PseudodataTruthInclusive"] = HistConfig(hist_list_pseudodatatruthinclusive, 0, pseudodata_color, "triangle", ps_legend)
 
-      histCfg["MCGenEff"] = HistConfig( hist_list_MC_eff_acc["Eff"], 0, MC_color, "cross", f'{config["MClegend"]} Eff.')
+      histCfg["MCGenEff"] =  HistConfig( hist_list_MC_eff_acc["Eff"], 0, MC_color, "cross", f'{config["MClegend"]} Eff.')
       histCfg["MCRecoAcc"] = HistConfig( hist_list_MC_eff_acc["Acc"], 0, MC_color, "cross", f'{config["MClegend"]} Acc.')
 
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]} Eff."
-      histCfg["PseudodataTruthEff"]= HistConfig( hist_list_pseudodata_eff_acc["Eff"], 0, pseudodata_color, "triangle", ps_legend )
+      histCfg["PseudodataTruthEff"] = HistConfig( hist_list_pseudodata_eff_acc["Eff"], 0, pseudodata_color, "triangle", ps_legend )
 
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]} Eff."
-      histCfg["PseudodataTruthAcc"]= HistConfig(hist_list_pseudodata_eff_acc["Acc"], 0, pseudodata_color, "triangle", ps_legend )
+      histCfg["PseudodataTruthAcc"] = HistConfig(hist_list_pseudodata_eff_acc["Acc"], 0, pseudodata_color, "triangle", ps_legend )
 
 
     pltLists= {}
@@ -295,10 +292,10 @@ if __name__=="__main__":
 
       if args.plot:
 
-        default_rps = ResultPlotSettings.from_yaml(style_file, [args.plot_software, "MLE"])
-        omnifold_rps = ResultPlotSettings.from_yaml(style_file, [args.plot_software, "omnifold"])
+        default_rps   = ResultPlotSettings.from_yaml(style_file, [args.plot_software, "MLE"])
+        omnifold_rps  = ResultPlotSettings.from_yaml(style_file, [args.plot_software, "omnifold"])
         multifold_rps = ResultPlotSettings.from_yaml(style_file, [args.plot_software, "multifold"])
-        unifold_rps = ResultPlotSettings.from_yaml(style_file, [args.plot_software, "omnifold"])
+        unifold_rps   = ResultPlotSettings.from_yaml(style_file, [args.plot_software, "omnifold"])
 
         result_settings = default_rps
         if "omnifold" in args.input:

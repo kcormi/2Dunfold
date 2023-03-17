@@ -1,5 +1,5 @@
 {
-  "varunfold":"config/observables",
+  "varunfold":"config/observables.yml",
   "var1":"nparticle",
   "var2":"isotropy",
   "combine":{

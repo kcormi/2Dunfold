@@ -124,7 +124,6 @@ def get_bin_edges( conf, var1, var2, trees):
     return bin_edges
 
 
-
 def write_all_hists( hist_dict ):
     for key, hist in hist_dict.items():
         if hist == None:
@@ -140,12 +139,12 @@ def write_all_hists( hist_dict ):
 if __name__=="__main__":
 
     parser = ArgumentParser()
-    parser.add_argument('--config',default="Config_checkunfold/Config_sph_1d_v7_badtunesys.json",help="The configration file including the unfolding setup")
-    parser.add_argument('--method',default="omnifold",help="omnifold/multfold/unifold")
-    parser.add_argument('--migiter',type=int,nargs='+',help="Which iterations to plot the migration matrices")
-    parser.add_argument('--step1',action="store_true",default=False,help="Process the histograms from the step1, otherwise process the step 2 results")
-    parser.add_argument('--eff-acc',action="store_true",default=False,help="Consider the efficiency and acceptance in the unfolding")
-    parser.add_argument('--eff-from-nominal',action="store_true",default=False,help="Apply the reconstruction efficiency of the nominal MC to the unfolded one, otherwise use the efficiency given by the unfolding algorithm.")
+    parser.add_argument('--config', default="Config_checkunfold/Config_sph_1d_v7_badtunesys.json", help="The configration file including the unfolding setup")
+    parser.add_argument('--method', default="omnifold", help="omnifold/multfold/unifold")
+    parser.add_argument('--migiter', type=int,nargs='+', help="Which iterations to plot the migration matrices")
+    parser.add_argument('--step1', action="store_true", default=False, help="Process the histograms from the step1, otherwise process the step 2 results")
+    parser.add_argument('--eff-acc', action="store_true", default=False, help="Consider the efficiency and acceptance in the unfolding")
+    parser.add_argument('--eff-from-nominal', action="store_true", default=False, help="Apply the reconstruction efficiency of the nominal MC to the unfolded one, otherwise use the efficiency given by the unfolding algorithm.")
     args = parser.parse_args()
 
     with open(args.config, 'r') as configjson:
@@ -203,7 +202,7 @@ if __name__=="__main__":
       else:
         event_data = tree_data
         from_root = True
-      pseudo_hists = fill_hist_lists("Pseudodata", obs1, obs2, bin_edges_gen, bin_edges_reco, event_data, genWeight=weightname, from_root=from_root, weight_array=weight_pseudodata,store_mig=True)
+      pseudo_hists = fill_hist_lists("Pseudodata", obs1, obs2, bin_edges_gen, bin_edges_reco, event_data, genWeight=weightname, from_root=from_root, weight_array=weight_pseudodata, store_mig=True)
       reco_data_tree = tree_refdata
       tag = "_Ref"
     else:
