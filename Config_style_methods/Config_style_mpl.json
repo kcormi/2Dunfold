@@ -1,0 +1,27 @@
+{
+  "software":"mpl",
+  "MLE":{
+    "color":"royalblue",
+    "color_unfold":"blue",
+    "legend":"MLE",
+    "tag":"MLE"
+  },
+  "omnifold":{
+    "color":"orchid",
+    "color_unfold":"magenta",
+    "legend":"omnifold",
+    "tag":"omnifold"
+  },
+  "multifold":{
+    "color":"mediumseagreen",
+    "color_unfold":"darkgreen",
+    "legend":"multifold",
+    "tag":"multifold"
+  },
+  "unifold":{
+    "color":"salmon",
+    "color_unfold":"firebrick",
+    "legend":"unifold",
+    "tag":"unifold"
+  }
+}

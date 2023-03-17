@@ -160,20 +160,21 @@ def draw_initial_line( chi2_val, n_iter, hist_name ):
     line.Write(hist_name)
 
 def plot_wrapper(plt_list,**kwargs):
-  input_args = {}
+  input_args = {
+    "hist_ref_stat": plt_list.ref.stat,
+    "style_ref": plt_list.ref.style,
+    "color_ref": plt_list.ref.color,
+    "list_style_compare": plt_list.styles,
+    "list_color_compare": plt_list.colors,
+    "label_ratio":plt_list.ratio
+  }
   for key in kwargs.keys():
     if key != "use_root":
       input_args[key] = kwargs[key]
-  input_args["hist_ref_stat"] = plt_list.ref.stat
-  input_args["style_ref"] = plt_list.ref.style
-  input_args["color_ref"] = plt_list.ref.color
-  input_args["list_style_compare"] = plt_list.styles
-  input_args["list_color_compare"] = plt_list.colors
-  input_args["label_ratio"] = plt_list.ratio
   if kwargs["use_root"]:
-    plot_flat_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, **input_args)
+    plot_flat_hists_root(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, **input_args)
   else:
-    plot_hists(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, **input_args)
+    plot_flat_hists_mpl(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, **input_args)
 
 def draw_plot(plt_list, plotdir, var1_nm, var2_nm, v2_dct, txt_list,use_root=True):
     path = f'{plotdir}/{plt_list.name}_{var1_nm}_{var2_nm}'
@@ -190,7 +191,7 @@ def draw_plot(plt_list, plotdir, var1_nm, var2_nm, v2_dct, txt_list,use_root=Tru
       "range_ratio": 0.1 if "eff" in plt_list.name or "acc" in plt_list.name else 0.3,
       "use_root": use_root
     }
-    plot_rapper(plt_list,**plot_args)
+    plot_wrapper(plt_list,**plot_args)
 
     if not("eff" in plt_list.name or "acc" in plt_list.name):
       plot_args["is_logY"] = 1

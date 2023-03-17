@@ -167,7 +167,7 @@ def draw_array(value,error,bins,style,ax,color,legend):
     print(f"style {style} not recognized")
 
 
-def plot_hists(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title="", is_logY=0, do_ratio=1, output_path="./", hist_ref_stat=0, text_list=[], style_ref='marker', color_ref="black", list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3):
+def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title="", is_logY=0, do_ratio=1, output_path="./", hist_ref_stat=0, text_list=[], style_ref='marker', color_ref="black", list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3):
 
   hist_ref_arrays = HistArray(hist_ref)
   hist_ref_stat_arrays = HistArray(hist_ref_stat) if hist_ref_stat != 0 else None
