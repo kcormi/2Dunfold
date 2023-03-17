@@ -189,20 +189,9 @@ if __name__=="__main__":
 
     obs1 = ObsConfig.from_yaml( config["varunfold"], [config["var1"]] )
     obs2 = ObsConfig.from_yaml( config["varunfold"], [config["var2"]] )
-    #v1_dct = info_var[config["var1"]]
-    #v2_dct = info_var[config["var2"]]
 
-    #FineBin = "binedgesreco" in v1_dct.keys() and "binedgesreco" in v2_dct.keys()
-    FineBin = True
-
-    TextListReco = []
-    TextListGen = []
-    if FineBin:
-      TextListReco = [f'{obs1.reco.edges[i]} #leq {obs1.reco.shortname} < {obs1.reco.edges[i+1]}' for i in range(obs1.reco.nbins)]
-      TextListGen = [f'{obs1.gen.edges[i]} #leq {obs1.gen.shortname} < {obs1.gen.edges[i+1]}' for i in range(obs1.gen.nbins)]+(["background"] if config["addbkg"] else [])
-    else:
-      TextListReco = [str(obs1.reco.min+(obs1.reco.max-obs1.reco.min)/obs1.reco.nbins*i)+"#leq"+obs1.reco.shortname +"<"+str(obs1.reco.min +(obs1.reco.max -obs1.reco.min)/obs1.reco.nbins*(i+1)) for i in range(obs1.reco.nbins)]
-      TextListGen = [str(obs1.gen.min +(obs1.gen.max-obs1.gen.min)/obs1.gen.nbins*i)+"#leq"+obs1.gen.shortname+"<"+str(obs1.gen.min +(obs1.max.gen -obs1.gen.min)/obs1.gen.nbins*(i+1)) for i in range(obs1.gen.nbins)]+(["background"] if config["addbkg"] else [])
+    TextListReco = [f'{obs1.reco.edges[i]} #leq {obs1.reco.shortname} < {obs1.reco.edges[i+1]}' for i in range(obs1.reco.nbins)]
+    TextListGen = [f'{obs1.gen.edges[i]} #leq {obs1.gen.shortname} < {obs1.gen.edges[i+1]}' for i in range(obs1.gen.nbins)]+(["background"] if config["addbkg"] else [])
 
     f = rt.TFile(args.input,"READ")
 

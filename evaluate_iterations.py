@@ -118,10 +118,7 @@ def get_bin_edges( conf, var1, var2, trees):
         if do_merge:
             edges = merge_bins(obs=[var1[lvl].root_var , var2[lvl].root_var], trees=trees, root_cut=cut, threshold=conf[f"mergethreshold{lvl}"], bin_edges_dim1_1d=var1[lvl].edges, bin_edges_dim2_1d=var2[lvl].edges)
         else:
-            if FineBin:
-                edges = [var2[lvl].edges * var1[lvl].nbins ]
-            else:
-                edges = [ var2[lvl].min +(var2[lvl].max - var2[{lvl}].min)/ var2[lvl].nbins * ibin for ibin in range(var2[lvl].nbins)] * var1[lvl].nbins
+            edges = [var2[lvl].edges * var1[lvl].nbins ]
         bin_edges.append(edges)
 
     return bin_edges
@@ -167,9 +164,6 @@ if __name__=="__main__":
     tree_sys_list=[]
     if config["addsys"]:
         tree_syst_list = get_sys_variations( config )
-
-    #FineBin = ("binedgesreco" in var1_dct.keys()) and ("binedgesreco" in var2_dct.keys())
-    FineBin = True
 
     all_trees = [tree] + tree_sys_list
     bin_edges_reco, bin_edges_gen = get_bin_edges( config, obs1, obs2, all_trees)
