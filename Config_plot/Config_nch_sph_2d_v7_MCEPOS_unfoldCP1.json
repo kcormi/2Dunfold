@@ -1,5 +1,5 @@
 {
-  "varunfold":"VarUnfold_finebin_v7.json",
+  "varunfold":"config/observables.yml",
   "var1":"nparticle_eta2p4pt05_pur_test",
   "var2":"spherocity_eta2p4pt05_pur_1d",
   "outputdir":"plots_finebin_v7_MCEPOS_unfoldCP1_1d",
