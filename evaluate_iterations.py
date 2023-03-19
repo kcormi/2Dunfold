@@ -141,8 +141,8 @@ def write_all_hists( hist_dict ):
 if __name__=="__main__":
 
     parser = ArgumentParser()
-    parser.add_argument('--config', default="Config_checkunfold/Config_sph_1d_v7_badtunesys.json", help="The configration file including the unfolding setup")
-    parser.add_argument('--method', default="omnifold", help="omnifold/multfold/unifold")
+    parser.add_argument('--config', default="config/dataset_v7_MCEPOS_unfoldCP1_optimize_1p3M.json", help="The configration file including the unfolding setup")
+    parser.add_argument('--method', default="multifold", help="omnifold/multfold/unifold")
     parser.add_argument('--migiter', type=int,nargs='+', help="Which iterations to plot the migration matrices")
     parser.add_argument('--step1', action="store_true", default=False, help="Process the histograms from the step1, otherwise process the step 2 results")
     parser.add_argument('--eff-acc', action="store_true", default=False, help="Consider the efficiency and acceptance in the unfolding")
@@ -231,7 +231,7 @@ if __name__=="__main__":
     weights_per_iter = 4 if args.eff_acc else 2
 
     step1_tag = "_step1" if args.step1 else ""
-    fout = ROOT.TFile(f'{config["outputdir"]}/unfold_{config["var1"]}_{config["var2"]}_{config["MCtag"]}_optimize_{args.method}{step1_tag}.root', "recreate")
+    fout = ROOT.TFile(f'{config["outputdir"]}/unfold_{obs1_name}_{obs2_name}_{config["MCtag"]}_optimize_{args.method}{step1_tag}.root', "recreate")
 
     niter = len(weights)//weights_per_iter
     for i in range(0,niter+1):

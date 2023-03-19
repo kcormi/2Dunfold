@@ -172,7 +172,7 @@ if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument('--input',default='results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/unfold_nparticle_eta2p4pt05_pur_1d_spherocity_eta2p4pt05_pur_1d_nominal_optimize_omnifold.root',help='The input root file containing the results in iterations')
     parser.add_argument('--output',default='results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/iter_nparticle_eta2p4pt05_pur_1d_spherocity_eta2p4pt05_pur_1d_nominal_omnifold.root',help='The output root file containing the refolfing chi^2 w.r.t. iterations')
-    parser.add_argument('--config',default="Config_plot/Config_sph_1d_v7_MCCP1ES_CP5sys.json",help="The configration file including the unfolding setup")
+    parser.add_argument('--config',default="config/plot_1d_v7_MCEPOS_unfoldCP1.json",help="The configration file including the unfolding setup")
     parser.add_argument('--plot',action="store_true",default=False)
     parser.add_argument('--plotdir',default="results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/plots_optimize")
     parser.add_argument('--sysreweight',action="store_true",default=False)
@@ -188,8 +188,10 @@ if __name__=="__main__":
     with open(style_file, 'r') as style_json: 
         config_style = yaml.safe_load(style_json)
 
-    obs1 = ObsConfig.from_yaml( config["varunfold"], [config["var1"]] )
-    obs2 = ObsConfig.from_yaml( config["varunfold"], [config["var2"]] )
+    obs1_name, obs2_name = parse_obs_args( config, args.obs )
+
+    obs1 = ObsConfig.from_yaml( config["varunfold"], [obs1_name] )
+    obs2 = ObsConfig.from_yaml( config["varunfold"], [obs2_name] )
 
     TextListReco = [f'{obs1.reco.edges[i]} #leq {obs1.reco.shortname} < {obs1.reco.edges[i+1]}' for i in range(obs1.reco.nbins)]
     TextListGen = [f'{obs1.gen.edges[i]} #leq {obs1.gen.shortname} < {obs1.gen.edges[i+1]}' for i in range(obs1.gen.nbins)]+(["background"] if config["addbkg"] else [])
@@ -377,7 +379,7 @@ if __name__=="__main__":
         print(f"plotting iteration {iter_index}")
         for plt_type in to_plot:
             txt_list = TextListReco if pltLists[plt_type].is_reco else TextListGen
-            draw_plot( pltLists[plt_type], args.plotdir, config["var1"], config["var2"], obs2, txt_list, use_root = (args.plot_software == "root"))
+            draw_plot( pltLists[plt_type], args.plotdir, obs1_name, obs2_name, obs2, txt_list, use_root = (args.plot_software == "root"))
 
 
     hist_chi2_iter_dataMCunc.Write()
