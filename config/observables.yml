@@ -1,17 +1,20 @@
-nparticle_coarse_binning_reco: &np_coarse_bin_reco [ 3., 160. ]
-nparticle_coarse_binning_gen: &np_coarse_bin_gen [ 3., 140. ]
-
-nparticle_fine_binning_reco: &np_fine_bin_reco [3.0,5.0,8.0,11.0,15.0,20.0,27.0,34.0,43.0,54.0,65.0,80.0,98.0,120.0,250.0]
-nparticle_fine_binning_gen: &np_fine_bin_gen [3.0,5.0,8.0,11.0,15.0,20.0,27.0,34.0,43.0,54.0,65.0,80.0,98.0,120.0,250.0]
+binnings:
+    nparticle_coarse_binning_reco: &np_coarse_bin_reco [ 3., 160. ]
+    nparticle_coarse_binning_gen: &np_coarse_bin_gen [ 3., 140. ]
+    
+    nparticle_fine_binning_reco: &np_fine_bin_reco [3.0,5.0,8.0,11.0,15.0,20.0,27.0,34.0,43.0,54.0,65.0,80.0,98.0,120.0,250.0]
+    nparticle_fine_binning_gen: &np_fine_bin_gen [3.0,5.0,8.0,11.0,15.0,20.0,27.0,34.0,43.0,54.0,65.0,80.0,98.0,120.0,250.0]
 
 nparticle:
     reco:
         name: "N_{tracks} (high purity, pt>0.5GeV)"
+        shortname: "N_{tracks}"
         root_var: "Instanton_N_Trk_highPurity_pt05"
         np_var: "reco_ntrk"
         edges: *np_coarse_bin_reco
     gen:
         name: "N_{ch} (|#eta|<2.4, pt>0.5)"
+        shortname: "N_{ch}"
         root_var: "Instanton_N_gen_ChargedFSParticle_eta2p4pt05"
         np_var: "gen_nch"
         edges: *np_coarse_bin_gen
