@@ -8,6 +8,9 @@ import json
 class ConfigBase:
     '''An Base Class for configuration objects'''
 
+    def __post_init__(self):
+        pass
+
     @classmethod
     def from_json( cls, fname, keys=None):
         '''Return a class instance directly from a json file.'''
@@ -65,6 +68,7 @@ class BinningConfig(ConfigBase):
     edges: list[float] = field(default_factory=list)
 
     def __post_init__(self, min, max, nbins):
+         super().__post_init__()
          if len(self.edges) == 0:
              self.edges = np.linspace( min, max, num=nbins+1 )
 
@@ -89,6 +93,7 @@ class VarConfig(ConfigBase):
     shortname: str = None
 
     def __post_init__(self):
+        super().__post_init__()
         if self.np_var is None:
             if self.root_var is None:
                 self.np_var = name
@@ -117,6 +122,7 @@ class ObsConfig(ConfigBase):
     require_extra_file: int = 0
 
     def __post_init__(self):
+         super().__post_init__()
          if isinstance( self.reco, dict):
              if "edges" in self.reco or "nbins" in self.reco:
                  self.reco = BinnedVarConfig( **self.reco )
@@ -146,6 +152,7 @@ class HistDim(BinnedVarConfig):
     overflow: float = 0.
 
     def __post_init__(self, *args):
+        super().__post_init__(*args)
         inner_dim_factor = 0
         if self.inner_dim is not None:
             inner_dim_factor = max(1, self.inner_dim.nbins )
