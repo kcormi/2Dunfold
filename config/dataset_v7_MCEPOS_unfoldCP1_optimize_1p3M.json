@@ -1,7 +1,5 @@
 {
   "varunfold":"config/observables.yml",
-  "var1":"nparticle",
-  "var2":"thrust",
   "combine":{
     "isfit":false,
     "fitdir":"rootfiles_finebin_v7_MCCP1ES_CP5sys_trksys_1d",

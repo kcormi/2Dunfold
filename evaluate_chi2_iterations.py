@@ -12,6 +12,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 from plot_utils import *
 from unfold_utils import *
+from arg_parsing import *
 from plot_mplhep_utils import *
 from dataclasses import dataclass, field, asdict
 from typing import Union
@@ -177,6 +178,7 @@ if __name__=="__main__":
     parser.add_argument('--sysreweight',action="store_true",default=False)
     parser.add_argument('--plot-software', type=str, choices=["root", "mpl"], default="mpl")
     parser.add_argument('--config-style', type=str, default = 'config/results_style.yml')
+    parser.add_argument('--obs', type=obs_pair, help="Pair of observables separated by a comma")
     args = parser.parse_args()
 
     with open(args.config, 'r') as configjson:

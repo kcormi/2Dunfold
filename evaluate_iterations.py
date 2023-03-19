@@ -1,9 +1,11 @@
 import numpy as np
 import json
+import yaml
 from argparse import ArgumentParser
 import os
 import ROOT
 from unfold_utils import *
+from arg_parsing import *
 from configs import ObsConfig
 
 def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_root=True,weight_array=None,store_mig=False,tag="", reco_only=False):
@@ -145,13 +147,17 @@ if __name__=="__main__":
     parser.add_argument('--step1', action="store_true", default=False, help="Process the histograms from the step1, otherwise process the step 2 results")
     parser.add_argument('--eff-acc', action="store_true", default=False, help="Consider the efficiency and acceptance in the unfolding")
     parser.add_argument('--eff-from-nominal', action="store_true", default=False, help="Apply the reconstruction efficiency of the nominal MC to the unfolded one, otherwise use the efficiency given by the unfolding algorithm.")
+    parser.add_argument('--obs', type=obs_pair, help="Which pair of observables to run.")
     args = parser.parse_args()
+
 
     with open(args.config, 'r') as configjson:
         config = json.load(configjson)
 
-    obs1 = ObsConfig.from_yaml( config["varunfold"], [config["var1"]] )
-    obs2 = ObsConfig.from_yaml( config["varunfold"], [config["var2"]] )
+    obs1_name, obs2_name = parse_obs_args( config, args.obs )
+
+    obs1 = ObsConfig.from_yaml( config["varunfold"], [obs1_name] )
+    obs2 = ObsConfig.from_yaml( config["varunfold"], [obs2_name] )
 
     if not os.path.exists(config["outputdir"]):
       os.makedirs(config["outputdir"])
