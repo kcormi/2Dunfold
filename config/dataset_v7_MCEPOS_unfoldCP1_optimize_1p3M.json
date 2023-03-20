@@ -1,7 +1,5 @@
 {
-  "varunfold":"VarUnfold_finebin_v7.json",
-  "var1":"nparticle_eta2p4pt05_pur_1d",
-  "var2":"isotropy_eta2p4pt05_pur",
+  "varunfold":"config/observables.yml",
   "combine":{
     "isfit":false,
     "fitdir":"rootfiles_finebin_v7_MCCP1ES_CP5sys_trksys_1d",
@@ -87,7 +85,7 @@
   },
   "isshape":true,
   "outputdir":"results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4",
-  "inputfilesim":"/work/jinw/CMSSW_10_2_15_patch2/src/2Dunfold/flatTuple_MB_trk_noPU_new_EPOS_iso_nparticle_merge_ABCDEG.root",
+  "inputfilesim":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/flatTuple/flatTuple_MB_trk_noPU_new_EPOS_merge_ABCDEG.root",
   "inputfilesim_sys":{
      "CP5":{
         "up":"/work/jinw/CMSSW_11_1_0/src/EXOVVNtuplizerRunII/Ntuplizer/flatTuple_MB_trk_noPU_new.root",
@@ -99,7 +97,7 @@
      }
   },
   "addsys":false,
-  "inputfiledata":"/work/jinw/CMSSW_10_2_15_patch2/src/2Dunfold/flatTuple_ZeroBias_2018lowPU_new_hltv6_iso_nparticle.root",
+  "inputfiledata":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/flatTuple/flatTuple_ZeroBias_2018lowPU_new_hltv6.root",
   "MCtag":"nominal",
   "analysis":"LowPU2018",
   "era":"13TeV",
@@ -112,7 +110,7 @@
   "normfactorMC":1.0,
   "normfactordata":1.0,
   "pseudodata":true,
-  "inputfilepseudodata":"/work/jinw/CMSSW_10_2_15_patch2/src/2Dunfold/flatTuple_MB_trk_noPU_new_CP1_iso_nparticle_merge_ABCDEF.root",
+  "inputfilepseudodata":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/flatTuple/flatTuple_MB_trk_noPU_new_CP1_merge_ABCDEF.root",
   "bsweight":""
 
 }

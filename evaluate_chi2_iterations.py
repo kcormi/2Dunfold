@@ -1,5 +1,6 @@
 import numpy as np
 import json
+import yaml
 from argparse import ArgumentParser
 import os
 import ROOT as rt
@@ -11,64 +12,14 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 from plot_utils import *
 from unfold_utils import *
+from arg_parsing import *
 from plot_mplhep_utils import *
 from dataclasses import dataclass, field, asdict
 from typing import Union
 
-@dataclass
-class ResultPlotSettings:
-    '''A class which keeps track of plot settings for different result types'''
-    color: Union[int,str]
-    legend: str
-    tag: str
-    sys_reweight: bool = field(init=False)
-    color_unfold: Union[int,str]
+from plot_configs import ResultPlotSettings, HistConfig, PlotConfig
+from configs import ObsConfig
 
-    @property
-    def legend_refold(self):
-        return f'{self.legend} refold' if not self.sys_reweight else f'{self.legend} reweight'
-
-    @property
-    def legend_unfold(self):
-        return f'{self.legend} unfold' if not self.sys_reweight else f'{self.legend} reweight'
-
-@dataclass
-class HistConfig:
-    hist: HistList
-    stat: Union[int,HistList]
-    color: Union[int,str]
-    style: str
-    legend: str
-
-@dataclass
-class PlotList:
-    ref: HistConfig
-    compare: list[HistConfig]
-    name: str
-    ratio: str
-
-    @property
-    def is_reco(self):
-        return ('reco' in self.name) or ('refold' in self.name)
-
-    @property
-    def hists(self):
-        return [ c.hist for c in self.compare if c.hist ]
-
-    @property
-    def colors(self):
-        return [ c.color for c in self.compare if c.hist ]
-
-    @property
-    def legends(self):
-        return [ c.legend for c in self.compare if c.hist ]
-
-    @property
-    def styles(self):
-        return [ c.style for c in self.compare if c.hist ]
-
-def read_rps(config):
-  return ResultPlotSettings(**config)
 
 def GOF(HistList1,HistList2):
   assert len(HistList1) == len(HistList2)
@@ -175,10 +126,10 @@ def plot_wrapper(plt_list,**kwargs):
   else:
     plot_flat_hists_mpl(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, **input_args)
 
-def draw_plot(plt_list, plotdir, var1_nm, var2_nm, v2_dct, txt_list,use_root=True):
+def draw_plot(plt_list, plotdir, var1_nm, var2_nm, obs2, txt_list,use_root=True):
     path = f'{plotdir}/{plt_list.name}_{var1_nm}_{var2_nm}'
     os.system(f"mkdir -p {plotdir}")
-    axis_title = v2_dct["reco_name"] if plt_list.is_reco else v2_dct["gen_name"]
+    axis_title = obs2.reco.name if plt_list.is_reco else obs2.gen.name
 
     plot_args = {
       "title": axis_title,
@@ -198,18 +149,21 @@ def draw_plot(plt_list, plotdir, var1_nm, var2_nm, v2_dct, txt_list,use_root=Tru
 
 
 def GetEffAcc(f,label,names_gen,names_reco):
+
   hist_list_geneff = HistList(label+"GenEff")
   hist_list_geneff.root_hists_name=[name_gen.replace("Inclusive","Eff") for name_gen in names_gen]
   if hist_list_geneff.read_hist_from_file(f)==-1:
     hist_list_geneff=None
   else:
     hist_list_geneff.flatten_hist()
+
   hist_list_recoacc= HistList(label+"RecoAcc")
   hist_list_recoacc.root_hists_name=[name_reco.replace("Inclusive","Acc") for name_reco in names_reco]
   if hist_list_recoacc.read_hist_from_file(f)==-1:
     hist_list_recoacc=None
   else:
     hist_list_recoacc.flatten_hist()
+
   return {"Eff":hist_list_geneff, "Acc":hist_list_recoacc}
 
 
@@ -218,40 +172,29 @@ if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument('--input',default='results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/unfold_nparticle_eta2p4pt05_pur_1d_spherocity_eta2p4pt05_pur_1d_nominal_optimize_omnifold.root',help='The input root file containing the results in iterations')
     parser.add_argument('--output',default='results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/iter_nparticle_eta2p4pt05_pur_1d_spherocity_eta2p4pt05_pur_1d_nominal_omnifold.root',help='The output root file containing the refolfing chi^2 w.r.t. iterations')
-    parser.add_argument('--config',default="Config_plot/Config_sph_1d_v7_MCCP1ES_CP5sys.json",help="The configration file including the unfolding setup")
+    parser.add_argument('--config',default="config/plot_1d_v7_MCEPOS_unfoldCP1.json",help="The configration file including the unfolding setup")
     parser.add_argument('--plot',action="store_true",default=False)
     parser.add_argument('--plotdir',default="results_finebin_v7_MCCP1ES_CP5sys_trksys_1d_optimize/plots_optimize")
     parser.add_argument('--sysreweight',action="store_true",default=False)
     parser.add_argument('--plot-software', type=str, choices=["root", "mpl"], default="mpl")
-    parser.add_argument('--config-style',type=str, default = None)
+    parser.add_argument('--config-style', type=str, default = 'config/results_style.yml')
+    parser.add_argument('--obs', type=obs_pair, help="Pair of observables separated by a comma")
     args = parser.parse_args()
 
     with open(args.config, 'r') as configjson:
         config = json.load(configjson)
-    with open(config["varunfold"], 'r') as fjson:
-        info_var = json.load(fjson)
 
-    if args.config_style is not None:
-      file_style = args.config_style
-    elif args.plot_software == "root":
-      file_style = "Config_style_methods/Config_style_root.json"
-    else:
-      file_style = "Config_style_methods/Config_style_mpl.json"
+    style_file = args.config_style
+    with open(style_file, 'r') as style_json: 
+        config_style = yaml.safe_load(style_json)
 
-    with open(file_style, 'r') as style_json: 
-        config_style = json.load(style_json)
-    v1_dct = info_var[config["var1"]]
-    v2_dct = info_var[config["var2"]]
+    obs1_name, obs2_name = parse_obs_args( config, args.obs )
 
-    FineBin = "binedgesreco" in v1_dct.keys() and "binedgesreco" in v2_dct.keys()
-    TextListReco = []
-    TextListGen = []
-    if FineBin:
-      TextListReco = [str(v1_dct["binedgesreco"][i])+" #leq "+v1_dct["reco_shortname"]+" < "+str(v1_dct["binedgesreco"][i+1]) for i in range(v1_dct["nbinsreco"])]
-      TextListGen = [str(v1_dct["binedgesgen"][i])+" #leq "+v1_dct["gen_shortname"]+" < "+str(v1_dct["binedgesgen"][i+1]) for i in range(v1_dct["nbinsgen"])]+(["background"] if config["addbkg"] else [])
-    else:
-      TextListReco = [str(v1_dct["minreco"]+(v1_dct["maxreco"]-v1_dct["minreco"])/v1_dct["nbinsreco"]*i)+"#leq"+v1_dct["reco_shortname"]+"<"+str(v1_dct["minreco"]+(v1_dct["maxreco"]-v1_dct["minreco"])/v1_dct["nbinsreco"]*(i+1)) for i in range(v1_dct["nbinsreco"])]
-      TextListGen = [str(v1_dct["mingen"]+(v1_dct["maxgen"]-v1_dct["mingen"])/v1_dct["nbinsgen"]*i)+"#leq"+v1_dct["gen_shortname"]+"<"+str(v1_dct["mingen"]+(v1_dct["maxgen"]-v1_dct["mingen"])/v1_dct["nbinsgen"]*(i+1)) for i in range(v1_dct["nbinsgen"])]+(["background"] if config["addbkg"] else [])
+    obs1 = ObsConfig.from_yaml( config["varunfold"], [obs1_name] )
+    obs2 = ObsConfig.from_yaml( config["varunfold"], [obs2_name] )
+
+    TextListReco = [f'{obs1.reco.edges[i]} #leq {obs1.reco.shortname} < {obs1.reco.edges[i+1]}' for i in range(obs1.reco.nbins)]
+    TextListGen = [f'{obs1.gen.edges[i]} #leq {obs1.gen.shortname} < {obs1.gen.edges[i+1]}' for i in range(obs1.gen.nbins)]+(["background"] if config["addbkg"] else [])
 
     f = rt.TFile(args.input,"READ")
 
@@ -265,61 +208,60 @@ if __name__=="__main__":
     hist_chi2_iter_dataMCunc = make_iter_hist( "Refold", "dataMCunc", names_refold)
     hist_chi2_iter_dataunc = make_iter_hist( "Refold", "dataunc", names_refold)
     hist_chi2_iter_MC = make_iter_hist( "Unfold", "MC", names_unfold)
-    hist_chi2_iter_MC_MCunfoldunc = make_iter_hist("Unfold", "MC_MCunfoldunc",names_unfold)
+    hist_chi2_iter_MC_MCunfoldunc = make_iter_hist("Unfold", "MC_MCunfoldunc", names_unfold)
 
-    hist_p_iter_MC_MCunfoldunc = rt.TH1F("Unfold_p_MC_MCunfoldunc","Unfold p",len(names_unfold),0,len(names_unfold))
+    hist_p_iter_MC_MCunfoldunc = rt.TH1F("Unfold_p_MC_MCunfoldunc", "Unfold p", len(names_unfold), 0, len(names_unfold))
     hist_p_iter_MC_MCunfoldunc.GetXaxis().SetTitle("iterations")
     hist_p_iter_MC_MCunfoldunc.GetYaxis().SetTitle("p-value")
 
     if not(names_pseudodata_truth is None):
 
-      hist_chi2_iter_truth_dataunc = make_iter_hist("Unfold","pseudodatatruth_dataunc",names_unfold)
-      hist_chi2_iter_truth_dataMCunc = make_iter_hist("Unfold","pseudodatatruth_dataMCunc",names_unfold)
+      hist_chi2_iter_truth_dataunc = make_iter_hist("Unfold", "pseudodatatruth_dataunc", names_unfold)
+      hist_chi2_iter_truth_dataMCunc = make_iter_hist("Unfold", "pseudodatatruth_dataMCunc", names_unfold)
 
 
-    _,_,_,wchi2_per_ndof_MCdatareco,wchi2_hist2unc_per_ndof_MCdatareco,p_MCdatareco,_  = GOF([f.Get(name) for name in name_MCreco],[f.Get(name) for name in name_data])
+    _, _, _, wchi2_per_ndof_MCdatareco, wchi2_hist2unc_per_ndof_MCdatareco, p_MCdatareco, _  = GOF([f.Get(name) for name in name_MCreco],[f.Get(name) for name in name_data])
     if not(names_pseudodata_truth is None):
-      _,_,_,wchi2_per_ndof_MCdatagen,wchi2_hist2unc_per_ndof_MCdatagen,_,_ = GOF([f.Get(name) for name in name_MC],[f.Get(name) for name in names_pseudodata_truth])
+      _, _, _, wchi2_per_ndof_MCdatagen, wchi2_hist2unc_per_ndof_MCdatagen, _, _ = GOF([f.Get(name) for name in name_MC],[f.Get(name) for name in names_pseudodata_truth])
 
     hist_list_data = prepare_histlist("Data", name_data, f)
     hist_list_MCgeninclusive = prepare_histlist("MCGenInclusive", name_MC, f)
     hist_list_MCrecoinclusive = prepare_histlist("MCRecoInclusive", name_MCreco, f)
-    hist_list_MC_eff_acc = GetEffAcc(f,"MC",name_MC,name_MCreco)
+    hist_list_MC_eff_acc = GetEffAcc(f, "MC", name_MC,name_MCreco)
 
     if not(names_pseudodata_truth is None):
       hist_list_pseudodatatruthinclusive = prepare_histlist("PseduodataTruthInclusive", names_pseudodata_truth, f)
-      hist_list_pseudodata_eff_acc = GetEffAcc(f,"Pseudodata",names_pseudodata_truth,name_data)
+      hist_list_pseudodata_eff_acc = GetEffAcc(f, "Pseudodata", names_pseudodata_truth, name_data)
 
     else:
       hist_list_pseudodatatruthinclusive = None
       hist_list_pseudodata_eff_acc = {"Eff":None, "Acc":None}
-
-
 
     histCfg = {}
     if args.plot:
 
       data_legend = "Data" if names_pseudodata_truth is None else "Pseudo-data"
       if args.sysreweight:
-          data_legend = "sys variation: {config['syslegend'][0]}"
-      data_color = config_style["data_color"]
-      MC_color = config_style["MC_color"]
-      pseudodata_color = config_style["pseudodata_color"]
-      histCfg["Data"] = HistConfig(hist_list_data, 0, data_color, "cross", data_legend)
-      histCfg["MCGenInclusive"] = HistConfig(hist_list_MCgeninclusive, 0, MC_color, "fillederror", config["MClegend"])
+          data_legend = f"sys variation: {config['syslegend'][0]}/Plot"
+      data_color = config_style[args.plot_software]["data_color"]
+      MC_color = config_style[args.plot_software]["MC_color"]
+      pseudodata_color = config_style[args.plot_software]["pseudodata_color"]
+
+      histCfg["Data"] =            HistConfig(hist_list_data, 0, data_color, "cross", data_legend)
+      histCfg["MCGenInclusive"] =  HistConfig(hist_list_MCgeninclusive, 0, MC_color, "fillederror", config["MClegend"])
       histCfg["MCRecoInclusive"] = HistConfig( hist_list_MCrecoinclusive, 0, MC_color, "fillederror", config["MClegend"])
 
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]}" 
       histCfg["PseudodataTruthInclusive"] = HistConfig(hist_list_pseudodatatruthinclusive, 0, pseudodata_color, "triangle", ps_legend)
 
-      histCfg["MCGenEff"] = HistConfig( hist_list_MC_eff_acc["Eff"], 0, MC_color, "cross", f'{config["MClegend"]} Eff.')
+      histCfg["MCGenEff"] =  HistConfig( hist_list_MC_eff_acc["Eff"], 0, MC_color, "cross", f'{config["MClegend"]} Eff.')
       histCfg["MCRecoAcc"] = HistConfig( hist_list_MC_eff_acc["Acc"], 0, MC_color, "cross", f'{config["MClegend"]} Acc.')
 
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]} Eff."
-      histCfg["PseudodataTruthEff"]= HistConfig( hist_list_pseudodata_eff_acc["Eff"], 0, pseudodata_color, "triangle", ps_legend )
+      histCfg["PseudodataTruthEff"] = HistConfig( hist_list_pseudodata_eff_acc["Eff"], 0, pseudodata_color, "triangle", ps_legend )
 
       ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]} Eff."
-      histCfg["PseudodataTruthAcc"]= HistConfig(hist_list_pseudodata_eff_acc["Acc"], 0, pseudodata_color, "triangle", ps_legend )
+      histCfg["PseudodataTruthAcc"] = HistConfig(hist_list_pseudodata_eff_acc["Acc"], 0, pseudodata_color, "triangle", ps_legend )
 
 
     pltLists= {}
@@ -354,10 +296,10 @@ if __name__=="__main__":
 
       if args.plot:
 
-        default_rps = read_rps(config_style["MLE"])
-        omnifold_rps = read_rps(config_style["omnifold"])
-        multifold_rps = read_rps(config_style["multifold"])
-        unifold_rps = read_rps(config_style["omnifold"])
+        default_rps   = ResultPlotSettings.from_yaml(style_file, [args.plot_software, "MLE"])
+        omnifold_rps  = ResultPlotSettings.from_yaml(style_file, [args.plot_software, "omnifold"])
+        multifold_rps = ResultPlotSettings.from_yaml(style_file, [args.plot_software, "multifold"])
+        unifold_rps   = ResultPlotSettings.from_yaml(style_file, [args.plot_software, "omnifold"])
 
         result_settings = default_rps
         if "omnifold" in args.input:
@@ -386,46 +328,46 @@ if __name__=="__main__":
         histCfg[f"Unfold_iter{iter_index}Acc"] = HistConfig( hist_list_unfold_eff_acc["Acc"], 0, color_unfold, "cross", f'{legend_unfold} Acc.')
 
         ratio = 'Refold / data' if not args.sysreweight else "Reweight / sys. var."
-        pltLists["Refoldcompare_iter"+iter_index] = PlotList(
+        pltLists["Refoldcompare_iter"+iter_index] = PlotConfig(
                                                               histCfg["Data"],
                                                               [histCfg[f"Refold_iter{iter_index}"],histCfg["MCRecoInclusive"]],
                                                               f'data_refold_{tag}_iter{iter_index}', 
                                                               ratio) 
 
         ratio = 'Unfold / data' if not args.sysreweight else "Reweight / MC"
-        pltLists["Unfoldcompare_iter"+iter_index] = PlotList( 
+        pltLists["Unfoldcompare_iter"+iter_index] = PlotConfig( 
                                                               histCfg["MCGenInclusive"], 
                                                               [histCfg[f"Unfold_iter{iter_index}"]], 
                                                               f'MC_unfold_{tag}_iter{iter_index}', 
                                                               ratio )
 
         ratio = 'Unfold / Truth' if not args.sysreweight else "Reweight / sys. var."
-        pltLists["Unfoldcomparepseudodata_iter"+iter_index] = PlotList( 
+        pltLists["Unfoldcomparepseudodata_iter"+iter_index] = PlotConfig( 
                                                                         histCfg["PseudodataTruthInclusive"], 
                                                                         [histCfg[f"Unfold_iter{iter_index}"],histCfg["MCGenInclusive"]], 
                                                                         f'pseudodata_truth_unfold_{tag}_iter{iter_index}', 
                                                                         ratio) 
 
         ratio = 'Unfold / MC' if not args.sysreweight else "Reweight / MC"
-        pltLists["Unfoldcompareeff_iter"+iter_index]= PlotList( 
+        pltLists["Unfoldcompareeff_iter"+iter_index]= PlotConfig( 
                                                               histCfg["MCGenEff"],
                                                               [histCfg[f"Unfold_iter{iter_index}Eff"]],
                                                               f'MC_unfoldedeff_{tag}_iter{iter_index}',
                                                               ratio )
 
-        pltLists["Unfoldcompareacc_iter"+iter_index]= PlotList( histCfg["MCRecoAcc"],
+        pltLists["Unfoldcompareacc_iter"+iter_index]= PlotConfig( histCfg["MCRecoAcc"],
                                                                 [histCfg[f"Unfold_iter{iter_index}Acc"]],
                                                                 f'MC_unfoldacc_{tag}_iter{iter_index}',
                                                                 ratio )
 
         ratio = 'Unfold / Truth' if not args.sysreweight else "Reweight / sys. var"
-        pltLists["Unfoldcomparepseudodataeff_iter"+iter_index]= PlotList( 
+        pltLists["Unfoldcomparepseudodataeff_iter"+iter_index]= PlotConfig( 
                                                               histCfg["PseudodataTruthEff"],
                                                               [histCfg[f"Unfold_iter{iter_index}Eff"], histCfg["MCGenEff"]],
                                                               f'pseudodatatruth_unfoldedeff_{tag}_iter{iter_index}',
                                                               ratio )
 
-        pltLists["Unfoldcomparepseudodataacc_iter"+iter_index]= PlotList( histCfg["PseudodataTruthAcc"],
+        pltLists["Unfoldcomparepseudodataacc_iter"+iter_index]= PlotConfig( histCfg["PseudodataTruthAcc"],
                                                                 [histCfg[f"Unfold_iter{iter_index}Acc"],histCfg["MCRecoAcc"]],
                                                                 f'pseudodatatruth_unfoldacc_{tag}_iter{iter_index}',
                                                                 ratio )
@@ -434,10 +376,10 @@ if __name__=="__main__":
         if names_pseudodata_truth is not None:
             to_plot += [ f'Unfoldcomparepseudodata_iter{iter_index}', f"Unfoldcomparepseudodataeff_iter{iter_index}", f"Unfoldcomparepseudodataacc_iter{iter_index}" ]
 
-        print("plotting")
+        print(f"plotting iteration {iter_index}")
         for plt_type in to_plot:
             txt_list = TextListReco if pltLists[plt_type].is_reco else TextListGen
-            draw_plot( pltLists[plt_type], args.plotdir, config["var1"], config["var2"], v2_dct, txt_list, use_root = (args.plot_software == "root"))
+            draw_plot( pltLists[plt_type], args.plotdir, obs1_name, obs2_name, obs2, txt_list, use_root = (args.plot_software == "root"))
 
 
     hist_chi2_iter_dataMCunc.Write()
