@@ -20,3 +20,7 @@ for obs in spherocity thrust transverse_spherocity transverse_thrust broadening 
 done
 ```
 
+to specify a different binning configuration for a variable simply add the name of the binning after the variable separated by a colon `:`. e.g. using `--obs nparticle,spherocity:coarse_sph_binning`, will use the default binning for `nparticle` as defined in the config file, and the `coarse_sph_binning` for `spherocity`. In the case `coarse_sph_binning` should be defined in the configuration file under the `binnings` heading.
+
+
+

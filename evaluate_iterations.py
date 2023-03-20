@@ -154,10 +154,11 @@ if __name__=="__main__":
     with open(args.config, 'r') as configjson:
         config = json.load(configjson)
 
-    obs1_name, obs2_name = parse_obs_args( config, args.obs )
+    (obs1_name, obs1_bins), (obs2_name, obs2_bins) = parse_obs_args( config, args.obs )
 
-    obs1 = ObsConfig.from_yaml( config["varunfold"], [obs1_name] )
-    obs2 = ObsConfig.from_yaml( config["varunfold"], [obs2_name] )
+    obs1 = ObsConfig.from_yaml( config["varunfold"], [obs1_name], binning=obs1_bins )
+    obs2 = ObsConfig.from_yaml( config["varunfold"], [obs2_name], binning=obs2_bins )
+    #print(obs1, obs2)
 
     if not os.path.exists(config["outputdir"]):
       os.makedirs(config["outputdir"])
