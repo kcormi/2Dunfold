@@ -146,6 +146,16 @@ class HistList:
         self.dim1_underflow = 0.0
         self.dim1_overflow = 0.0
         self.norm = 0.0
+        self.dic_df = {"obs1": None,
+                       "obs2": None,
+                       "isgen1": False,
+                       "isgen2": False,
+                       "datatype": "MC", # choices: "MC","data","pseudodata","unfold","genreweight"(gen-level reweight),"sysreweight" (gen- and reco- level reweighting) TODO: the options for data bootstraps, systematic bootstraps, asimov, split, tempalates for systematic variations 
+                       "histtype": "inclusive", # choices: "inclusive", "pass_gen_reco", "acceptance", "efficiency", "migration"
+                       "iter":np.nan,
+                       "dataset": "EPOS", # e.g. "EPOS", "CP1", "CP5", "ZeroBias", "EPOS_genreweight_CP1", "EPOS_sysreweight_CP1genreweight2EPOS"
+                       "method": "multifold", # choices: "omnifold", "multifold", "unifold", "MLE"
+                       }
         return
 
     @property
@@ -216,10 +226,14 @@ class HistList:
     def read_settings_from_config_dim1(self, config, isgen=False):
         binned_var = config.gen if isgen else config.reco
         self.dim1 = HistDim( **asdict(binned_var) )
+        self.dic_df["isgen1"] = isgen
+
 
     def read_settings_from_config_dim2(self, config, isgen=False):
         binned_var = config.gen if isgen else config.reco
         self.dim2 = HistDim( **asdict(binned_var), inner_dim=self.dim1 )
+        self.dic_df["isgen2"] = isgen
+
 
     def fill_hist( self, event_info, from_root, weightarray=None, genWeight=''):
         if from_root:

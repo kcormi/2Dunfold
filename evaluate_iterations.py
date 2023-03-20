@@ -8,9 +8,12 @@ from unfold_utils import *
 from arg_parsing import *
 from configs import ObsConfig
 
-def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_root=True,weight_array=None,store_mig=False,tag="", reco_only=False):
+def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_root=True,weight_array=None,store_mig=False,tag="", reco_only=False,**kwargs):
   hists = {}
-
+  workflow = kwargs.pop("workflow")
+  MC_name = kwargs.pop("MC_name")
+  data_name = kwargs.pop("data_name")
+  pseudodata_name = kwargs.pop("pseudodata_name")
   reco_inclusive=HistList("HistRecoInclusive_"+dataset,tag)
   reco_inclusive.read_settings_from_config_dim1(o1,isgen=False)
   reco_inclusive.read_settings_from_config_dim2(o2,isgen=False)
@@ -183,8 +186,15 @@ if __name__=="__main__":
 
     all_trees = [tree] + tree_sys_list
     bin_edges_reco, bin_edges_gen = get_bin_edges( config, obs1, obs2, all_trees)
-
-    mc_hists = fill_hist_lists("MC", obs1, obs2, bin_edges_gen, bin_edges_reco, tree, genWeight=weightname, store_mig=True)
+    df_config = { "obs1": obs1_name,
+                  "obs2": obs2_name,
+                  "workflow": config["workflow"],
+                  "MC_name": config["MC"],
+                  "data_name": config["data"],
+                  "pseudodata_name": config["pseudodata_name"] if config["pseudodata"] else None,
+                  "method": config["method"]
+    }
+    mc_hists = fill_hist_lists("MC", obs1, obs2, bin_edges_gen, bin_edges_reco, tree, genWeight=weightname, store_mig=True, **df_config)
 
     #efficiency=reconstructed and generated / generated
     gen_inveff = HistList("HistGenInvEff")
@@ -221,13 +231,13 @@ if __name__=="__main__":
       else:
         event_data = tree_data
         from_root = True
-      pseudo_hists = fill_hist_lists("Pseudodata", obs1, obs2, bin_edges_gen, bin_edges_reco, event_data, genWeight=weightname, from_root=from_root, weight_array=weight_pseudodata, store_mig=True)
+      pseudo_hists = fill_hist_lists("Pseudodata", obs1, obs2, bin_edges_gen, bin_edges_reco, event_data, genWeight=weightname, from_root=from_root, weight_array=weight_pseudodata, store_mig=True,**df_config)
       reco_data_tree = tree_refdata
       tag = "_Ref"
     else:
       reco_data_tree = tree_data
       tag = ""
-    data_hists = fill_hist_lists("Data", obs1, obs2, None, bin_edges_reco, reco_data_tree, tag="_Ref", reco_only=True)
+    data_hists = fill_hist_lists("Data", obs1, obs2, None, bin_edges_reco, reco_data_tree, tag="_Ref", reco_only=True,**df_config)
 
     normalization_hist = pseudo_hists["reco_inclusive"] if config["pseudodata"] else data_hists["reco_inclusive"]
     mc_norm_factor = normalization_hist.norm / mc_hists["reco_inclusive"].norm
@@ -252,7 +262,7 @@ if __name__=="__main__":
       weight_iter = weights[weights_per_iter*i - offset ]
       store_mig = i in args.migiter
 
-      unfold_hists = fill_hist_lists("MC_"+args.method, obs1, obs2, bin_edges_gen,bin_edges_reco,config[args.method]["sim"],genWeight=weightname,from_root=False,weight_array=weight_iter,store_mig=store_mig,tag="_iter"+str(i))
+      unfold_hists = fill_hist_lists("MC_"+args.method, obs1, obs2, bin_edges_gen,bin_edges_reco,config[args.method]["sim"],genWeight=weightname,from_root=False,weight_array=weight_iter,store_mig=store_mig,tag="_iter"+str(i),**df_config)
       if args.eff_from_nominal:
         unfold_hists["gen_inclusive"].get_hist_from_multiplication(unfold_hists["gen_passreco"],gen_inveff)
       unf_norm_factor = normalization_hist.norm / unfold_hists["reco_inclusive"].norm
