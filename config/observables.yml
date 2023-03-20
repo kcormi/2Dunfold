@@ -56,7 +56,7 @@ transverse_spherocity:
         edges: [0,0.05,0.1,0.15,0.2,0.23,0.26,0.29,0.32,0.35,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.78,0.8,0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.97,1.0]
      gen:
         name: "S_{T}^{ch} (|#eta|<2.4, pt>0.5 GeV)"
-        root_var: "Instanton_gen_transversespherocity"
+        root_var: "Instanton_gen_transversespherocity_eta2p4pt05"
         shortname: "S_T^{ch}"
         np_var: "gen_transversespherocity"
         edges: [0.0,0.15,0.3,0.45,0.6,0.75,0.875,1.0]
