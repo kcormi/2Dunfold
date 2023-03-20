@@ -188,10 +188,10 @@ if __name__=="__main__":
     with open(style_file, 'r') as style_json: 
         config_style = yaml.safe_load(style_json)
 
-    obs1_name, obs2_name = parse_obs_args( config, args.obs )
+    (obs1_name, obs1_binning), (obs2_name, obs2_binning) = parse_obs_args( config, args.obs )
 
-    obs1 = ObsConfig.from_yaml( config["varunfold"], [obs1_name] )
-    obs2 = ObsConfig.from_yaml( config["varunfold"], [obs2_name] )
+    obs1 = ObsConfig.from_yaml( config["varunfold"], [obs1_name], binning=obs1_binning )
+    obs2 = ObsConfig.from_yaml( config["varunfold"], [obs2_name], binning=obs2_binning )
 
     TextListReco = [f'{obs1.reco.edges[i]} #leq {obs1.reco.shortname} < {obs1.reco.edges[i+1]}' for i in range(obs1.reco.nbins)]
     TextListGen = [f'{obs1.gen.edges[i]} #leq {obs1.gen.shortname} < {obs1.gen.edges[i+1]}' for i in range(obs1.gen.nbins)]+(["background"] if config["addbkg"] else [])

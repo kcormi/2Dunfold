@@ -12,14 +12,14 @@ class ConfigBase:
         pass
 
     @classmethod
-    def from_json( cls, fname, keys=None):
+    def from_json( cls, fname, keys=None, **kwargs):
         '''Return a class instance directly from a json file.'''
-        return cls._from_file( fname, keys, use_json=True)
+        return cls._from_file( fname, keys, use_json=True, **kwargs)
 
     @classmethod
-    def from_yaml( cls, fname, keys=None):
+    def from_yaml( cls, fname, keys=None, **kwargs):
         '''Return a class instance directly from a yaml file.'''
-        return cls._from_file( fname, keys)
+        return cls._from_file( fname, keys, **kwargs)
 
     @classmethod
     def _from_file( cls, fname, keys=None, use_json=False ):
@@ -141,6 +141,45 @@ class ObsConfig(ConfigBase):
             return self.gen
         else:
             raise KeyError(f'No key {key} if ObsConfig, keys are "reco" and "gen"')
+
+    @classmethod
+    def _get_binning_from_dict( cls, binning, dct ):
+        binning_meta_name = 'binnings'
+        full_binning_dct = dct.get(binning_meta_name, None )
+        if full_binning_dct is None:
+            raise ValueError(f'could not find name binnings in the configuration, they should be under the top level heading {binning_meta_name}. But found only: {dct.keys()}')
+
+        this_binning_dct = full_binning_dct.get( binning, None)
+        if this_binning_dct is None:
+            raise ValueError(f'could not find a binning by the name {binning} in the configuration, only found options {full_binning_dct.keys()}')
+        return this_binning_dct
+
+    @classmethod
+    def _from_file(cls, fname, keys=None, use_json=False, binning=None):
+        '''Load from file, but if an optional binning parameter is passed,
+            find the appropriate binning object and use that instead of the default
+            binnings.'''
+        if binning is None:
+            return super()._from_file( fname, keys=keys, use_json=use_json)
+        else:
+            load_func = yaml.safe_load if not use_json else json.load
+            with open( fname, 'r') as fhandle:
+                dct = load_func( fhandle)
+            binning_dct = cls._get_binning_from_dict( binning, dct )
+
+
+            keys = [] if keys is None else keys
+            for k in keys:
+                dct = dct[k]
+
+            for bin_key in BinningConfig.__annotations__.keys():
+                if bin_key in dct:
+                    dct.pop(bin_key)
+
+            for var_type in ['reco','gen']:
+                dct[var_type].update( binning_dct[var_type] )
+
+            return cls( **dct )
 
 
 @dataclass
