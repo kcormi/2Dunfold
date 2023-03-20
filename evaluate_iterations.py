@@ -97,11 +97,21 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
   hists["mig"] = mig
   return hists
 
-def get_sys_variations( config ):
+def get_input_file_from_config_info( input_val, var ): 
+    if isinstance(input_val, dict):
+        if var in input_val.keys():
+            return input_val[var]
+        else:
+            return input_val["default"]
+
+    return input_val
+
+def get_sys_variations( config, obs_nm ):
     tree_sys_list = []
     for sys in config["inputfilesim_sys"].keys():
       for vari in ["up", "down"]:
-        fin_sys_vari = ROOT.TFile(config["inputfilesim_sys"][sys][vari])
+        inputfile_sys = get_input_file_from_config_info( config["inputfilesim_sys"][sys][vari], obs_nm )
+        fin_sys_vari = ROOT.TFile(inputfile_sys)
         default = fin_sys_vari.Get("ntuplizer/tree")
         if default:
             tree = default
@@ -158,18 +168,18 @@ if __name__=="__main__":
 
     obs1 = ObsConfig.from_yaml( config["varunfold"], [obs1_name], binning=obs1_bins )
     obs2 = ObsConfig.from_yaml( config["varunfold"], [obs2_name], binning=obs2_bins )
-    #print(obs1, obs2)
 
     if not os.path.exists(config["outputdir"]):
       os.makedirs(config["outputdir"])
-    fin = ROOT.TFile(config["inputfilesim"],"READ")
+    mc_infile = get_input_file_from_config_info( config["inputfilesim"], obs2_name )
+    fin = ROOT.TFile(mc_infile,"READ")
     tree = fin.Get("ntuplizer/tree") if fin.Get("ntuplizer/tree") else fin.Get("tree")
 
     weightname=config["reweight"] if ("reweight" in config.keys() and config["reweight"]!="") else "genWeight"
 
     tree_sys_list=[]
     if config["addsys"]:
-        tree_syst_list = get_sys_variations( config )
+        tree_syst_list = get_sys_variations( config, obs2_name )
 
     all_trees = [tree] + tree_sys_list
     bin_edges_reco, bin_edges_gen = get_bin_edges( config, obs1, obs2, all_trees)
@@ -184,15 +194,17 @@ if __name__=="__main__":
     gen_inveff.fill_root_hists_name()
     gen_inveff.get_hist_from_division(mc_hists["gen_inclusive"],mc_hists["gen_passreco"])
 
-    pseudodata_NPZ =  config["pseudodata"] and (isinstance(config["inputfilepseudodata"],list) or '.npz' in config["inputfilepseudodata"])
+    infile_pseudodata = get_input_file_from_config_info( config["inputfilepseudodata"], obs2_name )
+    pseudodata_NPZ =  config["pseudodata"] and (isinstance(infile_pseudodata,list) or '.npz' in infile_pseudodata)
     #tree_data, tree_refdata = get_tree_data( config, pseudodata_NPZ)
 
     tree_data = None
-    fin_refdata=ROOT.TFile(config["inputfiledata"],"READ")
+    infile_data = get_input_file_from_config_info( config["inputfiledata"], obs2_name )
+    fin_refdata=ROOT.TFile(infile_data,"READ")
     tree_refdata=fin_refdata.Get("ntuplizer/tree") if fin_refdata.Get("ntuplizer/tree") else fin_refdata.Get("tree")
     if config["pseudodata"]:
       if not pseudodata_NPZ:
-        fin_data=ROOT.TFile(config["inputfilepseudodata"],"READ")
+        fin_data=ROOT.TFile(infile_pseudodata,"READ")
         tree_data = fin_data.Get("ntuplizer/tree") if  fin_data.Get("ntuplizer/tree") else  fin_data.Get("tree")
     else:
       tree_data = tree_refdata
@@ -204,7 +216,7 @@ if __name__=="__main__":
           file_weight_pseudodata=np.load(config["pseudodataweight"],allow_pickle=True)
           weight_pseudodata=file_weight_pseudodata[-1]
 
-        event_data = config["inputfilepseudodata"]
+        event_data = infile_pseudodata
         from_root = False
       else:
         event_data = tree_data
