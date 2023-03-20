@@ -4,6 +4,7 @@ import yaml
 from argparse import ArgumentParser
 import os
 import ROOT
+import re
 from unfold_utils import *
 from arg_parsing import *
 from configs import ObsConfig
@@ -14,46 +15,82 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
   MC_name = kwargs.pop("MC_name")
   data_name = kwargs.pop("data_name")
   pseudodata_name = kwargs.pop("pseudodata_name")
+  if dataset == "MC":
+    datatype = "MC"
+    df_dataset = MC_name
+  elif dataset == "Data":
+    datatype = "data"
+    df_dataset = data_name
+  elif dataset == "Pseudodata":
+    datatype = "pseudodata"
+    df_dataset = pseudodata_name
+  else:
+    datatype = workflow
+    df_dataset = MC_name
+  if "iter" in tag:
+    i_iter = int(re.findall(r'\d+',tag))
+  else:
+    i_iter = np.nan
+
+  df_dic = {"datatype": datatype,
+            "dataset": df_dataset,
+            "iter": i_iter,
+           }
+  df_dic.update(kwargs)
+
   reco_inclusive=HistList("HistRecoInclusive_"+dataset,tag)
+  reco_inclusive.dic_df = df_dic
   reco_inclusive.read_settings_from_config_dim1(o1,isgen=False)
   reco_inclusive.read_settings_from_config_dim2(o2,isgen=False)
   reco_inclusive.bin_edges_dim2 = edges_reco
   reco_inclusive.cut = cuts[CutType.PassReco]
   hists["reco_inclusive"] = reco_inclusive
+  reco_inclusive.dic_df["histtype"] = "inclusive"
 
   if not reco_only:
     gen_passreco=HistList("HistGen_"+dataset,tag)
+    gen_passreco.dic_df = df_dic
     gen_passreco.read_settings_from_config_dim1(o1,isgen=True)
     gen_passreco.read_settings_from_config_dim2(o2,isgen=True)
     gen_passreco.bin_edges_dim2 = edges_gen
     gen_passreco.cut = cuts[CutType.PassReco_PassGen]
     hists["gen_passreco"] = gen_passreco
+    gen_passreco.dic_df["histtype"] = "pass_gen_reco"
 
     gen_inclusive=HistList("HistGenInclusive_"+dataset,tag)
+    gen_inclusive.dic_df = df_dic
     gen_inclusive.read_settings_from_config_dim1(o1,isgen=True)
     gen_inclusive.read_settings_from_config_dim2(o2,isgen=True)
     gen_inclusive.bin_edges_dim2 = edges_gen
     gen_inclusive.cut = cuts[CutType.PassGen]
     hists["gen_inclusive"] = gen_inclusive
+    gen_inclusive.dic_df["histtype"] = "inclusive"
 
     reco_passgen=HistList("HistReco_"+dataset,tag)
+    reco_passgen.dic_df = df_dic
     reco_passgen.read_settings_from_config_dim1(o1,isgen=False)
     reco_passgen.read_settings_from_config_dim2(o2,isgen=False)
     reco_passgen.bin_edges_dim2 = edges_reco
     reco_passgen.cut = cuts[CutType.PassReco_PassGen]
     hists["reco_passgen"] = reco_passgen
+    reco_passgen.dic_df["histtype"] = "pass_gen_reco"
 
     gen_eff = HistList("HistGenEff_"+dataset,tag)
+    gen_eff.dic_df = df_dic
     gen_eff.read_settings_from_config_dim1(o1,isgen=True)
     gen_eff.read_settings_from_config_dim2(o2,isgen=True)
     gen_eff.bin_edges_dim2 = edges_gen
     gen_eff.fill_root_hists_name()
+    gen_eff.dic_df["histtype"] = "efficiency"
 
     reco_acc = HistList("HistRecoAcc_"+dataset,tag)
+    reco_acc.dic_df = df_dic
     reco_acc.read_settings_from_config_dim1(o1,isgen=False)
     reco_acc.read_settings_from_config_dim2(o2,isgen=False)
     reco_acc.bin_edges_dim2 = edges_reco
     reco_acc.fill_root_hists_name()
+    reco_acc.dic_df["histtype"] = "acceptance"
+
 
   for _, hist in hists.items():
     hist.fill_root_hists_name()
@@ -79,7 +116,7 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
         #mig_ij
         this_mig = HistList(f'HistMig_{dataset}_{o1.gen.np_var}{edge_i}-{edge_ip1}_{o1.reco.np_var}{edge_j}-{edge_jp1}{tag}')
         mig[i].append(this_mig)
-
+        mig[i][j].dic_df = df_dic
         mig[i][j].read_settings_from_config_dim1(o2,isgen=True)
         mig[i][j].read_settings_from_config_dim2(o2,isgen=False)
 
@@ -95,6 +132,7 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
 
         mig[i][j].fill_2Dhist(source, from_root=from_root, weightarray=weight_array, genWeight=genWeight)
         mig[i][j].binwise_normalize_2Dhist()
+        mig[i][j].dic_df["histtype"] = "migration"
         print("filled histogram:",mig[i][j].name)
 
   hists["mig"] = mig
