@@ -129,7 +129,6 @@ class HistList:
         self.legend = ''
         self.color = ROOT.kBlack
         self.style = None
-        self.bin_values = None
         self.dim1 = None
         self.dim2 = None
         self.cut = Cut('',None)
@@ -146,7 +145,7 @@ class HistList:
         self.dim1_underflow = 0.0
         self.dim1_overflow = 0.0
         self.norm = 0.0
-        self.dic_df = {"obs1": None,
+        self._dic_df = {"obs1": None,
                        "obs2": None,
                        "isgen1": False,
                        "isgen2": False,
@@ -155,6 +154,14 @@ class HistList:
                        "iter":np.nan,
                        "dataset": "EPOS", # e.g. "EPOS", "CP1", "CP5", "ZeroBias", "EPOS_genreweight_CP1", "EPOS_sysreweight_CP1genreweight2EPOS"
                        "method": "multifold", # choices: "omnifold", "multifold", "unifold", "MLE"
+                       "bin_edges_dim1": None,
+                       "bin_edges_dim2": None,
+                       "bin_values": None,
+                       "bin_errors": None,
+                       "dim1_underflow": 0.0,
+                       "dim1_overflow": 0.0,
+                       "mig_o1_index": None,
+                       "mig_o1_range": None
                        }
         return
 
@@ -222,17 +229,43 @@ class HistList:
     def np_variable_dim2(self):
         return self.dim2.np_var
 
+    @property
+    def dic_df(self):
+        self._dic_df["dim1_underflow"] = self.dim1_underflow
+        self._dic_df["dim1_overflow"] = self.dim1_overflow
+        if self.dim1 is not None:
+            self._dic_df["bin_edges_dim1"] = self.dim1.edges
+        if self.dim2 is not None:
+            self._dic_df["bin_edges_dim2"] = self.dim2.edges
+        if self.root_2Dhist is not None:
+            self._dic_df["bin_values"] = [ [self.root_2Dhist.GetBinContent(i,j) 
+                                         for j in range(len(self.dim2.edges[0])+1)]
+                                      for i in range(1,len(self.dim1.edges))]
+            self._dic_df["bin_errors"] = [ [self.root_2Dhist.GetBinError(i,j)
+                                         for j in range(len(self.dim2.edges[0])+1)]
+                                      for i in range(1,len(self.dim1.edges))]
+        elif self.root_hists is not None:
+            self._dic_df["bin_values"] = [ [hist.GetBinContent(j)
+                                         for j in range(len(self.dim2.edges[i])+1)]
+                                      for i,hist in enumerate(self.root_hists)]
+            self._dic_df["bin_errors"] = [ [hist.GetBinError(j)
+                                         for j in range(len(self.dim2.edges[i])+1)]
+                                      for i,hist in enumerate(self.root_hists)]
+        return self._dic_df
+
+    def dic_df_update(self,**kwargs):
+        self._dic_df.update(kwargs)  
 
     def read_settings_from_config_dim1(self, config, isgen=False):
         binned_var = config.gen if isgen else config.reco
         self.dim1 = HistDim( **asdict(binned_var) )
-        self.dic_df["isgen1"] = isgen
+        self.dic_df_update(isgen1 = isgen)
 
 
     def read_settings_from_config_dim2(self, config, isgen=False):
         binned_var = config.gen if isgen else config.reco
         self.dim2 = HistDim( **asdict(binned_var), inner_dim=self.dim1 )
-        self.dic_df["isgen2"] = isgen
+        self.dic_df_update(isgen2 = isgen)
 
 
     def fill_hist( self, event_info, from_root, weightarray=None, genWeight=''):

@@ -1,8 +1,8 @@
 {
   "varunfold":"config/observables.yml",
-  "MC":"EPOS",
-  "data":"ZeroBias",
-  "pseudodata":"CP5_genweight_EPOS",
+  "MC_name":"EPOS",
+  "data_name":"ZeroBias",
+  "pseudodata_name":"CP5_genweight_EPOS",
   "workflow":"sysreweight",
   "combine":{
     "isfit":false,
