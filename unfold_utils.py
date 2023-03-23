@@ -10,7 +10,7 @@ import os
 import ROOT 
 from enum import Enum
 
-from dataclasses import asdict
+from dataclasses import asdict,dataclass, field, InitVar
 
 from configs import HistDim
 
@@ -119,10 +119,70 @@ cuts = {}
 for cut_type in CutType:
     cuts[cut_type] = Cut( root_cuts[cut_type], np_cuts[cut_type])
 
+@dataclass
+class MetaData:
+    obs1: str = None
+    obs2: str = None,
+    datatype: str = "MC" # choices: "MC","data","pseudodata","unfold","genreweight"(gen-level reweight),"sysreweight" (gen- and reco- level reweighting) TODO: the options for data bootstraps, systematic bootstraps, asimov, split, tempalates for systematic variations 
+    histtype: str = "inclusive"  # choices: "inclusive", "pass_gen_reco", "acceptance", "efficiency", "migration"
+    iter: int = np.nan
+    dataset: str = "EPOS" # e.g. "EPOS", "CP1", "CP5", "ZeroBias", "EPOS_genreweight_CP1", "EPOS_sysreweight_CP1genreweight2EPOS"
+    method: str = "multifold" # choices: "omnifold", "multifold", "unifold", "MLE"
+    step1: bool = False
+    do_eff_acc: bool = True
+    mig_o1_index: list[int] = None
+    mig_o1_range: list[int] = None
+
+
+
+@dataclass
+class HistMetaData(MetaData):
+    '''A class keeping track of the metadata of the histograms and will be stored as pandas.DataFrame
+    '''
+    dim1_isgen: bool = False
+    dim2_isgen: bool = False
+    bin_edges_dim1: list[float] = field(default_factory=list)
+    bin_edges_dim2: list[float] = field(default_factory=list)
+    bin_values: list[float] = field(default_factory=list)
+    bin_errors: list[float] = field(default_factory=list)
+    dim1_underflow: float = 0.0
+    dim1_overflow: float = 0.0
+
+
+    @classmethod
+    def from_HistList(cls,histlist):
+        if histlist.root_2Dhist is not None:
+            bin_values = [ [histlist.root_2Dhist.GetBinContent(i,j)
+                                         for j in range(len(histlist.dim2.edges[0])+1)]
+                                      for i in range(1,len(histlist.dim1.edges))]
+            bin_errors = [ [histlist.root_2Dhist.GetBinError(i,j)
+                                         for j in range(len(histlist.dim2.edges[0])+1)]
+                                      for i in range(1,len(histlist.dim1.edges))]
+        elif histlist.root_hists is not None:
+            bin_values = [ [hist.GetBinContent(j)
+                                         for j in range(len(histlist.dim2.edges[i])+1)]
+                                      for i,hist in enumerate(histlist.root_hists)]
+            bin_errors = [ [hist.GetBinError(j)
+                                         for j in range(len(histlist.dim2.edges[i])+1)]
+                                      for i,hist in enumerate(histlist.root_hists)]
+        print(asdict(histlist.metadata))
+        return cls(
+                   **{**asdict(histlist.metadata),
+                      "bin_edges_dim1":histlist.dim1.edges,
+                      "bin_edges_dim2":histlist.dim2.edges,
+                      "dim1_isgen":histlist.dim1_isgen,
+                      "dim2_isgen":histlist.dim2_isgen,
+                      "bin_values":bin_values,
+                      "bin_errors":bin_errors,
+                      "dim1_underflow":histlist.dim1_underflow,
+                      "dim1_overflow":histlist.dim1_overflow
+                     }
+                  ) 
+
 class HistList:
 
 
-    def __init__(self, name, tag=''):
+    def __init__(self, name, tag='',**kwargs):
         self.htype = None
         self._name = name
         self.tag = tag
@@ -131,6 +191,8 @@ class HistList:
         self.style = None
         self.dim1 = None
         self.dim2 = None
+        self.dim1_isgen = False
+        self.dim2_isgen = False
         self.cut = Cut('',None)
         self.root_hists = None
         self.root_2Dhist = None
@@ -145,24 +207,7 @@ class HistList:
         self.dim1_underflow = 0.0
         self.dim1_overflow = 0.0
         self.norm = 0.0
-        self._dic_df = {"obs1": None,
-                       "obs2": None,
-                       "isgen1": False,
-                       "isgen2": False,
-                       "datatype": "MC", # choices: "MC","data","pseudodata","unfold","genreweight"(gen-level reweight),"sysreweight" (gen- and reco- level reweighting) TODO: the options for data bootstraps, systematic bootstraps, asimov, split, tempalates for systematic variations 
-                       "histtype": "inclusive", # choices: "inclusive", "pass_gen_reco", "acceptance", "efficiency", "migration"
-                       "iter":np.nan,
-                       "dataset": "EPOS", # e.g. "EPOS", "CP1", "CP5", "ZeroBias", "EPOS_genreweight_CP1", "EPOS_sysreweight_CP1genreweight2EPOS"
-                       "method": "multifold", # choices: "omnifold", "multifold", "unifold", "MLE"
-                       "bin_edges_dim1": None,
-                       "bin_edges_dim2": None,
-                       "bin_values": None,
-                       "bin_errors": None,
-                       "dim1_underflow": 0.0,
-                       "dim1_overflow": 0.0,
-                       "mig_o1_index": None,
-                       "mig_o1_range": None
-                       }
+        self.metadata = MetaData(**kwargs)
         return
 
     @property
@@ -228,44 +273,17 @@ class HistList:
     @property
     def np_variable_dim2(self):
         return self.dim2.np_var
-
-    @property
-    def dic_df(self):
-        self._dic_df["dim1_underflow"] = self.dim1_underflow
-        self._dic_df["dim1_overflow"] = self.dim1_overflow
-        if self.dim1 is not None:
-            self._dic_df["bin_edges_dim1"] = self.dim1.edges
-        if self.dim2 is not None:
-            self._dic_df["bin_edges_dim2"] = self.dim2.edges
-        if self.root_2Dhist is not None:
-            self._dic_df["bin_values"] = [ [self.root_2Dhist.GetBinContent(i,j) 
-                                         for j in range(len(self.dim2.edges[0])+1)]
-                                      for i in range(1,len(self.dim1.edges))]
-            self._dic_df["bin_errors"] = [ [self.root_2Dhist.GetBinError(i,j)
-                                         for j in range(len(self.dim2.edges[0])+1)]
-                                      for i in range(1,len(self.dim1.edges))]
-        elif self.root_hists is not None:
-            self._dic_df["bin_values"] = [ [hist.GetBinContent(j)
-                                         for j in range(len(self.dim2.edges[i])+1)]
-                                      for i,hist in enumerate(self.root_hists)]
-            self._dic_df["bin_errors"] = [ [hist.GetBinError(j)
-                                         for j in range(len(self.dim2.edges[i])+1)]
-                                      for i,hist in enumerate(self.root_hists)]
-        return self._dic_df
-
-    def dic_df_update(self,**kwargs):
-        self._dic_df.update(kwargs)  
+    
 
     def read_settings_from_config_dim1(self, config, isgen=False):
         binned_var = config.gen if isgen else config.reco
         self.dim1 = HistDim( **asdict(binned_var) )
-        self.dic_df_update(isgen1 = isgen)
-
+        self.dim1_isgen = isgen
 
     def read_settings_from_config_dim2(self, config, isgen=False):
         binned_var = config.gen if isgen else config.reco
         self.dim2 = HistDim( **asdict(binned_var), inner_dim=self.dim1 )
-        self.dic_df_update(isgen2 = isgen)
+        self.dim2_isgen = isgen
 
 
     def fill_hist( self, event_info, from_root, weightarray=None, genWeight=''):
