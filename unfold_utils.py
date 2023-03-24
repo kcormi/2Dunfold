@@ -120,7 +120,7 @@ for cut_type in CutType:
     cuts[cut_type] = Cut( root_cuts[cut_type], np_cuts[cut_type])
 
 @dataclass
-class MetaData:
+class HistMetaData:
     obs1: str = None
     obs2: str = None,
     datatype: str = "MC" # choices: "MC","data","pseudodata","unfold","genreweight"(gen-level reweight),"sysreweight" (gen- and reco- level reweighting) TODO: the options for data bootstraps, systematic bootstraps, asimov, split, tempalates for systematic variations 
@@ -128,7 +128,7 @@ class MetaData:
     iter: int = np.nan
     dataset: str = "EPOS" # e.g. "EPOS", "CP1", "CP5", "ZeroBias", "EPOS_genreweight_CP1", "EPOS_sysreweight_CP1genreweight2EPOS"
     method: str = "multifold" # choices: "omnifold", "multifold", "unifold", "MLE"
-    step1: bool = False
+    from_step1: bool = False
     do_eff_acc: bool = True
     mig_o1_index: list[int] = None
     mig_o1_range: list[int] = None
@@ -136,7 +136,7 @@ class MetaData:
 
 
 @dataclass
-class HistMetaData(MetaData):
+class HistData(HistMetaData):
     '''A class keeping track of the metadata of the histograms and will be stored as pandas.DataFrame
     '''
     dim1_isgen: bool = False
@@ -165,19 +165,16 @@ class HistMetaData(MetaData):
             bin_errors = [ [hist.GetBinError(j)
                                          for j in range(len(histlist.dim2.edges[i])+1)]
                                       for i,hist in enumerate(histlist.root_hists)]
-        print(asdict(histlist.metadata))
-        return cls(
-                   **{**asdict(histlist.metadata),
-                      "bin_edges_dim1":histlist.dim1.edges,
+        full_dict = {"bin_edges_dim1":histlist.dim1.edges,
                       "bin_edges_dim2":histlist.dim2.edges,
                       "dim1_isgen":histlist.dim1_isgen,
                       "dim2_isgen":histlist.dim2_isgen,
                       "bin_values":bin_values,
                       "bin_errors":bin_errors,
                       "dim1_underflow":histlist.dim1_underflow,
-                      "dim1_overflow":histlist.dim1_overflow
-                     }
-                  ) 
+                      "dim1_overflow":histlist.dim1_overflow}
+        full_dict.update(asdict(histlist.metadata))
+        return cls(**full_dict) 
 
 class HistList:
 
@@ -207,7 +204,7 @@ class HistList:
         self.dim1_underflow = 0.0
         self.dim1_overflow = 0.0
         self.norm = 0.0
-        self.metadata = MetaData(**kwargs)
+        self.metadata = HistMetaData(**kwargs)
         return
 
     @property
@@ -627,10 +624,13 @@ class HistList:
         self.norm = self.total + self.dim1_underflow + self.dim1_overflow
 
     def binwise_normalize_2Dhist(self):
-        self.binwise_multiply_2Dhist(scalar_list=[ 1.0 / x for x in self.bin_norm ], scalar_underflow=1.0 / self.dim1_underflow if self.dim1_underflow > 0 else 0.0, scalar_overflow=1.0 / self.dim1_overflow if self.dim1_overflow > 0 else 0.0)
+        self.binwise_multiply_2Dhist(scalar_list=[ (1.0 / x if x>0 else 0) for x in self.bin_norm ], scalar_underflow=1.0 / self.dim1_underflow if self.dim1_underflow > 0 else 0.0, scalar_overflow=1.0 / self.dim1_overflow if self.dim1_overflow > 0 else 0.0)
+
+    def multiply_2Dhist(self, scalar):
+        self.binwise_multiply_2Dhist(scalar_list = [scalar]*len(self.bin_norm),scalar_underflow=scalar,scalar_overflow=scalar)
 
     def normalize_2Dhist(self):
-        self.binwise_multiply_2Dhist(scalar_list=[[1.0 / self.norm]] * len(self.bin_norm), scalar_underflow=1.0 / self.norm, scalar_overflow=1.0 / self.norm)
+        self.multiply_2Dhist(scalar=(1.0 / self.norm if self.norm>0 else 0))
 
     def write_hist_list(self):
         for hist in self.root_hists:

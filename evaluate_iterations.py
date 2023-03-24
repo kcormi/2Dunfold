@@ -10,21 +10,24 @@ from arg_parsing import *
 from configs import ObsConfig
 import pandas as pd
 
-def get_metadata_config(dataset,tag="",**kwargs):
-  dic_config = kwargs.copy()
+def get_metadata_config(dataset,tag="",**dic_config):
   workflow = dic_config.pop("workflow")
   MC_name = dic_config.pop("MC_name")
   data_name = dic_config.pop("data_name")
   pseudodata_name = dic_config.pop("pseudodata_name")
+  from_step1 = dic_config["from_step1"]
   if dataset == "MC":
     datatype = "MC"
     df_dataset = MC_name
+    from_step1 = False
   elif dataset == "Data":
     datatype = "data"
     df_dataset = data_name
+    from_step1 = False
   elif dataset == "Pseudodata":
     datatype = "pseudodata"
     df_dataset = pseudodata_name
+    from_step1 = False
   else:
     datatype = workflow
     df_dataset = MC_name
@@ -35,6 +38,7 @@ def get_metadata_config(dataset,tag="",**kwargs):
   dic_config["datatype"] = datatype
   dic_config["dataset"] = df_dataset
   dic_config["iter"] = i_iter
+  dic_config["from_step1"] = from_step1
   return dic_config
 
 
@@ -44,7 +48,9 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
 
   metadata_config = get_metadata_config(dataset,tag,**kwargs)
 
-  reco_inclusive=HistList("HistRecoInclusive_"+dataset,tag,**{**metadata_config,"histtype":"inclusive"})
+  reco_inclusive_args = {"histtype":"inclusive"}
+  reco_inclusive_args.update(metadata_config)
+  reco_inclusive=HistList("HistRecoInclusive_"+dataset,tag,**reco_inclusive_args)
   reco_inclusive.read_settings_from_config_dim1(o1,isgen=False)
   reco_inclusive.read_settings_from_config_dim2(o2,isgen=False)
   reco_inclusive.bin_edges_dim2 = edges_reco
@@ -52,34 +58,44 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
   hists["reco_inclusive"] = reco_inclusive
 
   if not reco_only:
-    gen_passreco=HistList("HistGen_"+dataset,tag,**{**metadata_config,"histtype":"pass_gen_reco"})
+    gen_passreco_args = {"histtype":"pass_gen_reco"}
+    gen_passreco_args.update(metadata_config)
+    gen_passreco=HistList("HistGen_"+dataset,tag,**gen_passreco_args)
     gen_passreco.read_settings_from_config_dim1(o1,isgen=True)
     gen_passreco.read_settings_from_config_dim2(o2,isgen=True)
     gen_passreco.bin_edges_dim2 = edges_gen
     gen_passreco.cut = cuts[CutType.PassReco_PassGen]
     hists["gen_passreco"] = gen_passreco
 
-    gen_inclusive=HistList("HistGenInclusive_"+dataset,tag,**{**metadata_config,"histtype":"inclusive"})
+    gen_inclusive_args = {"histtype":"inclusive"}
+    gen_inclusive_args.update(metadata_config)
+    gen_inclusive=HistList("HistGenInclusive_"+dataset,tag,**gen_inclusive_args)
     gen_inclusive.read_settings_from_config_dim1(o1,isgen=True)
     gen_inclusive.read_settings_from_config_dim2(o2,isgen=True)
     gen_inclusive.bin_edges_dim2 = edges_gen
     gen_inclusive.cut = cuts[CutType.PassGen]
     hists["gen_inclusive"] = gen_inclusive
 
-    reco_passgen=HistList("HistReco_"+dataset,tag,**{**metadata_config,"histtype":"pass_gen_reco"})
+    reco_passgen_args = {"histtype":"pass_gen_reco"}
+    reco_passgen_args.update(metadata_config)
+    reco_passgen=HistList("HistReco_"+dataset,tag,**reco_passgen_args)
     reco_passgen.read_settings_from_config_dim1(o1,isgen=False)
     reco_passgen.read_settings_from_config_dim2(o2,isgen=False)
     reco_passgen.bin_edges_dim2 = edges_reco
     reco_passgen.cut = cuts[CutType.PassReco_PassGen]
     hists["reco_passgen"] = reco_passgen
 
-    gen_eff = HistList("HistGenEff_"+dataset,tag,**{**metadata_config,"histtype":"efficiency"})
+    gen_eff_args = {"histtype":"efficiency"}
+    gen_eff_args.update(metadata_config)
+    gen_eff = HistList("HistGenEff_"+dataset,tag,**gen_eff_args)
     gen_eff.read_settings_from_config_dim1(o1,isgen=True)
     gen_eff.read_settings_from_config_dim2(o2,isgen=True)
     gen_eff.bin_edges_dim2 = edges_gen
     gen_eff.fill_root_hists_name()
 
-    reco_acc = HistList("HistRecoAcc_"+dataset,tag,**{**metadata_config,"histtype":"acceptance"})
+    reco_acc_args = {"histtype":"acceptance"}
+    reco_acc_args.update(metadata_config)
+    reco_acc = HistList("HistRecoAcc_"+dataset,tag,**reco_acc_args)
     reco_acc.read_settings_from_config_dim1(o1,isgen=False)
     reco_acc.read_settings_from_config_dim2(o2,isgen=False)
     reco_acc.bin_edges_dim2 = edges_reco
@@ -108,7 +124,14 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
         edge_jp1 = o1.reco.edges[j+1]
 
         #mig_ij
-        this_mig = HistList(f'HistMig_{dataset}_{o1.gen.np_var}{edge_i}-{edge_ip1}_{o1.reco.np_var}{edge_j}-{edge_jp1}{tag}',**{**metadata_config,"histtype":"migration","mig_o1_index":{"gen": i,"reco": j},"mig_o1_range":{"gen":[edge_i,edge_ip1],"reco": [edge_j,edge_jp1]}})
+        mig_args = {"histtype":"migration",
+                    "mig_o1_index":{"gen": i,
+                                    "reco": j},
+                    "mig_o1_range":{"gen":[edge_i,edge_ip1],
+                                    "reco": [edge_j,edge_jp1]}
+                   }
+        mig_args.update(metadata_config)
+        this_mig = HistList(f'HistMig_{dataset}_{o1.gen.np_var}{edge_i}-{edge_ip1}_{o1.reco.np_var}{edge_j}-{edge_jp1}{tag}',**mig_args)
         mig[i].append(this_mig)
         mig[i][j].read_settings_from_config_dim1(o2,isgen=True)
         mig[i][j].read_settings_from_config_dim2(o2,isgen=False)
@@ -124,9 +147,14 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
         mig[i][j].npy_cut = all_cuts_np
 
         mig[i][j].fill_2Dhist(source, from_root=from_root, weightarray=weight_array, genWeight=genWeight)
-        mig[i][j].binwise_normalize_2Dhist()
         print("filled histogram:",mig[i][j].name)
 
+    for i in range(len(o1.gen.edges[:-1])):
+      bin_norm_gen = np.sum([np.array(hist.bin_norm) for hist in mig[i]], axis = 0 )
+      underflow = np.sum([hist.dim1_underflow])
+      overflow = np.sum([hist.dim1_overflow])
+      for j in range(len(o1.reco.edges[:-1])):
+        mig[i][j].binwise_multiply_2Dhist(scalar_list = np.nan_to_num(1./bin_norm_gen),scalar_underflow=np.nan_to_num(1./underflow), scalar_overflow=np.nan_to_num(1./overflow))
   hists["mig"] = mig
   return hists
 
@@ -190,9 +218,9 @@ def get_all_dicts( hist_dict ):
         if key == 'mig':
           for column in hist:
             for row in column:
-              list_dicts.append(asdict(HistMetaData.from_HistList(histlist=row)))
+              list_dicts.append(asdict(HistData.from_HistList(histlist=row)))
         else:
-          list_dicts.append(asdict(HistMetaData.from_HistList(histlist=hist)))
+          list_dicts.append(asdict(HistData.from_HistList(histlist=hist)))
     return list_dicts
 
 if __name__=="__main__":
@@ -239,7 +267,7 @@ if __name__=="__main__":
                   "data_name": config["data_name"],
                   "pseudodata_name": config["pseudodata_name"] if config["pseudodata"] else None,
                   "method": args.method,
-                  "step1": args.step1,
+                  "from_step1": args.step1,
                   "do_eff_acc": args.eff_acc
     }
     mc_hists = fill_hist_lists("MC", obs1, obs2, bin_edges_gen, bin_edges_reco, tree, genWeight=weightname, store_mig=True, **df_config)
@@ -332,7 +360,7 @@ if __name__=="__main__":
       list_dict_out += get_all_dicts(pseudo_hists)
     else:
       data_hists["reco_inclusive"].write_hist_list()
-      list_dict_out.append(asdict(HistMetaData.from_HistList(histlist=data_hists["reco_inclusive"])))
+      list_dict_out.append(asdict(HistData.from_HistList(histlist=data_hists["reco_inclusive"])))
 
     if args.df_overwrite:
       print("Overwriting the file",csv_out)

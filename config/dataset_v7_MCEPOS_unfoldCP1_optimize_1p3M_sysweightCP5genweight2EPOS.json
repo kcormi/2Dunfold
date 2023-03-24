@@ -46,7 +46,7 @@
   "multifold":{
     "isfit":true,
     "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ/flatTuple_MB_trk_noPU_new_EPOS_merge_ABCDEG.npz"],
-    "weight":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_MCEPOS_unfoldCP1_1p3M_eff_acc_ensemble4/weights/ManyFold_DNN_Rep-0.npy",
+    "weight":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_MCEPOS_unfoldCP1genweight2EPOS_1p3M_sysweight_ensemble4/weights/ManyFold_DNN_Rep-0.npy",
     "sys":{
       "CP5":{
         "sim":"/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new.npz",
