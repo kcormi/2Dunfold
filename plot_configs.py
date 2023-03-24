@@ -44,7 +44,7 @@ class PlotConfig(ConfigBase):
 
     @property
     def is_reco(self):
-        return ('reco' in self.name) or ('refold' in self.name)
+        return ('reco' in self.name) or ('refold' in self.name) or ('acc' in self.name)
 
     @property
     def hists(self):

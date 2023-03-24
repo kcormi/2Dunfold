@@ -6,6 +6,7 @@ mpl.use('Agg')
 import ROOT
 import matplotlib.pyplot as plt
 import mplhep as hep
+from matplotlib.ticker import MaxNLocator
 hep.style.use("CMS")
 
 
@@ -173,11 +174,11 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
   hist_ref_stat_arrays = HistArray(hist_ref_stat) if hist_ref_stat != 0 else None
   list_hist_compare_arrays = [HistArray(hist_compare) for hist_compare in list_hist_compare]
   if do_ratio:
-    f, axs = plt.subplots(2,len(hist_ref_arrays),sharex=True,sharey='row',gridspec_kw={"height_ratios": (2,1) })
+    f, axs = plt.subplots(2,len(hist_ref_arrays),sharex=True,sharey='row',gridspec_kw={"height_ratios": (2,1) },figsize=(12.0+(len(hist_ref_arrays)-1)*2,10.0))
   else:
     f, axs = plt.subplots(1,len(hist_ref_arrays),sharex=True,sharey='row')
   axs = axs.flatten()
-  hep.cms.label('Preliminary', data=False, rlabel="", loc=2, ax = axs[0])
+  hep.cms.label('Preliminary', data=False, rlabel="", loc=0, ax = axs[0],fontsize = 20)
   hep.cms.lumitext(lumi_text(1.4817568788812e-08), ax = axs[len(hist_ref_arrays)-1])
 
   order_hist_array = list_hist_compare_arrays.copy()
@@ -194,19 +195,24 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
      order_style.append(style_ref)
      order_color.append(color_ref)
      order_legend.append(legend_ref)
+  print(text_list)
 
   for ihist in range(len(hist_ref_arrays)):
     for (hist_array,style,color,legend) in zip(order_hist_array,order_style,order_color,order_legend):
       draw_array(hist_array.nested_value[ihist], hist_array.nested_error[ihist],hist_array.nested_bins[ihist],style, axs[ihist],color,legend) 
-      axs[ihist].text(.5,.65,latex_root_to_mpl(text_list[ihist]),horizontalalignment='center',transform=axs[ihist].transAxes)
+      axs[ihist].text(.5,.65,latex_root_to_mpl(text_list[ihist]),horizontalalignment='center',transform=axs[ihist].transAxes,fontsize = 'x-small')
+      if ihist != len(hist_ref_arrays)-1 and not do_ratio:
+        x_ticks = axs[ihist].xaxis.get_major_ticks()
+        x_ticks[-2].label1.set_visible(False)
   axs[0].set_ylabel(labelY)
-  axs[ihist].legend()
+  axs[0].ticklabel_format(axis='y',style='sci',useMathText=True)
+  axs[ihist].legend(facecolor='white', framealpha=0.95)
   bottom, top = axs[ihist].get_ylim()
   axs[ihist].set_yscale('log' if is_logY else 'linear')
   if is_logY:
-    axs[ihist].set_ylim(top = top*10)
+    axs[ihist].set_ylim(top = top*50)
   else:
-    axs[ihist].set_ylim(top = top*1.4, bottom = max(bottom,0))
+    axs[ihist].set_ylim(top = top*1.5, bottom = max(bottom,0))
   if do_ratio:
     order_hist_array_ratio = [hist_compare_arrays / hist_ref_arrays for hist_compare_arrays in list_hist_compare_arrays]
     order_style_ratio = ["fillederror" if style_compare == "filled" else style_compare for style_compare in list_style_compare ]
@@ -221,6 +227,9 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
     for iratio in range(len(hist_ref_arrays)):
       for (hist_array,style,color) in zip(order_hist_array_ratio,order_style_ratio,order_color_ratio):
         draw_array(hist_array.nested_value[iratio], hist_array.nested_error[iratio],hist_array.nested_bins[iratio],style, axs[iratio+len(hist_ref_arrays)],color,None)
+        if iratio != len(hist_ref_arrays)-1:
+          x_ticks = axs[iratio+len(hist_ref_arrays)].xaxis.get_major_ticks()
+          x_ticks[-2].label1.set_visible(False)
     axs[len(hist_ref_arrays)].set_ylabel(label_ratio)
   axs[len(axs)-1].set_xlabel(latex_root_to_mpl(title))
   axs[len(axs)-1].set_xlim(left = hist_ref_arrays.nested_bins[0][0], right = hist_ref_arrays.nested_bins[0][-1])
