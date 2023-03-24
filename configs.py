@@ -132,7 +132,7 @@ class ObsConfig(ConfigBase):
              if "edges" in self.gen or "nbins" in self.gen:
                  self.gen = BinnedVarConfig( **self.gen )
              else:
-                 self.get = VarConfig( **self.gen )
+                 self.gen = VarConfig( **self.gen )
 
     def __getitem__(self, key):
         if key == 'reco':

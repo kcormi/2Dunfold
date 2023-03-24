@@ -10,7 +10,7 @@ import os
 import ROOT 
 from enum import Enum
 
-from dataclasses import asdict
+from dataclasses import asdict,dataclass, field, InitVar
 
 from configs import HistDim
 
@@ -119,19 +119,77 @@ cuts = {}
 for cut_type in CutType:
     cuts[cut_type] = Cut( root_cuts[cut_type], np_cuts[cut_type])
 
+@dataclass
+class HistMetaData:
+    obs1: str = None
+    obs2: str = None,
+    datatype: str = "MC" # choices: "MC","data","pseudodata","unfold","genreweight"(gen-level reweight),"sysreweight" (gen- and reco- level reweighting) TODO: the options for data bootstraps, systematic bootstraps, asimov, split, tempalates for systematic variations 
+    histtype: str = "inclusive"  # choices: "inclusive", "pass_gen_reco", "acceptance", "efficiency", "migration"
+    iter: int = np.nan
+    dataset: str = "EPOS" # e.g. "EPOS", "CP1", "CP5", "ZeroBias", "EPOS_genreweight_CP1", "EPOS_sysreweight_CP1genreweight2EPOS"
+    method: str = "multifold" # choices: "omnifold", "multifold", "unifold", "MLE"
+    from_step1: bool = False
+    do_eff_acc: bool = True
+    mig_o1_index: list[int] = None
+    mig_o1_range: list[int] = None
+
+
+
+@dataclass
+class HistData(HistMetaData):
+    '''A class keeping track of the metadata of the histograms and will be stored as pandas.DataFrame
+    '''
+    dim1_isgen: bool = False
+    dim2_isgen: bool = False
+    bin_edges_dim1: list[float] = field(default_factory=list)
+    bin_edges_dim2: list[float] = field(default_factory=list)
+    bin_values: list[float] = field(default_factory=list)
+    bin_errors: list[float] = field(default_factory=list)
+    dim1_underflow: float = 0.0
+    dim1_overflow: float = 0.0
+
+
+    @classmethod
+    def from_HistList(cls,histlist):
+        if histlist.root_2Dhist is not None:
+            bin_values = [ [histlist.root_2Dhist.GetBinContent(i,j)
+                                         for j in range(len(histlist.dim2.edges[0])+1)]
+                                      for i in range(1,len(histlist.dim1.edges))]
+            bin_errors = [ [histlist.root_2Dhist.GetBinError(i,j)
+                                         for j in range(len(histlist.dim2.edges[0])+1)]
+                                      for i in range(1,len(histlist.dim1.edges))]
+        elif histlist.root_hists is not None:
+            bin_values = [ [hist.GetBinContent(j)
+                                         for j in range(len(histlist.dim2.edges[i])+1)]
+                                      for i,hist in enumerate(histlist.root_hists)]
+            bin_errors = [ [hist.GetBinError(j)
+                                         for j in range(len(histlist.dim2.edges[i])+1)]
+                                      for i,hist in enumerate(histlist.root_hists)]
+        full_dict = {"bin_edges_dim1":histlist.dim1.edges,
+                      "bin_edges_dim2":histlist.dim2.edges,
+                      "dim1_isgen":histlist.dim1_isgen,
+                      "dim2_isgen":histlist.dim2_isgen,
+                      "bin_values":bin_values,
+                      "bin_errors":bin_errors,
+                      "dim1_underflow":histlist.dim1_underflow,
+                      "dim1_overflow":histlist.dim1_overflow}
+        full_dict.update(asdict(histlist.metadata))
+        return cls(**full_dict) 
+
 class HistList:
 
 
-    def __init__(self, name, tag=''):
+    def __init__(self, name, tag='',**kwargs):
         self.htype = None
         self._name = name
         self.tag = tag
         self.legend = ''
         self.color = ROOT.kBlack
         self.style = None
-        self.bin_values = None
         self.dim1 = None
         self.dim2 = None
+        self.dim1_isgen = False
+        self.dim2_isgen = False
         self.cut = Cut('',None)
         self.root_hists = None
         self.root_2Dhist = None
@@ -146,6 +204,7 @@ class HistList:
         self.dim1_underflow = 0.0
         self.dim1_overflow = 0.0
         self.norm = 0.0
+        self.metadata = HistMetaData(**kwargs)
         return
 
     @property
@@ -211,15 +270,18 @@ class HistList:
     @property
     def np_variable_dim2(self):
         return self.dim2.np_var
-
+    
 
     def read_settings_from_config_dim1(self, config, isgen=False):
         binned_var = config.gen if isgen else config.reco
         self.dim1 = HistDim( **asdict(binned_var) )
+        self.dim1_isgen = isgen
 
     def read_settings_from_config_dim2(self, config, isgen=False):
         binned_var = config.gen if isgen else config.reco
         self.dim2 = HistDim( **asdict(binned_var), inner_dim=self.dim1 )
+        self.dim2_isgen = isgen
+
 
     def fill_hist( self, event_info, from_root, weightarray=None, genWeight=''):
         if from_root:
@@ -562,10 +624,13 @@ class HistList:
         self.norm = self.total + self.dim1_underflow + self.dim1_overflow
 
     def binwise_normalize_2Dhist(self):
-        self.binwise_multiply_2Dhist(scalar_list=[ 1.0 / x for x in self.bin_norm ], scalar_underflow=1.0 / self.dim1_underflow if self.dim1_underflow > 0 else 0.0, scalar_overflow=1.0 / self.dim1_overflow if self.dim1_overflow > 0 else 0.0)
+        self.binwise_multiply_2Dhist(scalar_list=[ (1.0 / x if x>0 else 0) for x in self.bin_norm ], scalar_underflow=1.0 / self.dim1_underflow if self.dim1_underflow > 0 else 0.0, scalar_overflow=1.0 / self.dim1_overflow if self.dim1_overflow > 0 else 0.0)
+
+    def multiply_2Dhist(self, scalar):
+        self.binwise_multiply_2Dhist(scalar_list = [scalar]*len(self.bin_norm),scalar_underflow=scalar,scalar_overflow=scalar)
 
     def normalize_2Dhist(self):
-        self.binwise_multiply_2Dhist(scalar_list=[[1.0 / self.norm]] * len(self.bin_norm), scalar_underflow=1.0 / self.norm, scalar_overflow=1.0 / self.norm)
+        self.multiply_2Dhist(scalar=(1.0 / self.norm if self.norm>0 else 0))
 
     def write_hist_list(self):
         for hist in self.root_hists:

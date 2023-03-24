@@ -4,6 +4,12 @@ binnings:
             edges: &np_coarse_bin_reco  [ 3., 160. ]
         gen: 
             edges: &np_coarse_bin_gen [ 3., 140. ]
+
+    nparticle_dim1_2D:
+        reco:
+            edges: &np_dim1_2D_bin_reco  [3.0,10.0,20.0,30.0,50.0,70.0,90.0,160.0]
+        gen:
+            edges: &np_dim1_2D_bin_gen [3.0,10.0,30.0,50.0,80.0,140.0]
     
     nparticle_fine:
         reco: 
