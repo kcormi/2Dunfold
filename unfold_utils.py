@@ -176,6 +176,24 @@ class HistData(HistMetaData):
         full_dict.update(asdict(histlist.metadata))
         return cls(**full_dict) 
 
+    @classmethod
+    def from_list(cls,value_list,dim1_isgen=False,dim2_isgen=False,**kwargs_metadata):
+        if not isinstance(value_list,list):
+          bin_values = [value_list]
+        else:
+          bin_values = value_list
+        bin_errors = [0.]*len(bin_values)
+        full_dict = {"bin_edges_dim1":[0,1],
+                      "bin_edges_dim2":list(range(len(bin_values))),
+                      "dim1_isgen":dim1_isgen,
+                      "dim2_isgen":dim2_isgen,
+                      "bin_values":bin_values,
+                      "bin_errors":bin_errors,
+                      "dim1_underflow":0.,
+                      "dim1_overflow":0.}
+        full_dict.update(asdict(HistMetaData(**kwargs_metadata)))
+        return cls(**full_dict)
+
 class HistList:
 
 
