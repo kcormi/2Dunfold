@@ -358,18 +358,10 @@ if __name__=="__main__":
       chi2_mc_pseudo = Chi2Collections.from_source(mc_hists,pseudo_hists,"MC","pseudodata")
       target_hists_tuple = ("pseudodata",pseudo_hists)
       chi2_mc_target = chi2_mc_pseudo
-      #chi2_mc_pseudo = get_chi2(mc_hists, pseudo_hists, reco_only=False)
-      #chi2_unfold_pseudo = {'reco_both_error':[],
-      #                      'reco_ref_error':[],
-      #                      'gen_both_error':[],
-      #                      'gen_ref_error':[]}
     else:
       reco_data_tree = tree_data
       tag = ""
-      #chi2_unfold_data = {'reco_both_error':[],
-      #                    'reco_ref_error':[]}
     data_hists = fill_hist_lists("Data", obs1, obs2, None, bin_edges_reco, reco_data_tree, tag=tag, reco_only=True,**df_config)
-    #chi2_mc_data = get_chi2(mc_hists, data_hists, reco_only=True)
     chi2_mc_data = Chi2Collections.from_source(mc_hists,data_hists,"MC","data")
     if not config["pseudodata"]:
       target_hists_tuple = ("data",data_hists)
@@ -412,15 +404,6 @@ if __name__=="__main__":
 
       list_chi2_unfold_target.append(Chi2Collections.from_source(unfold_hists,target_hists_tuple[1],"unfold",target_hists_tuple[0]))
 
-      #if config["pseudodata"]:
-      #  chi2_unfold_pseudo_iter = get_chi2(unfold_hists, pseudo_hists, reco_only=False)
-      #  for key in chi2_unfold_pseudo_iter.keys():
-      #    chi2_unfold_pseudo[key].append(chi2_unfold_pseudo_iter[key])
-      #else:
-      #  chi2_unfold_data_iter = get_chi2(unfold_hists, data_hists, reco_only=True)
-      #  for key in chi2_unfold_data_iter.keys():
-      #    chi2_unfold_data[key].append(chi2_unfold_data_iter[key])
-
 
       write_all_hists(unfold_hists)
       list_dict_out += get_all_dicts(unfold_hists)
@@ -435,15 +418,6 @@ if __name__=="__main__":
     gen_inveff.write_hist_list()
     write_all_hists(target_hists_tuple[1])
     list_dict_out += get_all_dicts(target_hists_tuple[1])
-    #if config["pseudodata"]:
-    #  write_all_hists(pseudo_hists)
-    #  list_dict_out += get_all_dicts(pseudo_hists)
-    #  #list_dict_out += fill_chi2_histdata("chi2_unfold_pseudodata",chi2_unfold_pseudo,**df_config)
-    #  list_dict_out += fill_chi2_histdata(chi2_mc_pseudo,**df_config)
-    #else:
-    #  data_hists["reco_inclusive"].write_hist_list()
-    #  list_dict_out.append(asdict(HistData.from_HistList(histlist=data_hists["reco_inclusive"])))
-    #  #list_dict_out += fill_chi2_histdata("chi2_unfold_data",chi2_unfold_data,**df_config)
 
     if args.df_overwrite:
       print("Overwriting the file",csv_out)
