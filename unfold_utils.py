@@ -13,6 +13,9 @@ from enum import Enum
 from dataclasses import asdict,dataclass, field, InitVar
 
 from configs import HistDim
+from abc import ABC, abstractmethod
+from typing import Union
+from GOF.binned import *
 
 class CutType(Enum):
     PassReco = 1
@@ -118,6 +121,83 @@ class Cut:
 cuts = {}
 for cut_type in CutType:
     cuts[cut_type] = Cut( root_cuts[cut_type], np_cuts[cut_type])
+
+#more GOF options can be added as child classes
+
+@dataclass
+class GOFCollections(ABC):
+
+    gen: Union[float,dict,list]
+    reco: Union[float,dict,list] 
+    compare_name: str
+    target_name: str
+
+    @classmethod
+    @abstractmethod
+    def from_source(cls,source_compare,source_target,compare_name,target_name,key_reco,key_gen):
+      pass
+
+    @classmethod
+    @abstractmethod
+    def merge(cls,coll_list):
+      pass
+
+    @property
+    @abstractmethod
+    def name(self):
+      pass
+
+    @property
+    @abstractmethod
+    def flat_dict(self):
+      pass
+
+@dataclass
+class Chi2Collections(GOFCollections):
+
+    @classmethod
+    def from_source(cls,source_compare,source_target,compare_name,target_name,key_reco="reco_inclusive",key_gen="gen_inclusive"):
+      dict_kwargs = {"compare_name": compare_name,
+                     "target_name": target_name}
+      for level,key in zip(["reco","gen"],[key_reco,key_gen]):
+        if (key in source_target.keys()) and (key in source_compare.keys()):
+          _,_,wchi2_per_dof,_ = GOF_binned_from_root(source_compare[key].root_hists, source_target[key].root_hists, use_error='both')
+          _,_,wchi2_per_dof_targeterror,_ = GOF_binned_from_root(source_compare[key].root_hists, source_target[key].root_hists, use_error='second')
+          dict_kwargs[level] = {"both_error":wchi2_per_dof,
+                                "target_error":wchi2_per_dof_targeterror}
+        else:
+          dict_kwargs[level] = None
+      return cls(**dict_kwargs)
+
+    @classmethod
+    def merge(cls,coll_list):
+      dict_kwargs = {"compare_name": coll_list[0].compare_name,
+                     "target_name": coll_list[0].target_name}
+      dict_kwargs["gen"] = None
+      if coll_list[0].gen:
+        dict_kwargs["gen"] = { "both_error":[coll.gen["both_error"] for coll in coll_list],
+                               "target_error":[coll.gen["target_error"] for coll in coll_list]}
+      dict_kwargs["reco"] = None
+      if coll_list[0].reco:
+        dict_kwargs["reco"] = { "both_error":[coll.reco["both_error"] for coll in coll_list],
+                               "target_error":[coll.reco["target_error"] for coll in coll_list]}
+      return cls(**dict_kwargs)
+
+    @property
+    def name(self):
+      return "chi2_"+self.compare_name+"_"+self.target_name
+
+    @property
+    def flat_dict(self):
+      flat_dict = {}
+      if self.gen is not None:
+        flat_dict["gen_both_error"] = self.gen["both_error"]
+        flat_dict["gen_target_error"] = self.gen["target_error"]
+      if self.reco is not None:
+        flat_dict["reco_both_error"] = self.reco["both_error"]
+        flat_dict["reco_target_error"] = self.reco["target_error"]
+      return flat_dict
+
 
 @dataclass
 class HistMetaData:
