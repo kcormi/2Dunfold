@@ -30,18 +30,18 @@ def get_metadata_config(dataset,tag="",**dic_config):
     df_dataset = pseudodata_name
     from_step1 = False
   elif dataset == "chi2_MC_data":
-    datatype = "chi2"
+    datatype = "chi2_MC_data"
     df_dataset = MC_name+"_"+data_name
     from_step1 = False
   elif dataset == "chi2_MC_pseudodata":
-    datatype = "chi2"
+    datatype = "chi2_MC_pseudodata"
     df_dataset = MC_name+"_"+pseudodata_name
     from_step1 = False
   elif dataset == "chi2_unfold_pseudodata":
-    datatype = "chi2"
+    datatype = "chi2_unfold_pseudodata"
     df_dataset = workflow+"_"+pseudodata_name
   elif dataset == "chi2_unfold_data":
-    datatype = "chi2"
+    datatype = "chi2_unfold_data"
     df_dataset = workflow+"_"+data_name
   else:
     datatype = workflow
@@ -303,8 +303,8 @@ if __name__=="__main__":
 
     all_trees = [tree] + tree_sys_list
     bin_edges_reco, bin_edges_gen = get_bin_edges( config, obs1, obs2, all_trees)
-    df_config = { "obs1": obs1_name,
-                  "obs2": obs2_name,
+    df_config = { "obs1": args.obs[0],
+                  "obs2": args.obs[1],
                   "workflow": config["workflow"],
                   "MC_name": config["MC_name"],
                   "data_name": config["data_name"],
