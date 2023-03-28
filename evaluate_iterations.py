@@ -178,20 +178,6 @@ def fill_chi2_histdata(chi2collections,**kwargs):
   metadata_config = get_metadata_config(dataset,'',**kwargs)
   return HistData.diclist_from_gofcoll(chi2collections,**metadata_config)
 
-def get_chi2(hists_compare, hists_ref, reco_only=False):
-    
-    dict_chi2 = {}
-    _,_,reco_wchi2_per_dof,_ = GOF_binned_from_root(hists_compare["reco_inclusive"].root_hists, hists_ref["reco_inclusive"].root_hists, use_error='both')
-    _,_,reco_wchi2_per_dof_referror,_ = GOF_binned_from_root(hists_compare["reco_inclusive"].root_hists, hists_ref["reco_inclusive"].root_hists, use_error='second')
-    dict_chi2['reco_both_error'] = reco_wchi2_per_dof
-    dict_chi2['reco_ref_error'] = reco_wchi2_per_dof_referror
-    if not reco_only:
-      _,_,gen_wchi2_per_dof,_ = GOF_binned_from_root(hists_compare["gen_inclusive"].root_hists, hists_ref["gen_inclusive"].root_hists, use_error='both')
-      _,_,gen_wchi2_per_dof_referror,_ = GOF_binned_from_root(hists_compare["gen_inclusive"].root_hists, hists_ref["gen_inclusive"].root_hists, use_error='second')
-      dict_chi2['gen_both_error'] = gen_wchi2_per_dof
-      dict_chi2['gen_ref_error'] = gen_wchi2_per_dof_referror
-    return dict_chi2
-
 
 def get_input_file_from_config_info( input_val, var ): 
     if isinstance(input_val, dict):
