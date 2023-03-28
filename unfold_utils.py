@@ -186,9 +186,6 @@ class Chi2Collections(GOFCollections):
     def from_source(cls,source_compare,source_target,compare_name,target_name):
 
       chi2_values = {}
-      print(source_compare.keys())
-      print(source_compare.values())
-      print([histlist_compare for histlist_compare in source_compare.values()])
       level_lists = [histlist_compare.level for histlist_compare in source_compare.values() if isinstance(histlist_compare,HistList)] #grab all the level options
       # if need chi2 between migration matrices -> implement the calculation for isinstance(histlist_compare,list) case
       level_lists = list(dict.fromkeys(level_lists)) # remove duplicates
