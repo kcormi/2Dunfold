@@ -135,21 +135,25 @@ class GOFCollections(ABC):
     @classmethod
     @abstractmethod
     def from_source(cls,source_compare,source_target,compare_name,target_name):
+      '''Create a class instance from source_compare and source_target, calculate the GOF and store it in values. The compare_name and targe_name are strings naming the two sources.'''
       return NotImplemented
 
     @classmethod
     @abstractmethod
     def merge(cls,coll_list):
+      '''Create a class instance from a list of GOFCollections by merging the values.'''
       return NotImplemented
 
     @property
     @abstractmethod
     def name(self):
+      '''return the name of the instance from compare_name and target_name'''
       return NotImplemented
 
     @property
     @abstractmethod
     def flat_dict(self):
+      '''return a flat dictionary to be written to pandas.DataFrames'''
       return NotImplemented
 
 @dataclass
