@@ -175,18 +175,8 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
 
 def fill_chi2_histdata(chi2collections,**kwargs):
   dataset = chi2collections.name
-  dict_chi2 = chi2collections.flat_dict
-  histdata_diclist = []
   metadata_config = get_metadata_config(dataset,'',**kwargs)
-  for key in dict_chi2.keys():
-    chi2_args = {"histtype":key}
-    chi2_args.update(metadata_config)
-    if "gen" in key:
-      is_gen = True
-    else:
-      is_gen = False
-    histdata_diclist.append(asdict(HistData.from_list(dict_chi2[key],dim1_isgen=is_gen,dim2_isgen=is_gen,**chi2_args)))
-  return histdata_diclist
+  return HistData.diclist_from_gofcoll(chi2collections,**metadata_config)
 
 def get_chi2(hists_compare, hists_ref, reco_only=False):
     
