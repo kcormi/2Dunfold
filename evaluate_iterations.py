@@ -9,6 +9,7 @@ from unfold_utils import *
 from arg_parsing import *
 from configs import ObsConfig
 import pandas as pd
+from GOF.binned import *
 
 def get_metadata_config(dataset,tag="",**dic_config):
   workflow = dic_config.pop("workflow")
@@ -28,6 +29,20 @@ def get_metadata_config(dataset,tag="",**dic_config):
     datatype = "pseudodata"
     df_dataset = pseudodata_name
     from_step1 = False
+  elif dataset == "chi2_MC_data":
+    datatype = "chi2_MC_data"
+    df_dataset = MC_name+"_"+data_name
+    from_step1 = False
+  elif dataset == "chi2_MC_pseudodata":
+    datatype = "chi2_MC_pseudodata"
+    df_dataset = MC_name+"_"+pseudodata_name
+    from_step1 = False
+  elif dataset == "chi2_unfold_pseudodata":
+    datatype = "chi2_"+workflow+"_pseudodata"
+    df_dataset = workflow+"_"+pseudodata_name
+  elif dataset == "chi2_unfold_data":
+    datatype = "chi2_"+workflow+"_data"
+    df_dataset = workflow+"_"+data_name
   else:
     datatype = workflow
     df_dataset = MC_name
@@ -158,6 +173,12 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
   hists["mig"] = mig
   return hists
 
+def fill_chi2_histdata(chi2collections,**kwargs):
+  dataset = chi2collections.name
+  metadata_config = get_metadata_config(dataset,'',**kwargs)
+  return HistData.diclist_from_gofcoll(chi2collections,**metadata_config)
+
+
 def get_input_file_from_config_info( input_val, var ): 
     if isinstance(input_val, dict):
         if var in input_val.keys():
@@ -260,8 +281,8 @@ if __name__=="__main__":
 
     all_trees = [tree] + tree_sys_list
     bin_edges_reco, bin_edges_gen = get_bin_edges( config, obs1, obs2, all_trees)
-    df_config = { "obs1": obs1_name,
-                  "obs2": obs2_name,
+    df_config = { "obs1": args.obs[0],
+                  "obs2": args.obs[1],
                   "workflow": config["workflow"],
                   "MC_name": config["MC_name"],
                   "data_name": config["data_name"],
@@ -310,10 +331,17 @@ if __name__=="__main__":
       pseudo_hists = fill_hist_lists("Pseudodata", obs1, obs2, bin_edges_gen, bin_edges_reco, event_data, genWeight=weightname, from_root=from_root, weight_array=weight_pseudodata, store_mig=True,**df_config)
       reco_data_tree = tree_refdata
       tag = "_Ref"
+      chi2_mc_pseudo = Chi2Collections.from_source(mc_hists,pseudo_hists,"MC","pseudodata")
+      target_hists_tuple = ("pseudodata",pseudo_hists)
+      chi2_mc_target = chi2_mc_pseudo
     else:
       reco_data_tree = tree_data
       tag = ""
-    data_hists = fill_hist_lists("Data", obs1, obs2, None, bin_edges_reco, reco_data_tree, tag="_Ref", reco_only=True,**df_config)
+    data_hists = fill_hist_lists("Data", obs1, obs2, None, bin_edges_reco, reco_data_tree, tag=tag, reco_only=True,**df_config)
+    chi2_mc_data = Chi2Collections.from_source(mc_hists,data_hists,"MC","data")
+    if not config["pseudodata"]:
+      target_hists_tuple = ("data",data_hists)
+      chi2_mc_target = chi2_mc_data
 
     normalization_hist = pseudo_hists["reco_inclusive"] if config["pseudodata"] else data_hists["reco_inclusive"]
     mc_norm_factor = normalization_hist.norm / mc_hists["reco_inclusive"].norm
@@ -335,6 +363,7 @@ if __name__=="__main__":
     list_dict_out = []
 
     niter = len(weights)//weights_per_iter
+    list_chi2_unfold_target = []
     for i in range(0,niter+1):
       offset = weights_per_iter // 2 if (args.step1 and i > 0 ) else 0
       weight_iter = weights[weights_per_iter*i - offset ]
@@ -349,18 +378,22 @@ if __name__=="__main__":
         if not (key == 'mig' or key == "eff" or key == "acc"):
             hist.multiply(unf_norm_factor)
 
+      list_chi2_unfold_target.append(Chi2Collections.from_source(unfold_hists,target_hists_tuple[1],"unfold",target_hists_tuple[0]))
+
+
       write_all_hists(unfold_hists)
       list_dict_out += get_all_dicts(unfold_hists)
 
+    chi2_unfold_target = Chi2Collections.merge(list_chi2_unfold_target)
+    list_dict_out += fill_chi2_histdata(chi2_unfold_target,**df_config)
+
     write_all_hists(mc_hists)
     list_dict_out += get_all_dicts(mc_hists)
+    list_dict_out += fill_chi2_histdata(chi2_mc_target,**df_config)
+
     gen_inveff.write_hist_list()
-    if config["pseudodata"]:
-      write_all_hists(pseudo_hists)
-      list_dict_out += get_all_dicts(pseudo_hists)
-    else:
-      data_hists["reco_inclusive"].write_hist_list()
-      list_dict_out.append(asdict(HistData.from_HistList(histlist=data_hists["reco_inclusive"])))
+    write_all_hists(target_hists_tuple[1])
+    list_dict_out += get_all_dicts(target_hists_tuple[1])
 
     if args.df_overwrite:
       print("Overwriting the file",csv_out)

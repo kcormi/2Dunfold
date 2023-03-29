@@ -13,6 +13,9 @@ from enum import Enum
 from dataclasses import asdict,dataclass, field, InitVar
 
 from configs import HistDim
+from abc import ABC, abstractmethod
+from typing import Union
+from GOF.binned import *
 
 class CutType(Enum):
     PassReco = 1
@@ -119,6 +122,114 @@ cuts = {}
 for cut_type in CutType:
     cuts[cut_type] = Cut( root_cuts[cut_type], np_cuts[cut_type])
 
+#more GOF options can be added as child classes
+
+@dataclass
+class GOFCollections(ABC):
+
+    values: Union[dict,list]
+
+    compare_name: str
+    target_name: str
+
+    @classmethod
+    @abstractmethod
+    def from_source(cls,source_compare,source_target,compare_name,target_name):
+      '''Create a class instance from source_compare and source_target, calculate the GOF and store it in values. The compare_name and targe_name are strings naming the two sources.'''
+      return NotImplemented
+
+    @classmethod
+    @abstractmethod
+    def merge(cls,coll_list):
+      '''Create a class instance from a list of GOFCollections by merging the values.'''
+      return NotImplemented
+
+    @property
+    @abstractmethod
+    def name(self):
+      '''return the name of the instance from compare_name and target_name'''
+      return NotImplemented
+
+    @property
+    @abstractmethod
+    def flat_dict(self):
+      '''return a flat dictionary to be written to pandas.DataFrames'''
+      return NotImplemented
+
+@dataclass
+class Chi2Values:
+  both_error: Union[float, list]
+  target_error: Union[float, list]
+
+  @classmethod
+  def from_histlist(cls,histlist_compare,histlist_target):
+    if histlist_compare is None or histlist_target is None:
+      return None
+    _,_,wchi2_per_dof,_ = GOF_binned_from_root(histlist_compare.root_hists, histlist_target.root_hists, use_error='both')
+    _,_,wchi2_per_dof_targeterror,_ = GOF_binned_from_root(histlist_compare.root_hists, histlist_target.root_hists, use_error='second')
+    return cls(both_error=wchi2_per_dof,target_error=wchi2_per_dof_targeterror)
+
+  @classmethod
+  def merge(cls,chi2_values_list):
+    both_error_list = [chi2_values.both_error for chi2_values in chi2_values_list]
+    target_error_list = [chi2_values.target_error for chi2_values in chi2_values_list]
+    return cls(both_error = both_error_list,target_error = target_error_list)
+
+
+def search_histlist(dict_histlist,histtype,level):
+  for histlist in dict_histlist.values():
+    if isinstance(histlist,HistList) and histlist.metadata.histtype == histtype and histlist.level == level:
+      return histlist
+    else:
+      return None
+
+@dataclass
+class Chi2Collections(GOFCollections):
+
+    @classmethod
+    def from_source(cls,source_compare,source_target,compare_name,target_name):
+
+      chi2_values = {}
+      level_lists = [histlist_compare.level for histlist_compare in source_compare.values() if isinstance(histlist_compare,HistList)] #grab all the level options
+      # if need chi2 between migration matrices -> implement the calculation for isinstance(histlist_compare,list) case
+      level_lists = list(dict.fromkeys(level_lists)) # remove duplicates
+
+      for level in level_lists:
+        chi2_values[level] = Chi2Values.from_histlist(search_histlist(source_compare,'inclusive',level),
+                                                          search_histlist(source_target,'inclusive',level))
+
+      for level, value in list(chi2_values.items()):
+        if value is None: chi2_values.pop(level)
+
+      return cls(compare_name = compare_name,target_name = target_name, values = chi2_values)
+
+    @classmethod
+    def merge(cls,coll_list):
+      compare_name = coll_list[0].compare_name
+      target_name = coll_list[0].target_name
+
+      chi2_values = {}
+      for key in coll_list[0].values.keys():
+        chi2_values[key] = Chi2Values.merge([coll.values[key] for coll in coll_list])
+
+      return cls(compare_name = compare_name, target_name = target_name, values = chi2_values)
+
+    @property
+    def name(self):
+      return "chi2_"+self.compare_name+"_"+self.target_name
+
+    @property
+    def flat_dict(self):
+      flat_dict = {}
+
+      for key in self.values.keys():
+        sub_dict = asdict(self.values[key])
+        for sub_key in sub_dict.keys():
+          flat_dict[key+"_"+sub_key] = sub_dict[sub_key]
+
+      return flat_dict
+
+
 @dataclass
 class HistMetaData:
     obs1: str = None
@@ -175,6 +286,52 @@ class HistData(HistMetaData):
                       "dim1_overflow":histlist.dim1_overflow}
         full_dict.update(asdict(histlist.metadata))
         return cls(**full_dict) 
+
+    @classmethod
+    def from_list(cls,value_list,dim1_isgen=False,dim2_isgen=False,**kwargs_metadata):
+
+        if not isinstance(value_list,list):
+          bin_values = [value_list]
+        else:
+          bin_values = value_list
+        bin_errors = [0.]*len(bin_values)
+        full_dict = {"bin_edges_dim1":[0,1],
+                      "bin_edges_dim2":list(range(len(bin_values))),
+                      "dim1_isgen":dim1_isgen,
+                      "dim2_isgen":dim2_isgen,
+                      "bin_values":bin_values,
+                      "bin_errors":bin_errors,
+                      "dim1_underflow":0.,
+                      "dim1_overflow":0.}
+        full_dict.update(asdict(HistMetaData(**kwargs_metadata)))
+        return cls(**full_dict)
+
+
+    @classmethod
+    def diclist_from_gofcoll(cls,gofcollections,**kwargs):
+
+      cls_list = []
+
+      flat_dict = gofcollections.flat_dict
+      for key in flat_dict.keys():
+        if not isinstance(flat_dict[key],list):
+          bin_values = [flat_dict[key]]
+        else:
+          bin_values = flat_dict[key]
+        bin_errors = [0.]*len(bin_values)
+        full_dict = {      "bin_edges_dim1":[0,1],
+                           "bin_edges_dim2":list(range(len(bin_values))),
+                           "dim1_isgen": "gen" in key,
+                           "dim2_isgen": "gen" in key,
+                           "bin_values":bin_values,
+                           "bin_errors":bin_errors,
+                           "dim1_underflow":0.,
+                           "dim1_overflow":0.}
+        kwargs_metadata = {"histtype":key}
+        kwargs_metadata.update(kwargs)
+        full_dict.update(asdict(HistMetaData(**kwargs_metadata)))
+        cls_list.append(asdict(cls(**full_dict)))
+      return cls_list
 
 class HistList:
 
@@ -270,6 +427,13 @@ class HistList:
     @property
     def np_variable_dim2(self):
         return self.dim2.np_var
+
+    @property
+    def level(self):
+      if self.dim1_isgen == self.dim2_isgen:
+        return "gen" if self.dim1_isgen else "reco"
+      else:
+        return "mig"
     
 
     def read_settings_from_config_dim1(self, config, isgen=False):
