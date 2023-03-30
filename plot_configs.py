@@ -3,7 +3,7 @@ from typing import Union
 
 from configs import  ConfigBase
 from unfold_utils import HistList
-
+from plot_mplhep_utils import HistArray
 
 @dataclass
 class ResultPlotSettings(ConfigBase):
@@ -28,7 +28,7 @@ class ResultPlotSettings(ConfigBase):
 @dataclass
 class HistConfig(ConfigBase):
     '''A class which keepts track of plotting configurations for a given histogram'''
-    hist: HistList
+    hist: Union[HistList,HistArray]
     stat: Union[int,HistList]
     color: Union[int,str]
     style: str

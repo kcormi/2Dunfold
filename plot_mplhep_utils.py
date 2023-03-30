@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import mplhep as hep
 from matplotlib.ticker import MaxNLocator
 hep.style.use("CMS")
-
+import ast
+from unfold_utils import HistList
 
 def lumi_text(lumi):
     if np.log10(lumi) >= 0 and np.log10(lumi) < 3:
@@ -44,7 +45,7 @@ def latex_root_to_mpl(text):
 #temporary class from root histograms to arrays, will be replaced by boost hisograms
 class HistArray:
 
-  def __init__(self, histlist = None):
+  def __init__(self, histlist = None, bins = None):
     self._nested_value = [np.array([hist.GetBinContent(ibin+1) for ibin in range(hist.GetNbinsX())]) for hist in histlist.root_hists] if histlist is not None else None
     self._nested_error = [np.array([hist.GetBinError(ibin+1) for ibin in range(hist.GetNbinsX())]) for hist in histlist.root_hists] if histlist is not None else None
     if  histlist is not None:
@@ -57,6 +58,7 @@ class HistArray:
         self._nested_bins.append(np.array(bins))
     else:
       self._nested_bins = None
+    self._bins = bins
   @property
   def nested_value(self):
     return self._nested_value
@@ -69,6 +71,42 @@ class HistArray:
   def nested_bins(self):
     return self._nested_bins
 
+  def bins(self):
+    return self._bins
+
+  @classmethod
+  def from_df_entry(cls,entry):
+    bin_values = entry['bin_values']
+    bin_errors = entry['bin_errors']
+    bins = entry['bin_edges_dim1']
+    nested_bins = entry['bin_edges_dim2']
+    if isinstance(bin_values,str):
+      bin_values = ast.literal_eval(bin_values)
+    if not isinstance(bin_values[0],list):
+      bin_values = [bin_values]
+    else:
+      bin_values = [value[1:-1] for value in bin_values]
+    if isinstance(bin_errors,str):
+      bin_errors = ast.literal_eval(bin_errors)
+    if not isinstance(bin_errors[0],list):
+      bin_errors = [bin_errors]
+    else:
+      bin_errors = [error[1:-1] for error in bin_errors]
+    if isinstance(bins,str):
+      bins = ast.literal_eval(bins)
+    if isinstance(nested_bins,str):
+      nested_bins = ast.literal_eval(nested_bins)
+    if not isinstance(nested_bins[0],list):
+      nested_bins = [nested_bins]
+
+    histarray = cls()
+    histarray._nested_value = [np.array(value) for value in bin_values]
+    histarray._nested_error = [np.array(error) for error in bin_errors]
+    histarray._bins = np.array(bins)
+    histarray._nested_bins = [np.array(edges) for edges in nested_bins]
+    return histarray
+
+
   def __len__(self):
     return len(self._nested_value)
 
@@ -78,6 +116,15 @@ class HistArray:
     result._nested_value = [self._nested_value[i] / other._nested_value[i] for i in range(len(self))]
     result._nested_error = [self._nested_error[i] / other._nested_value[i] for i in range(len(self))]
     return result
+
+  def divide_by_bin_width(self):
+    for ibin1 in range(len(self._nested_bins)):
+      if self._bins is not None:
+        self._nested_value[ibin1] = self._nested_value[ibin1] / (self._bins[ibin1+1]-self._bins[ibin1])
+        self._nested_error[ibin1] = self._nested_error[ibin1] / (self._bins[ibin1+1]-self._bins[ibin1])
+      for ibin2 in range(len(self._nested_bins[ibin1])-1):
+        self._nested_value[ibin1][ibin2] = self._nested_value[ibin1][ibin2] / (self._nested_bins[ibin1][ibin2+1]-self._nested_bins[ibin1][ibin2])
+        self._nested_error[ibin1][ibin2] = self._nested_error[ibin1][ibin2] / (self._nested_bins[ibin1][ibin2+1]-self._nested_bins[ibin1][ibin2])
 
 def map_marker_style(style):
   marker_dict = { 'marker' :'o', 
@@ -167,12 +214,19 @@ def draw_array(value,error,bins,style,ax,color,legend):
   else:
     print(f"style {style} not recognized")
 
+def get_histarray(source):
+  if isinstance(source,HistList):
+    return HistArray(source)
+  elif isinstance(source,HistArray):
+    return source
+  else:
+    return None
 
 def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title="", is_logY=0, do_ratio=1, output_path="./", hist_ref_stat=0, text_list=[], style_ref='marker', color_ref="black", list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3):
 
-  hist_ref_arrays = HistArray(hist_ref)
-  hist_ref_stat_arrays = HistArray(hist_ref_stat) if hist_ref_stat != 0 else None
-  list_hist_compare_arrays = [HistArray(hist_compare) for hist_compare in list_hist_compare]
+  hist_ref_arrays = get_histarray(hist_ref)
+  hist_ref_stat_arrays = get_histarray(hist_ref_stat)
+  list_hist_compare_arrays = [get_histarray(hist_compare) for hist_compare in list_hist_compare]
   if do_ratio:
     f, axs = plt.subplots(2,len(hist_ref_arrays),sharex=True,sharey='row',gridspec_kw={"height_ratios": (2,1) },figsize=(12.0+(len(hist_ref_arrays)-1)*2,10.0))
   else:

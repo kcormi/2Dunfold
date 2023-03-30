@@ -740,10 +740,10 @@ class HistList:
         self.norm = self.total + self.dim1_underflow + self.dim1_overflow
 
     def divide_by_bin_width(self):
-        for hist in self.root_hists:
+        for ihist,hist in enumerate(self.root_hists):
             for ibin in range(hist.GetNbinsX()):
-                hist.SetBinContent(ibin + 1, hist.GetBinContent(ibin + 1) / hist.GetXaxis().GetBinWidth(ibin + 1))
-                hist.SetBinError(ibin + 1, hist.GetBinError(ibin + 1) / hist.GetXaxis().GetBinWidth(ibin + 1))
+                hist.SetBinContent(ibin + 1, hist.GetBinContent(ibin + 1) / hist.GetXaxis().GetBinWidth(ibin + 1) / (self.bin_edges_dim1[ihist+1]-self.bin_edges_dim1[ihist]))
+                hist.SetBinError(ibin + 1, hist.GetBinError(ibin + 1) / hist.GetXaxis().GetBinWidth(ibin + 1) / (self.bin_edges_dim1[ihist+1]-self.bin_edges_dim1[ihist]))
 
     def multiply(self, scalar):
         for ihist, hist in enumerate(self.root_hists):

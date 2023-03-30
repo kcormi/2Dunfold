@@ -251,16 +251,16 @@ if __name__=="__main__":
       histCfg["MCGenInclusive"] =  HistConfig(hist_list_MCgeninclusive, 0, MC_color, "fillederror", config["MClegend"])
       histCfg["MCRecoInclusive"] = HistConfig( hist_list_MCrecoinclusive, 0, MC_color, "fillederror", config["MClegend"])
 
-      ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]}" 
+      ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['pseudodata_name'][0]}" 
       histCfg["PseudodataTruthInclusive"] = HistConfig(hist_list_pseudodatatruthinclusive, 0, pseudodata_color, "triangle", ps_legend)
 
       histCfg["MCGenEff"] =  HistConfig( hist_list_MC_eff_acc["Eff"], 0, MC_color, "cross", f'{config["MClegend"]} Eff.')
       histCfg["MCRecoAcc"] = HistConfig( hist_list_MC_eff_acc["Acc"], 0, MC_color, "cross", f'{config["MClegend"]} Acc.')
 
-      ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]} Eff."
+      ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['pseudodatalegend']} Eff."
       histCfg["PseudodataTruthEff"] = HistConfig( hist_list_pseudodata_eff_acc["Eff"], 0, pseudodata_color, "triangle", ps_legend )
 
-      ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['syslegend'][0]} Eff."
+      ps_legend = "Pseudo-data truth" if not args.sysreweight else f"sys variation: {config['pseudodatalegend']} Acc."
       histCfg["PseudodataTruthAcc"] = HistConfig(hist_list_pseudodata_eff_acc["Acc"], 0, pseudodata_color, "triangle", ps_legend )
 
 
@@ -334,7 +334,7 @@ if __name__=="__main__":
                                                               f'data_refold_{tag}_iter{iter_index}', 
                                                               ratio) 
 
-        ratio = 'Unfold / data' if not args.sysreweight else "Reweight / MC"
+        ratio = 'Unfold / MC' if not args.sysreweight else "Reweight / MC"
         pltLists["Unfoldcompare_iter"+iter_index] = PlotConfig( 
                                                               histCfg["MCGenInclusive"], 
                                                               [histCfg[f"Unfold_iter{iter_index}"]], 
