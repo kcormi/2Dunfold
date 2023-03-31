@@ -64,7 +64,7 @@ def get_histconfigcollection(df,color_list,style_list,legend_list):
     style_list = [style_list]*4+[None]
 
   if not isinstance(legend_list,list):
-    legend_list = [legend_list,legend_list,legend_list+" Eff.",legend_list+" Eff.",legend_list+" Mig."]
+    legend_list = [legend_list,legend_list,legend_list+" Eff.",legend_list+" Acc.",legend_list+" Mig."]
 
   histarray_statonly = [0]*5 # Replace with the HistArray from stat-unc-only unfolding results
 
