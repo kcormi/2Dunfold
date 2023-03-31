@@ -192,7 +192,10 @@ class Chi2Collections(GOFCollections):
       chi2_values = {}
       level_lists = [histlist_compare.level for histlist_compare in source_compare.values() if isinstance(histlist_compare,HistList)] #grab all the level options
       # if need chi2 between migration matrices -> implement the calculation for isinstance(histlist_compare,list) case
+      print(level_lists)
       level_lists = list(dict.fromkeys(level_lists)) # remove duplicates
+      print(level_lists)
+
 
       for level in level_lists:
         chi2_values[level] = Chi2Values.from_histlist(search_histlist(source_compare,'inclusive',level),
@@ -320,7 +323,7 @@ class HistData(HistMetaData):
           bin_values = flat_dict[key]
         bin_errors = [0.]*len(bin_values)
         full_dict = {      "bin_edges_dim1":[0,1],
-                           "bin_edges_dim2":list(range(len(bin_values))),
+                           "bin_edges_dim2":list(range(len(bin_values)+1)),
                            "dim1_isgen": "gen" in key,
                            "dim2_isgen": "gen" in key,
                            "bin_values":bin_values,

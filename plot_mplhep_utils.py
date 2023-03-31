@@ -231,7 +231,10 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
     f, axs = plt.subplots(2,len(hist_ref_arrays),sharex=True,sharey='row',gridspec_kw={"height_ratios": (2,1) },figsize=(12.0+(len(hist_ref_arrays)-1)*2,10.0))
   else:
     f, axs = plt.subplots(1,len(hist_ref_arrays),sharex=True,sharey='row')
-  axs = axs.flatten()
+  if do_ratio:
+    axs = axs.flatten()
+  elif len(hist_ref_arrays) == 1:
+    axs = [axs]
   hep.cms.label('Preliminary', data=False, rlabel="", loc=0, ax = axs[0],fontsize = 20)
   hep.cms.lumitext(lumi_text(1.4817568788812e-08), ax = axs[len(hist_ref_arrays)-1])
 

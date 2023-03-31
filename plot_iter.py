@@ -30,6 +30,14 @@ class HistConfigCollection:
   mig: HistConfig = None
 
 
+@dataclass
+class Chi2Collection:
+  gen_both_error: HistConfig = None
+  gen_target_error: HistConfig = None
+  reco_both_error: HistConfig = None
+  reco_target_error: HistConfig = None
+
+
 def get_methods(config):
   methods = []
   if ("addomnifold" in config.keys()) and config["addomnifold"]:
@@ -85,6 +93,25 @@ def get_histconfigcollection(df,color_list,style_list,legend_list):
 
   return HistConfigCollection(*list_HistConfig)
 
+def get_histconfig_gof(df,color,legend):
+  gen_both_error_entry = df[(df['histtype']=='gen_both_error')]
+  gen_target_error_entry = df[(df['histtype']=='gen_target_error')]
+  reco_both_error_entry = df[(df['histtype']=='reco_both_error')]
+  reco_target_error_entry = df[(df['histtype']=='reco_target_error')]
+
+  list_chi2 = []
+  for i,entry in enumerate([gen_both_error_entry,gen_target_error_entry,reco_both_error_entry,reco_target_error_entry]):
+    print(i,entry)
+    if len(entry)>0:
+      histarray = HistArray.from_df_entry(entry.iloc[0])
+      list_chi2.append(HistConfig(histarray,0,color,"hist",legend))
+    else:
+      list_chi2.append(None)
+
+  return Chi2Collection(*list_chi2)
+
+
+
 def plot_wrapper(plt_list,**kwargs):
   input_args = {
     "hist_ref_stat": plt_list.ref.stat,
@@ -123,6 +150,25 @@ def draw_plot(plt_list, plotdir, var1_nm, var2_nm, obs2, txt_list,use_root=True)
       plot_args["is_logY"] = 1
       plot_wrapper(plt_list,**plot_args)
 
+def draw_gof(plt_list, plotdir):
+    if plt_list.ref is None: return
+    path = f'{plotdir}/{plt_list.name}'
+    os.system(f"mkdir -p {plotdir}")
+    axis_title = "Iteration"
+
+    plot_args = {
+      "title": axis_title,
+      "is_logY": 0,
+      "do_ratio": 0,
+      "output_path": path,
+      "text_list": [""],
+      "labelY":'Goodness of fit',
+      "range_ratio": 0.,
+      "use_root": 0
+    }
+    plot_wrapper(plt_list,**plot_args)
+
+
 if __name__=="__main__":
 
     parser = ArgumentParser()
@@ -130,6 +176,8 @@ if __name__=="__main__":
     parser.add_argument('--config-style', type=str, default = 'config/results_style.yml')
     parser.add_argument('--obs', type=obs_pair,nargs = '+', help="Pair of observables separated by a comma")
     args = parser.parse_args()
+
+    default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
     with open(args.config, 'r') as configjson:
         config = json.load(configjson)
@@ -141,12 +189,13 @@ if __name__=="__main__":
     df = pd.read_csv(config["input"])
 
 
-
     for method in get_methods(config):
-      chi2_records_dict = {}
       result_settings = ResultPlotSettings.from_yaml(style_file, ['mpl', method])
       result_settings.sys_reweight = False if config['workflow']=="unfold" else True
-      for obs in args.obs:
+
+      chi2_collection_list = []
+
+      for icolor,obs in enumerate(args.obs):
       
         (obs1_name, obs1_binning), (obs2_name, obs2_binning) = parse_obs_args( config, obs )
 
@@ -155,7 +204,6 @@ if __name__=="__main__":
         TextListReco = [f'{obs1.reco.edges[i]} #leq {obs1.reco.shortname} < {obs1.reco.edges[i+1]}' for i in range(obs1.reco.nbins)]
         TextListGen = [f'{obs1.gen.edges[i]} #leq {obs1.gen.shortname} < {obs1.gen.edges[i+1]}' for i in range(obs1.gen.nbins)]+(["background"] if config["addbkg"] else [])
 
-        chi2_records_dict[f'{obs[0]}_{obs[1]}'] = {}
         base_sel = {'obs1': obs[0],
                     'obs2': obs[1],
                     'method': method
@@ -168,11 +216,15 @@ if __name__=="__main__":
                       'dataset': config["pseudodata_name"]}
           data_legend = config["pseudodatalegend"]
           data_color = config_style['mpl']["pseudodata_color"]
+          chi2_sel = {'datatype': f"chi2_{config['workflow']}_pseudodata",
+                      'dataset':f"{config['workflow']}_{config['pseudodata_name']}"}
         else:
           data_sel = {'datatype': "data",
                       'dataset': config["data_name"]}
           data_legend = "Data"
           data_color = config_style['mpl']["data_color"]
+          chi2_sel = {'datatype': f"chi2_{config['workflow']}_data",
+                      'dataset':f"{config['workflow']}_{config['data_name']}"}
 
         MC_sel = {'datatype': "MC",
                   'dataset': config["MC_name"]}
@@ -181,10 +233,16 @@ if __name__=="__main__":
 
         records_data = get_df_entries(df, **base_sel|data_sel)
         records_MC = get_df_entries(df, **base_sel|MC_sel)
+        records_chi2 = get_df_entries(df, **base_sel|chi2_sel)
+        print(records_chi2 )
 
         hcc_data = get_histconfigcollection(records_data,data_color,['triangle','cross','triangle','triangle',None],data_legend)
 
         hcc_MC = get_histconfigcollection(records_MC,MC_color,['fillederror','fillederror','cross','cross',None],MC_legend)
+
+        chi2_collection = get_histconfig_gof(records_chi2,default_colors[icolor],f"{obs[0]}:{obs[1]}")
+        chi2_collection_list.append(chi2_collection)
+
 
         iters = np.sort(np.unique(df[~np.isnan(df['iter'])]['iter']))
 
@@ -251,6 +309,19 @@ if __name__=="__main__":
           for plt_type in to_plot:
             txt_list = TextListReco if pltLists[plt_type].is_reco else TextListGen
             draw_plot( pltLists[plt_type], config["outputdir"], obs1_name, obs2_name, obs2, txt_list, use_root = False)
+
+        chi2_plot = ["gen_target_error","reco_target_error"]
+
+        for chi2_name in chi2_plot:
+          chi2_list = [getattr(chi2_coll,chi2_name) for chi2_coll in chi2_collection_list]
+          chi2_list = [histconfig for histconfig in chi2_list if histconfig is not None]
+          print(chi2_name,chi2_list)
+          if len(chi2_list)>0:
+            plotconfig = PlotConfig( chi2_list[0],
+                                     chi2_list[1:] if len(chi2_list)>1 else [],
+                                     f"chi2_{chi2_name}_{method}",
+                                     "" )
+            draw_gof( plotconfig, config["outputdir"] )
 
 
 
