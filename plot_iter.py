@@ -38,17 +38,6 @@ class Chi2Collection:
   reco_target_error: HistConfig = None
 
 
-def get_methods(config):
-  methods = []
-  if ("addomnifold" in config.keys()) and config["addomnifold"]:
-    methods.append("omnifold")
-  if ("addmultifold" in config.keys()) and config["addmultifold"]:
-    methods.append("multifold")
-  if ("addunifold" in config.keys()) and config["addunifold"]:
-    methods.append("unifold")
-  if ("addcombine" in config.keys()) and config["addcombine"]:
-    methods.append("MLE")
-  return methods
 
 def get_df_entries(df, **kwargs_selections):
   for ikey,key in enumerate(kwargs_selections.keys()):
@@ -189,7 +178,7 @@ if __name__=="__main__":
     df = pd.read_csv(config["input"])
 
 
-    for method in get_methods(config):
+    for method in config["methods"]:
       result_settings = ResultPlotSettings.from_yaml(style_file, ['mpl', method])
       result_settings.sys_reweight = False if config['workflow']=="unfold" else True
 

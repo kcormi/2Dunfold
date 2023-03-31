@@ -15,17 +15,9 @@
   "addstat":false,
   "perbinshape":true,
   "addbkg":false,
-  "addcombine":false,
-  "addcombine-relunc":false,
   "reluncname":["totalsys","CP1","MCstat"],
   "relunclegend":["Total sys. unc.","MC modeling unc.","MC stat. unc."],
-  "addomnifold":false,
-  "addmultifold":true,
-  "addunifold":false,
-  "addomnifold-bootstrap":false,
-  "addmultifold-bootstrap":false,
-  "addunifold-bootstrap":false,
-  "addomnifold-relunc":false,
-  "addmultifold-relunc":false,
-  "addunifold-relunc":true
+  "methods":["multifold"],
+  "evaluate-bootstrap":[],
+  "evaluate-relunc":[]
 }
