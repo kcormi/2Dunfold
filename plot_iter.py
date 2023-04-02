@@ -20,6 +20,7 @@ from typing import Union
 from plot_configs import ResultPlotSettings, HistConfig, PlotConfig
 from configs import ObsConfig
 import pandas as pd
+from ast import literal_eval
 
 @dataclass
 class HistConfigCollection:
@@ -33,10 +34,13 @@ class HistConfigCollection:
 @dataclass
 class Chi2Collection:
   gen_both_error: HistConfig = None
+  gen_both_error_rel: HistConfig = None
   gen_target_error: HistConfig = None
+  gen_target_error_rel: HistConfig = None
   reco_both_error: HistConfig = None
+  reco_both_error_rel: HistConfig = None
   reco_target_error: HistConfig = None
-
+  reco_target_error_rel: HistConfig = None
 
 
 def get_df_entries(df, **kwargs_selections):
@@ -56,7 +60,6 @@ def get_histconfigcollection(df,color_list,style_list,legend_list):
   acc_entry = df[(df['histtype']=='acceptance')&~df['dim1_isgen']&~df['dim2_isgen']]
   mig_entry = df[(df['histtype']=='migration')&df['dim1_isgen']&~df['dim2_isgen']] 
 
-  #print(gen_entry,reco_entry,eff_entry,acc_entry,mig_entry)
   if not isinstance(color_list,list):
     color_list = [color_list]*4+[None]
 
@@ -90,10 +93,10 @@ def get_histconfig_gof(df,color,legend):
 
   list_chi2 = []
   for i,entry in enumerate([gen_both_error_entry,gen_target_error_entry,reco_both_error_entry,reco_target_error_entry]):
-    print(i,entry)
     if len(entry)>0:
       histarray = HistArray.from_df_entry(entry.iloc[0])
       list_chi2.append(HistConfig(histarray,0,color,"hist",legend))
+      list_chi2.append(HistConfig(histarray/histarray.nested_value[0][0],0,color,"hist",legend))
     else:
       list_chi2.append(None)
 
@@ -177,7 +180,6 @@ if __name__=="__main__":
 
     df = pd.read_csv(config["input"])
 
-
     for method in config["methods"]:
       result_settings = ResultPlotSettings.from_yaml(style_file, ['mpl', method])
       result_settings.sys_reweight = False if config['workflow']=="unfold" else True
@@ -223,7 +225,6 @@ if __name__=="__main__":
         records_data = get_df_entries(df, **base_sel|data_sel)
         records_MC = get_df_entries(df, **base_sel|MC_sel)
         records_chi2 = get_df_entries(df, **base_sel|chi2_sel)
-        print(records_chi2 )
 
         hcc_data = get_histconfigcollection(records_data,data_color,['triangle','cross','triangle','triangle',None],data_legend)
 
@@ -234,9 +235,6 @@ if __name__=="__main__":
 
 
         iters = np.sort(np.unique(df[~np.isnan(df['iter'])]['iter']))
-
-        for it in iters:
-          iter_sel = {'datatype': config['workflow'],
                       'dataset': config['MC_name'],
                       'iter': it}
           records_it = get_df_entries(df, **base_sel|iter_sel)
@@ -298,13 +296,11 @@ if __name__=="__main__":
           for plt_type in to_plot:
             txt_list = TextListReco if pltLists[plt_type].is_reco else TextListGen
             draw_plot( pltLists[plt_type], config["outputdir"], obs1_name, obs2_name, obs2, txt_list, use_root = False)
-
-        chi2_plot = ["gen_target_error","reco_target_error"]
+        chi2_plot = ["gen_target_error","gen_target_error_rel","reco_target_error","reco_target_error_rel"]
 
         for chi2_name in chi2_plot:
           chi2_list = [getattr(chi2_coll,chi2_name) for chi2_coll in chi2_collection_list]
           chi2_list = [histconfig for histconfig in chi2_list if histconfig is not None]
-          print(chi2_name,chi2_list)
           if len(chi2_list)>0:
             plotconfig = PlotConfig( chi2_list[0],
                                      chi2_list[1:] if len(chi2_list)>1 else [],

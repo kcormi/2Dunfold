@@ -81,19 +81,19 @@ class HistArray:
     bins = entry['bin_edges_dim1']
     nested_bins = entry['bin_edges_dim2']
     if isinstance(bin_values,str):
-      bin_values = ast.literal_eval(bin_values)
+      bin_values = ast.literal_eval(bin_values.replace('inf','2e308'))
     if not isinstance(bin_values[0],list):
       bin_values = [bin_values]
     else:
       bin_values = [value[1:-1] for value in bin_values]
     if isinstance(bin_errors,str):
-      bin_errors = ast.literal_eval(bin_errors)
+      bin_errors = ast.literal_eval(bin_errors.replace('inf','2e308'))
     if not isinstance(bin_errors[0],list):
       bin_errors = [bin_errors]
     else:
       bin_errors = [error[1:-1] for error in bin_errors]
     if isinstance(bins,str):
-      bins = ast.literal_eval(bins)
+      bins = ast.literal_eval(bins.replace('inf','2e308'))
     if isinstance(nested_bins,str):
       nested_bins = ast.literal_eval(nested_bins)
     if not isinstance(nested_bins[0],list):
@@ -113,8 +113,12 @@ class HistArray:
   def __truediv__(self,other):
     result = HistArray()
     result._nested_bins = self._nested_bins
-    result._nested_value = [self._nested_value[i] / other._nested_value[i] for i in range(len(self))]
-    result._nested_error = [self._nested_error[i] / other._nested_value[i] for i in range(len(self))]
+    if isinstance(other,HistArray):
+      result._nested_value = [self._nested_value[i] / other._nested_value[i] for i in range(len(self))]
+      result._nested_error = [self._nested_error[i] / other._nested_value[i] for i in range(len(self))]
+    else:
+      result._nested_value = [self._nested_value[i] / other for i in range(len(self))]
+      result._nested_error = [self._nested_error[i] / other for i in range(len(self))]
     return result
 
   def divide_by_bin_width(self):
@@ -252,7 +256,6 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
      order_style.append(style_ref)
      order_color.append(color_ref)
      order_legend.append(legend_ref)
-  print(text_list)
 
   for ihist in range(len(hist_ref_arrays)):
     for (hist_array,style,color,legend) in zip(order_hist_array,order_style,order_color,order_legend):

@@ -180,8 +180,7 @@ def search_histlist(dict_histlist,histtype,level):
   for histlist in dict_histlist.values():
     if isinstance(histlist,HistList) and histlist.metadata.histtype == histtype and histlist.level == level:
       return histlist
-    else:
-      return None
+  return None
 
 @dataclass
 class Chi2Collections(GOFCollections):
@@ -192,9 +191,8 @@ class Chi2Collections(GOFCollections):
       chi2_values = {}
       level_lists = [histlist_compare.level for histlist_compare in source_compare.values() if isinstance(histlist_compare,HistList)] #grab all the level options
       # if need chi2 between migration matrices -> implement the calculation for isinstance(histlist_compare,list) case
-      print(level_lists)
+      level_lists_debug = [histlist_target.level for histlist_target in source_target.values() if isinstance(histlist_target,HistList)]
       level_lists = list(dict.fromkeys(level_lists)) # remove duplicates
-      print(level_lists)
 
 
       for level in level_lists:

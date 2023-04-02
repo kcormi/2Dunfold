@@ -397,8 +397,10 @@ if __name__=="__main__":
 
     if args.df_overwrite:
       print("Overwriting the file",csv_out)
+      if os.path.exists(csv_out):
+        os.system("rm csv_out")
       mode = 'w'
     else:
       print("Appending to the file",csv_out)
       mode = 'a'
-    pd.DataFrame(data=list_dict_out).to_csv(csv_out,mode=mode,index=False)
+    pd.DataFrame(data=list_dict_out).to_csv(csv_out,mode=mode,index=False,header=not os.path.exists(csv_out))
