@@ -161,6 +161,13 @@ def draw_gof(plt_list, plotdir):
     plot_wrapper(plt_list,**plot_args)
 
 
+def get_sel_legend_color(config,config_style,datatype):
+  sel = {'datatype': datatype,
+         'dataset': config[f"{datatype}_name"]}
+  legend = config[f"{datatype}legend"]
+  color = config_style['mpl'][f"{datatype}_color"]
+  return sel,legend,color
+
 if __name__=="__main__":
 
     parser = ArgumentParser()
@@ -199,14 +206,8 @@ if __name__=="__main__":
                     'obs2': obs[1],
                     'method': method
                    }
-        gen_sel = {'dim1_isgen': True, 'dim2_isgen': True}
-        reco_sel = {'dim1_isgen': False, 'dim2_isgen': False}
-        mig_sel = {'dim1_isgen': True, 'dim2_isgen': False, 'histtype': 'migration' }
         if "pseudodata" in config.keys() and config["pseudodata"]:
-          data_sel = {'datatype': "pseudodata",
-                      'dataset': config["pseudodata_name"]}
-          data_legend = config["pseudodatalegend"]
-          data_color = config_style['mpl']["pseudodata_color"]
+          data_sel, data_legend, data_color = get_sel_legend_color(config,config_style,"pseudodata")
           chi2_sel = {'datatype': f"chi2_{config['workflow']}_pseudodata",
                       'dataset':f"{config['workflow']}_{config['pseudodata_name']}"}
         else:
@@ -217,10 +218,9 @@ if __name__=="__main__":
           chi2_sel = {'datatype': f"chi2_{config['workflow']}_data",
                       'dataset':f"{config['workflow']}_{config['data_name']}"}
 
-        MC_sel = {'datatype': "MC",
-                  'dataset': config["MC_name"]}
-        MC_legend = config["MClegend"]
-        MC_color = config_style['mpl']["MC_color"]
+        MC_sel, MC_legend, MC_color = get_sel_legend_color(config,config_style,"MC")
+
+
 
         records_data = get_df_entries(df, **base_sel|data_sel)
         records_MC = get_df_entries(df, **base_sel|MC_sel)
@@ -235,6 +235,9 @@ if __name__=="__main__":
 
 
         iters = np.sort(np.unique(df[~np.isnan(df['iter'])]['iter']))
+
+        for it in iters:
+          iter_sel = {'datatype': config['workflow'],
                       'dataset': config['MC_name'],
                       'iter': it}
           records_it = get_df_entries(df, **base_sel|iter_sel)

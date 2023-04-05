@@ -10,6 +10,10 @@ from arg_parsing import *
 from configs import ObsConfig
 import pandas as pd
 from GOF.binned import *
+import uproot
+import awkward as ak
+
+
 
 def get_metadata_config(dataset,tag="",**dic_config):
   workflow = dic_config.pop("workflow")
@@ -17,6 +21,12 @@ def get_metadata_config(dataset,tag="",**dic_config):
   data_name = dic_config.pop("data_name")
   pseudodata_name = dic_config.pop("pseudodata_name")
   from_step1 = dic_config["from_step1"]
+  if 'chi2' in dataset:
+    gof = 'chi2'
+  elif 'ks' in dataset:
+    gof = 'ks'
+  else:
+    gof = ''
   if dataset == "MC":
     datatype = "MC"
     df_dataset = MC_name
@@ -29,19 +39,19 @@ def get_metadata_config(dataset,tag="",**dic_config):
     datatype = "pseudodata"
     df_dataset = pseudodata_name
     from_step1 = False
-  elif dataset == "chi2_MC_data":
-    datatype = "chi2_MC_data"
+  elif dataset == f"{gof}_MC_data":
+    datatype = f"{gof}_MC_data"
     df_dataset = MC_name+"_"+data_name
     from_step1 = False
-  elif dataset == "chi2_MC_pseudodata":
-    datatype = "chi2_MC_pseudodata"
+  elif dataset == f"{gof}_MC_pseudodata":
+    datatype = f"{gof}_MC_pseudodata"
     df_dataset = MC_name+"_"+pseudodata_name
     from_step1 = False
-  elif dataset == "chi2_unfold_pseudodata":
-    datatype = "chi2_"+workflow+"_pseudodata"
+  elif dataset == f"{gof}_unfold_pseudodata":
+    datatype = f"{gof}_"+workflow+"_pseudodata"
     df_dataset = workflow+"_"+pseudodata_name
-  elif dataset == "chi2_unfold_data":
-    datatype = "chi2_"+workflow+"_data"
+  elif dataset == f"{gof}_unfold_data":
+    datatype = f"{gof}_"+workflow+"_data"
     df_dataset = workflow+"_"+data_name
   else:
     datatype = workflow
@@ -173,7 +183,7 @@ def fill_hist_lists(dataset,o1,o2,edges_gen,edges_reco,source,genWeight="",from_
   hists["mig"] = mig
   return hists
 
-def fill_chi2_histdata(chi2collections,**kwargs):
+def fill_gof_histdata(chi2collections,**kwargs):
   dataset = chi2collections.name
   metadata_config = get_metadata_config(dataset,'',**kwargs)
   return HistData.diclist_from_gofcoll(chi2collections,**metadata_config)
@@ -244,6 +254,116 @@ def get_all_dicts( hist_dict ):
           list_dicts.append(asdict(HistData.from_HistList(histlist=hist)))
     return list_dicts
 
+def load_events( source ):
+  if isinstance(source,list):
+    f_list = [ np.load(str(file_one), allow_pickle=True) for file_one in source ]
+    events = {}
+    for key in list(f_list[0].keys()):
+      if key != 'tracks' and key != 'charged':
+        events[key] = np.concatenate([ f[key] for f in f_list ], axis=0) 
+    from_root = False
+  elif '.npz' in source:
+    events = np.load(source,allow_pickle=True)
+    from_root = False
+  else:
+    f = uproot.open(source)
+    for obj_key in f.keys():
+      if 'tree' in obj_key:
+        tree = f[obj_key]
+        break
+    branch_list = []
+    for branch in root_var_list:
+      if branch in tree.keys():
+        branch_list.append(branch)
+    events = tree.arrays(branch_list)
+    from_root = True
+
+  return events,from_root
+
+def filter_weight(events,filter,weight = None):
+  if not isinstance(weight, list):
+    weight = [weight]
+  weight_array = np.ones(len(filter))
+  for w in weight:
+    if w is not None:
+      if isinstance(w,str):
+        weight_array *= np.array(events[w])
+      else:
+        weight_array *= np.array(w)
+  try:
+    weight_array = np.array(weight_array[filter])
+  except ValueError:
+    weight_array = np.array(weight_array[ak.any(filter,axis=1)])
+    pass
+  return weight_array
+
+
+def load_var_from_ak( events, cut, var_list, weight = None):
+  '''
+  events: dictionary of awkward arrays
+  cut: CutType object
+  var_list: list of VarConfig instances
+  weight: the name of the weight branch or an array or a list of weight names or arrays
+  '''
+  filter = filter_ak_cut(events,cut)
+  var_arrays = []
+  for var in var_list:
+    try:
+      var_arrays.append(np.array(ak.flatten(events[var.root_var][filter])))
+    except ValueError:
+      var_arrays.append(np.array(events[var.root_var][filter]))
+  weight_array = filter_weight(events,filter,weight)
+  return np.vstack(var_arrays), weight_array
+
+def load_var_from_np( events, cut, var_list, weight = None):
+  '''
+  events: dictionary of numpy arrays
+  cut: CutType object
+  var_list: list of VarConfig instances (to prepare for multi-dim ks-test)
+  weight: name of weight in the events.keys() or an array or a list of either types
+  '''
+  filter = filter_np_cut(events,np_cuts[cut])
+  var_arrays = []
+  for var in var_list:
+    var_arrays.append(events[var.np_var][filter])
+  weight_array = filter_weight(events,filter,weight)
+  return np.vstack(var_arrays), weight_array
+
+
+
+def load_obs_array( events, from_root, obs_list, weight = None ):
+  '''
+  events: dictionary of numpy arrays or awkward arrays
+  from_root: bool
+  obs_list: list of ObsConfig
+  weight: name of weight or an array or a list of either types
+  '''
+  gen_var_list = []
+  reco_var_list = []
+  if isinstance(events,dict):
+    var_available = events.keys()
+  else:
+    var_available = events.fields
+  for obs in obs_list:
+    if obs.reco.np_var in var_available or obs.reco.root_var in var_available:
+      reco_var_list.append(obs.reco)
+    if obs.gen.np_var in var_available or obs.gen.root_var in var_available:
+      gen_var_list.append(obs.gen)
+  obs_array = ObsArray()
+  if from_root:
+    if len(reco_var_list)>0:
+      obs_array.reco,obs_array.weight_reco = load_var_from_ak(events,CutType.PassReco,reco_var_list,weight)
+    if len(gen_var_list)>0:
+      obs_array.gen,obs_array.weight_gen = load_var_from_ak(events,CutType.PassGen,gen_var_list,weight)
+  else:
+    if len(reco_var_list)>0:
+      obs_array.reco,obs_array.weight_reco = load_var_from_np(events,CutType.PassReco,reco_var_list,weight)
+    if len(gen_var_list)>0:
+      obs_array.gen,obs_array.weight_gen = load_var_from_np(events,CutType.PassGen,gen_var_list,weight)
+  return obs_array
+
+
+
 if __name__=="__main__":
 
     parser = ArgumentParser()
@@ -292,7 +412,8 @@ if __name__=="__main__":
                   "do_eff_acc": args.eff_acc
     }
     mc_hists = fill_hist_lists("MC", obs1, obs2, bin_edges_gen, bin_edges_reco, tree, genWeight=weightname, store_mig=True, **df_config)
-
+    mc_events, mc_from_root = load_events(mc_infile)
+    mc_obsarray = load_obs_array( mc_events, mc_from_root, [obs2], weightname )
     #efficiency=reconstructed and generated / generated
     gen_inveff = HistList("HistGenInvEff")
     gen_inveff.read_settings_from_config_dim1(obs1,isgen=True)
@@ -332,16 +453,29 @@ if __name__=="__main__":
       reco_data_tree = tree_refdata
       tag = "_Ref"
       chi2_mc_pseudo = Chi2Collections.from_source(mc_hists,pseudo_hists,"MC","pseudodata")
-      target_hists_tuple = ("pseudodata",pseudo_hists)
+      pseudo_events,pseudo_from_root = load_events(infile_pseudodata)
+      pseudo_obsarray = load_obs_array( pseudo_events, pseudo_from_root, [obs2], [weightname,weight_pseudodata] )
+      ks_mc_pseudo = KSDistanceCollections.from_source(mc_obsarray, pseudo_obsarray, "MC","pseudodata")
+
+      target_hists_tuple = ("pseudodata",pseudo_hists, pseudo_obsarray)
       chi2_mc_target = chi2_mc_pseudo
+      ks_mc_target = ks_mc_pseudo
+
     else:
       reco_data_tree = tree_data
       tag = ""
     data_hists = fill_hist_lists("Data", obs1, obs2, None, bin_edges_reco, reco_data_tree, tag=tag, reco_only=True,**df_config)
     chi2_mc_data = Chi2Collections.from_source(mc_hists,data_hists,"MC","data")
+    data_events,data_from_root = load_events(infile_data)
+    data_obsarray = load_obs_array( data_events, data_from_root, [obs2])
+    ks_mc_data = KSDistanceCollections.from_source(mc_obsarray, data_obsarray, "MC","data")
+
+
     if not config["pseudodata"]:
-      target_hists_tuple = ("data",data_hists)
       chi2_mc_target = chi2_mc_data
+      target_hists_tuple = ("data",data_hists,data_obsarray)
+      ks_mc_target = ks_mc_data
+
 
     normalization_hist = pseudo_hists["reco_inclusive"] if config["pseudodata"] else data_hists["reco_inclusive"]
     mc_norm_factor = normalization_hist.norm / mc_hists["reco_inclusive"].norm
@@ -364,12 +498,15 @@ if __name__=="__main__":
 
     niter = len(weights)//weights_per_iter
     list_chi2_unfold_target = []
+    list_ks_distance_unfold_target = []
     for i in range(0,niter+1):
       offset = weights_per_iter // 2 if (args.step1 and i > 0 ) else 0
       weight_iter = weights[weights_per_iter*i - offset ]
       store_mig = i in args.migiter
 
       unfold_hists = fill_hist_lists("MC_"+args.method, obs1, obs2, bin_edges_gen,bin_edges_reco,config[args.method]["sim"],genWeight=weightname,from_root=False,weight_array=weight_iter,store_mig=store_mig,tag="_iter"+str(i),**df_config)
+      unfold_events,unfold_from_root = load_events(config[args.method]["sim"])
+      unfold_obsarray = load_obs_array( unfold_events,unfold_from_root, [obs2], [weightname, weight_iter] )
       if args.eff_from_nominal:
         unfold_hists["gen_inclusive"].get_hist_from_multiplication(unfold_hists["gen_passreco"],gen_inveff)
       unf_norm_factor = normalization_hist.norm / unfold_hists["reco_inclusive"].norm
@@ -379,17 +516,22 @@ if __name__=="__main__":
             hist.multiply(unf_norm_factor)
 
       list_chi2_unfold_target.append(Chi2Collections.from_source(unfold_hists,target_hists_tuple[1],"unfold",target_hists_tuple[0]))
-
+      list_ks_distance_unfold_target.append(KSDistanceCollections.from_source(unfold_obsarray,target_hists_tuple[2],"unfold",target_hists_tuple[0]))
 
       write_all_hists(unfold_hists)
       list_dict_out += get_all_dicts(unfold_hists)
 
     chi2_unfold_target = Chi2Collections.merge(list_chi2_unfold_target)
-    list_dict_out += fill_chi2_histdata(chi2_unfold_target,**df_config)
+    list_dict_out += fill_gof_histdata(chi2_unfold_target,**df_config)
+
+    ks_distance_unfold_target = KSDistanceCollections.merge(list_ks_distance_unfold_target)
+    list_dict_out += fill_gof_histdata(ks_distance_unfold_target,**df_config)
 
     write_all_hists(mc_hists)
     list_dict_out += get_all_dicts(mc_hists)
-    list_dict_out += fill_chi2_histdata(chi2_mc_target,**df_config)
+    list_dict_out += fill_gof_histdata(chi2_mc_target,**df_config)
+    list_dict_out += fill_gof_histdata(ks_mc_target,**df_config)
+
 
     gen_inveff.write_hist_list()
     write_all_hists(target_hists_tuple[1])
@@ -398,7 +540,7 @@ if __name__=="__main__":
     if args.df_overwrite:
       print("Overwriting the file",csv_out)
       if os.path.exists(csv_out):
-        os.system("rm csv_out")
+        os.system(f"rm {csv_out}")
       mode = 'w'
     else:
       print("Appending to the file",csv_out)
