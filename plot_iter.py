@@ -16,7 +16,6 @@ from arg_parsing import *
 from plot_mplhep_utils import *
 from dataclasses import dataclass, field, asdict
 from typing import Union
-
 from plot_configs import ResultPlotSettings, HistConfig, PlotConfig
 from configs import ObsConfig
 import pandas as pd
@@ -41,6 +40,18 @@ class Chi2Collection:
   reco_both_error_rel: HistConfig = None
   reco_target_error: HistConfig = None
   reco_target_error_rel: HistConfig = None
+
+@dataclass
+class KSCollection:
+  gen_distance: HistConfig = None
+  gen_distance_rel: HistConfig = None
+  reco_distance: HistConfig = None
+  reco_distance_rel: HistConfig = None
+  gen_p: HistConfig = None
+  gen_p_rel: HistConfig = None
+  reco_p: HistConfig = None 
+  reco_p_rel: HistConfig = None
+
 
 
 def get_df_entries(df, **kwargs_selections):
@@ -85,22 +96,24 @@ def get_histconfigcollection(df,color_list,style_list,legend_list):
 
   return HistConfigCollection(*list_HistConfig)
 
-def get_histconfig_gof(df,color,legend):
-  gen_both_error_entry = df[(df['histtype']=='gen_both_error')]
-  gen_target_error_entry = df[(df['histtype']=='gen_target_error')]
-  reco_both_error_entry = df[(df['histtype']=='reco_both_error')]
-  reco_target_error_entry = df[(df['histtype']=='reco_target_error')]
+def get_histconfig_gof(df,color,legend,histtype_list):
+  #gen_both_error_entry = df[(df['histtype']=='gen_both_error')]
+  #gen_target_error_entry = df[(df['histtype']=='gen_target_error')]
+  #reco_both_error_entry = df[(df['histtype']=='reco_both_error')]
+  #reco_target_error_entry = df[(df['histtype']=='reco_target_error')]
 
-  list_chi2 = []
-  for i,entry in enumerate([gen_both_error_entry,gen_target_error_entry,reco_both_error_entry,reco_target_error_entry]):
+  list_gof = []
+  #for i,entry in enumerate([gen_both_error_entry,gen_target_error_entry,reco_both_error_entry,reco_target_error_entry]):
+  for i,histtype in enumerate(histtype_list):
+    entry = df[(df['histtype']==histtype)]
     if len(entry)>0:
       histarray = HistArray.from_df_entry(entry.iloc[0])
-      list_chi2.append(HistConfig(histarray,0,color,"hist",legend))
-      list_chi2.append(HistConfig(histarray/histarray.nested_value[0][0],0,color,"hist",legend))
+      list_gof.append(HistConfig(histarray,0,color,"hist",legend))
+      list_gof.append(HistConfig(histarray/histarray.nested_value[0][0],0,color,"hist",legend))
     else:
-      list_chi2.append(None)
+      list_gof.append(None)
 
-  return Chi2Collection(*list_chi2)
+  return Chi2Collection(*list_gof),KSCollection(*list_gof)
 
 
 
@@ -164,7 +177,7 @@ def draw_gof(plt_list, plotdir):
 def get_sel_legend_color(config,config_style,datatype):
   sel = {'datatype': datatype,
          'dataset': config[f"{datatype}_name"]}
-  legend = config[f"{datatype}legend"]
+  legend = datatype + ": " + config[f"{datatype}_name"]
   color = config_style['mpl'][f"{datatype}_color"]
   return sel,legend,color
 
@@ -189,10 +202,11 @@ if __name__=="__main__":
 
     for method in config["methods"]:
       result_settings = ResultPlotSettings.from_yaml(style_file, ['mpl', method])
-      result_settings.sys_reweight = False if config['workflow']=="unfold" else True
+      result_settings.gen_reweight = (config['workflow']=='genreweight')
+      result_settings.sys_reweight = (config['workflow']=='sysreweight')
 
       chi2_collection_list = []
-
+      ks_collection_list = []
       for icolor,obs in enumerate(args.obs):
       
         (obs1_name, obs1_binning), (obs2_name, obs2_binning) = parse_obs_args( config, obs )
@@ -210,13 +224,15 @@ if __name__=="__main__":
           data_sel, data_legend, data_color = get_sel_legend_color(config,config_style,"pseudodata")
           chi2_sel = {'datatype': f"chi2_{config['workflow']}_pseudodata",
                       'dataset':f"{config['workflow']}_{config['pseudodata_name']}"}
+          ks_sel = {'datatype': f"ks_{config['workflow']}_pseudodata",
+                      'dataset':f"{config['workflow']}_{config['pseudodata_name']}"}
         else:
-          data_sel = {'datatype': "data",
-                      'dataset': config["data_name"]}
-          data_legend = "Data"
-          data_color = config_style['mpl']["data_color"]
+          data_sel, data_legend, data_color = get_sel_legend_color(config,config_style,"data")
           chi2_sel = {'datatype': f"chi2_{config['workflow']}_data",
                       'dataset':f"{config['workflow']}_{config['data_name']}"}
+          ks_sel = {'datatype': f"ks_{config['workflow']}_data",
+                      'dataset':f"{config['workflow']}_{config['data_name']}"}
+
 
         MC_sel, MC_legend, MC_color = get_sel_legend_color(config,config_style,"MC")
 
@@ -225,14 +241,18 @@ if __name__=="__main__":
         records_data = get_df_entries(df, **base_sel|data_sel)
         records_MC = get_df_entries(df, **base_sel|MC_sel)
         records_chi2 = get_df_entries(df, **base_sel|chi2_sel)
+        records_ks = get_df_entries(df, **base_sel|ks_sel)
+
 
         hcc_data = get_histconfigcollection(records_data,data_color,['triangle','cross','triangle','triangle',None],data_legend)
 
         hcc_MC = get_histconfigcollection(records_MC,MC_color,['fillederror','fillederror','cross','cross',None],MC_legend)
 
-        chi2_collection = get_histconfig_gof(records_chi2,default_colors[icolor],f"{obs[0]}:{obs[1]}")
+        chi2_collection,_ = get_histconfig_gof(records_chi2,default_colors[icolor],f"{obs[0]}:{obs[1]}",["gen_both_error","gen_target_error","reco_both_error","reco_target_error"])
         chi2_collection_list.append(chi2_collection)
 
+        _,ks_collection = get_histconfig_gof(records_ks,default_colors[icolor],f"{obs[0]}:{obs[1]}",["gen_distance","reco_distance","gen_p","reco_p"])
+        ks_collection_list.append(ks_collection)
 
         iters = np.sort(np.unique(df[~np.isnan(df['iter'])]['iter']))
 
@@ -300,16 +320,18 @@ if __name__=="__main__":
             txt_list = TextListReco if pltLists[plt_type].is_reco else TextListGen
             draw_plot( pltLists[plt_type], config["outputdir"], obs1_name, obs2_name, obs2, txt_list, use_root = False)
         chi2_plot = ["gen_target_error","gen_target_error_rel","reco_target_error","reco_target_error_rel"]
+        ks_plot = ["gen_distance","gen_distance_rel","reco_distance","reco_distance_rel","gen_p","gen_p_rel","reco_p","reco_p_rel"]
 
-        for chi2_name in chi2_plot:
-          chi2_list = [getattr(chi2_coll,chi2_name) for chi2_coll in chi2_collection_list]
-          chi2_list = [histconfig for histconfig in chi2_list if histconfig is not None]
-          if len(chi2_list)>0:
-            plotconfig = PlotConfig( chi2_list[0],
-                                     chi2_list[1:] if len(chi2_list)>1 else [],
-                                     f"chi2_{chi2_name}_{method}",
-                                     "" )
-            draw_gof( plotconfig, config["outputdir"] )
+        for (gof,gof_plot,gof_collection_list) in zip(["chi2","ks"],[chi2_plot,ks_plot],[chi2_collection_list,ks_collection_list]):
+          for name in gof_plot:
+            gof_list = [getattr(gof_coll,name) for gof_coll in gof_collection_list]
+            gof_list = [histconfig for histconfig in gof_list if histconfig is not None]
+            if len(gof_list)>0:
+              plotconfig = PlotConfig( gof_list[0],
+                                       gof_list[1:] if len(gof_list)>1 else [],
+                                       f"{gof}_{name}_{method}",
+                                       "" )
+              draw_gof( plotconfig, config["outputdir"] )
 
 
 

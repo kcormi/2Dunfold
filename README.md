@@ -3,6 +3,10 @@
 To setup the local environment you need python3, which can be taken from a recent LCG release. We use:
 ```
 source /cvmfs/sft.cern.ch/lcg/views/LCG_102rc1/x86_64-centos7-gcc11-opt/setup.sh
+git clone ssh://git@gitlab.cern.ch:7999/kcormier/catpy.git
+cd catpy
+python -m pip install .
+cd ..
 ```
 
 To produce histograms, you can run (showing spherocity as an example observable:
@@ -16,7 +20,6 @@ python evaluate_chi2_iterations.py --input results_finebin_v7_MCEPOS_sysCP1_1d_1
 To plot from the DataFrames (test version):
 ```
 python plot_iter.py --obs nparticle,spherocity
-```
 ```
 To run test on the gen-level reweighting
 ```
