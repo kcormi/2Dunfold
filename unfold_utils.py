@@ -16,6 +16,8 @@ from configs import HistDim
 from abc import ABC, abstractmethod
 from typing import Union
 from GOF.binned import *
+import catpy.catpy.test_stats as cts
+
 
 class CutType(Enum):
     PassReco = 1
@@ -29,6 +31,17 @@ class HistType(Enum):
     RECO = 1
     GEN = 2
     MIG = 3
+
+root_var_list = ['PV_N_good','PV_isgood', 'genWeight',
+             'Instanton_N_Trk_highPurity_pt05','Instanton_N_gen_ChargedFSParticle_eta2p4pt05',
+             'Instanton_Trk_spherocity','Instanton_gen_spherocity_eta2p4pt05',
+             'Instanton_Trk_transversespherocity','Instanton_gen_transversespherocity_eta2p4pt05',
+             'Instanton_Trk_thrust','Instanton_gen_thrust_eta2p4pt05',
+             'Instanton_Trk_transversethrust','Instanton_gen_transversethrust_eta2p4pt05',
+             'Instanton_Trk_broaden','Instanton_gen_broaden_eta2p4pt05',
+             'isotropy','isotropy_gen']
+
+
 
 root_cuts = {}
 root_cuts[CutType.PassReco] = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>2))'
@@ -45,6 +58,17 @@ np_cuts[CutType.PassReco_PassGen] = [['reco_ntrk', '!=', 'NAN'], ['gen_nch', '>'
 np_cuts[CutType.PassReco_noPassGen] = [['reco_ntrk', '!=', 'NAN'], ['gen_nch', '<=', '2']]
 np_cuts[CutType.noPassReco_PassGen] = [['reco_ntrk', '==', 'NAN'], ['gen_nch', '>', '2']]
 np_cuts[CutType.noPassReco_noPassGen] = [['reco_ntrk', '==', 'NAN'], ['gen_nch', '<=', '2']]
+
+ak_cuts = {}
+ak_cuts[CutType.PassReco] = [['PV_N_good', '==', 1], ['PV_isgood', None, None],['Instanton_N_Trk_highPurity_pt05', '>', 2]]
+ak_cuts[CutType.PassGen] = [['Instanton_N_gen_ChargedFSParticle_eta2p4pt05','>', 2]]
+
+@dataclass
+class ObsArray:
+  gen: np.ndarray = None
+  reco: np.ndarray = None
+  weight_gen: np.array = None
+  weight_reco: np.array = None
 
 def filter_np_cut(np_dic, np_cut):
     filter_cut = np.ones(len(np_dic['reco_ntrk']), dtype=bool)
@@ -74,6 +98,25 @@ def filter_np_cut(np_dic, np_cut):
                 raise ValueError('Cannot recognize the cut ', cut)
 
         return filter_cut
+
+def filter_ak_cut(ak_arrays, cut):
+  if cut == CutType.PassReco:
+    filter_cut = (ak_arrays['PV_N_good']==1)&(ak_arrays['PV_isgood'])&(ak_arrays['Instanton_N_Trk_highPurity_pt05']>2)
+  elif cut == CutType.PassGen:
+    filter_cut = (ak_arrays['Instanton_N_gen_ChargedFSParticle_eta2p4pt05']>2)
+  elif cut == CutType.PassReco_PassGen:
+    filter_cut = (ak_arrays['PV_N_good']==1)&(ak_arrays['PV_isgood'])&(ak_arrays['Instanton_N_Trk_highPurity_pt05']>2)&(ak_arrays['Instanton_N_gen_ChargedFSParticle_eta2p4pt05']>2)
+  elif cut == CutType.PassReco_noPassGen:
+    filter_cut = (ak_arrays['PV_N_good']==1)&(ak_arrays['PV_isgood'])&(ak_arrays['Instanton_N_Trk_highPurity_pt05']>2)&~(ak_arrays['Instanton_N_gen_ChargedFSParticle_eta2p4pt05']>2)
+  elif cut == CutType.noPassReco_PassGen:
+    filter_cut = ~((ak_arrays['PV_N_good']==1)&(ak_arrays['PV_isgood'])&(ak_arrays['Instanton_N_Trk_highPurity_pt05']>2))&(ak_arrays['Instanton_N_gen_ChargedFSParticle_eta2p4pt05']>2)
+  elif cut == CutType.noPassReco_noPassGen:
+    filter_cut = ~((ak_arrays['PV_N_good']==1)&(ak_arrays['PV_isgood'])&(ak_arrays['Instanton_N_Trk_highPurity_pt05']>2))&~(ak_arrays['Instanton_N_gen_ChargedFSParticle_eta2p4pt05']>2)
+  else:
+    raise ValueError('Cannot recognize the cut ', cut)
+
+  return filter_cut
+
 
 
 def merge_bins(obs, trees=[], root_cut='', threshold=1.0, bin_edges_dim1_1d=None, bin_edges_dim2_1d=None):
@@ -176,12 +219,30 @@ class Chi2Values:
     return cls(both_error = both_error_list,target_error = target_error_list)
 
 
+
+@dataclass
+class KSDistance:
+  distance: Union[float, list]
+  p: Union[float, list]
+
+  @classmethod
+  def from_array(cls, array_compare, array_target, weight_compare = None, weight_target = None):
+    if array_compare is None or array_target is None:
+      return None
+    distance,p,_,_ = cts.weighted_ks(array_compare[0], array_target[0],weight_compare, weight_target)
+    return cls(distance = distance, p = p)
+
+  @classmethod
+  def merge(cls,ksdistance_list):
+    distance = [ks.distance for ks in ksdistance_list ]
+    p = [ks.p for ks in ksdistance_list]
+    return cls(distance = distance, p = p)
+
 def search_histlist(dict_histlist,histtype,level):
   for histlist in dict_histlist.values():
     if isinstance(histlist,HistList) and histlist.metadata.histtype == histtype and histlist.level == level:
       return histlist
-    else:
-      return None
+  return None
 
 @dataclass
 class Chi2Collections(GOFCollections):
@@ -193,6 +254,7 @@ class Chi2Collections(GOFCollections):
       level_lists = [histlist_compare.level for histlist_compare in source_compare.values() if isinstance(histlist_compare,HistList)] #grab all the level options
       # if need chi2 between migration matrices -> implement the calculation for isinstance(histlist_compare,list) case
       level_lists = list(dict.fromkeys(level_lists)) # remove duplicates
+
 
       for level in level_lists:
         chi2_values[level] = Chi2Values.from_histlist(search_histlist(source_compare,'inclusive',level),
@@ -228,6 +290,46 @@ class Chi2Collections(GOFCollections):
           flat_dict[key+"_"+sub_key] = sub_dict[sub_key]
 
       return flat_dict
+
+@dataclass
+class KSDistanceCollections(GOFCollections):
+
+    @classmethod
+    def from_source(cls,source_compare,source_target,compare_name,target_name):
+      ksdistances = {}
+      for level in ['gen','reco']:
+        ksdistances[level] = KSDistance.from_array(getattr(source_compare,level), getattr(source_target,level), weight_compare = getattr(source_compare,"weight_"+level), weight_target = getattr(source_target,"weight_"+level))
+      for level, value in list(ksdistances.items()):
+        if value is None: ksdistances.pop(level)
+      return cls(compare_name = compare_name,target_name = target_name, values = ksdistances)
+
+    @classmethod
+    def merge(cls,coll_list):
+      compare_name = coll_list[0].compare_name
+      target_name = coll_list[0].target_name
+
+      ksdistances = {}
+      for key in coll_list[0].values.keys():
+        ksdistances[key] = KSDistance.merge([coll.values[key] for coll in coll_list])
+
+      return cls(compare_name = compare_name, target_name = target_name, values = ksdistances)
+
+    @property
+    def name(self):
+      return "ks_"+self.compare_name+"_"+self.target_name
+
+    @property
+    def flat_dict(self):
+      flat_dict = {}
+
+      for key in self.values.keys():
+        sub_dict = asdict(self.values[key])
+        for sub_key in sub_dict.keys():
+          flat_dict[key+"_"+sub_key] = sub_dict[sub_key]
+
+      return flat_dict
+
+
 
 
 @dataclass
@@ -320,7 +422,7 @@ class HistData(HistMetaData):
           bin_values = flat_dict[key]
         bin_errors = [0.]*len(bin_values)
         full_dict = {      "bin_edges_dim1":[0,1],
-                           "bin_edges_dim2":list(range(len(bin_values))),
+                           "bin_edges_dim2":list(range(len(bin_values)+1)),
                            "dim1_isgen": "gen" in key,
                            "dim2_isgen": "gen" in key,
                            "bin_values":bin_values,
@@ -740,10 +842,10 @@ class HistList:
         self.norm = self.total + self.dim1_underflow + self.dim1_overflow
 
     def divide_by_bin_width(self):
-        for hist in self.root_hists:
+        for ihist,hist in enumerate(self.root_hists):
             for ibin in range(hist.GetNbinsX()):
-                hist.SetBinContent(ibin + 1, hist.GetBinContent(ibin + 1) / hist.GetXaxis().GetBinWidth(ibin + 1))
-                hist.SetBinError(ibin + 1, hist.GetBinError(ibin + 1) / hist.GetXaxis().GetBinWidth(ibin + 1))
+                hist.SetBinContent(ibin + 1, hist.GetBinContent(ibin + 1) / hist.GetXaxis().GetBinWidth(ibin + 1) / (self.bin_edges_dim1[ihist+1]-self.bin_edges_dim1[ihist]))
+                hist.SetBinError(ibin + 1, hist.GetBinError(ibin + 1) / hist.GetXaxis().GetBinWidth(ibin + 1) / (self.bin_edges_dim1[ihist+1]-self.bin_edges_dim1[ihist]))
 
     def multiply(self, scalar):
         for ihist, hist in enumerate(self.root_hists):

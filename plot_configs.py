@@ -3,7 +3,7 @@ from typing import Union
 
 from configs import  ConfigBase
 from unfold_utils import HistList
-
+from plot_mplhep_utils import HistArray
 
 @dataclass
 class ResultPlotSettings(ConfigBase):
@@ -11,15 +11,26 @@ class ResultPlotSettings(ConfigBase):
     color: Union[int,str]
     legend: str
     sys_reweight: bool = field(init=False)
+    gen_reweight: bool = field(init=False)
     color_unfold: Union[int,str]
 
     @property
+    def reweight_label(self):
+        if self.gen_reweight:
+            return "gen-reweight"
+        elif self.sys_reweight:
+            return "gen-reco-reweight"
+        else:
+            return ""
+
+
+    @property
     def legend_refold(self):
-        return f'{self.legend} refold' if not self.sys_reweight else f'{self.legend} reweight'
+        return f'{self.legend} refold' if not (self.sys_reweight or self.gen_reweight) else f'{self.legend} '+self.reweight_label
 
     @property
     def legend_unfold(self):
-        return f'{self.legend} unfold' if not self.sys_reweight else f'{self.legend} reweight'
+        return f'{self.legend} unfold' if not (self.sys_reweight or self.gen_reweight) else f'{self.legend} '+self.reweight_label
 
     @property
     def tag(self):
@@ -28,7 +39,7 @@ class ResultPlotSettings(ConfigBase):
 @dataclass
 class HistConfig(ConfigBase):
     '''A class which keepts track of plotting configurations for a given histogram'''
-    hist: HistList
+    hist: Union[HistList,HistArray]
     stat: Union[int,HistList]
     color: Union[int,str]
     style: str
