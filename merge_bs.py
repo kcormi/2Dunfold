@@ -97,15 +97,16 @@ if __name__=="__main__":
       for rows in combinations_with_replacement(df_labels_cov.iterrows(),2):
         _,row1 = rows[0]
         _,row2 = rows[1]
-        cov_row  = bs_rows.iloc[0].copy()
+        if row1['iter'] != row2['iter']: continue
+        bs_rows_1 = get_bs_entries(df_bs_merge,row1)
+        bs_rows_2 = get_bs_entries(df_bs_merge,row2)
+        cov_row  = bs_rows_1.iloc[0].copy()
         for column_obs in ['obs1','obs2','bin_edges_dim1','bin_edges_dim2']:
-          cov_row[column_obs] = f"({row1[column_obs]},{row2[column_obs]})"
+          cov_row[column_obs] = (row1[column_obs],row2[column_obs])
         cov_row['datatype'] = datatype
         corr_row = cov_row.copy()
         cov_row['histtype'] = 'covariance'
         corr_row['histtype'] = 'correlation'
-        bs_rows_1 = get_bs_entries(df_bs_merge,row1)
-        bs_rows_2 = get_bs_entries(df_bs_merge,row2)
         bs_rows_combine = bs_rows_1.merge(bs_rows_2,on='datatype')
         write_cov_corr(cov_row,corr_row,bs_rows_combine)
         df_merge = df_merge.append(cov_row.copy(),ignore_index = True)
