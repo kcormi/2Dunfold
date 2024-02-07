@@ -16,54 +16,94 @@ Next time do
 ```
 source catpy_env/bin/activate
 ```
-To produce histograms, you can run (showing spherocity as an example observable:
+To produce histograms, you can run (showing spherocity as an example observable):
+Reminder: each time you run this command, it will add new entries to the output dataframe, so in the end the histograms for different observables will be in the file. Issues may come out if you repeat the processing for the same observable because of duplications. To deleate the existing csv file and overwrite, use the `--df-overwrite` flag for the script.
 ```
-python evaluate_iterations.py --config config/dataset_v7_MCEPOS_unfoldCP1_optimize_1p3M.json  --method multifold --migiter 0 1 2 10 20 --eff-acc --obs nparticle,spherocity
+python evaluate_iterations.py --config config/dataset_v7_MCA3P_unfolddata_v3.json   --method multifold --migiter 0 1 --obs nparticle,spherocity --eff-acc
 ```
-To plot from the root files:
+To merge the results of systematic variations and get full uncertainty, or merge the results of toy experiments and calculate the covariance matrices:
 ```
-python evaluate_chi2_iterations.py --input results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/unfold_nparticle_spherocity_nominal_optimize_multifold.root --output results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/iter_nparticle_spherocity_nominal_optimize_multifold.root --config config/plot_1d_v7_MCEPOS_unfoldCP1.json --plot --plotdir results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/plots_multifold/ --obs nparticle,spherocity
+python merge_bs.py --input config/merge_MCA3P_unfolddata_v3.txt --output results_finebin_v7_MCA3P_unfolddata_v3_1/merge.csv
 ```
-To plot from the DataFrames (test version):
+To plot from the DataFrames:
 ```
-python plot_iter.py --obs nparticle,spherocity
+python plot_iter.py --obs nparticle,spherocity --config config/plot_1d_v7_MCA3P_unfolddata_v3.json
 ```
+To process and plot all the observables (remember to clean the output directory before):
+```
+bash run_1D_MCA3P_unfolddata_v3_sys.sh 
+```
+The first step of processing might take large memory when processing the bootstraps with multiprocessing. Batch jobs can be submitted  instead:
+```
+sbatch run_1D_MCA3P_unfolddata_v3_sys_batcharray.sh
+```
+to specify a different binning configuration for a variable simply add the name of the binning after the variable separated by a colon `:`. e.g. using `--obs nparticle,spherocity:coarse_sph_binning`, will use the default binning for `nparticle` as defined in the config file, and the `coarse_sph_binning` for `spherocity`. In the case `coarse_sph_binning` should be defined in the configuration file under the `binnings` heading.
+
+Example:
+```
+python evaluate_iterations.py --config config/dataset_v7_MCA3P_unfolddata_v3.json   --method multifold --migiter 0 1 --obs nparticle,spherocity:spherocity_sym --eff-acc
+```
+
+To run the 2D unfolding of event shapes in slices of Nch:
+```
+bash run_1D_MCA3P_unfolddata_v3_2d.sh
+```
+The first step of processing in 2D can take a long time, better to run with batch:
+```
+sbatch run_1D_MCA3P_unfolddata_v3_2d_batcharray.sh 
+```
+To run the 2D unfolding of Nch in slices of event shapes:
+```
+bash run_1D_MCA3P_unfolddata_v3_2d_inverse.sh 
+```
+To submit the first step to batch:
+```
+sbatch run_1D_MCA3P_unfolddata_v3_2d_inverse_batcharray.sh 
+```
+# Validations
+
+## Plots of reweighting for systematic variations
 To run test on the gen-level reweighting
 ```
-python evaluate_iterations.py --config config/dataset_v7_MCEPOS_genweightCP5_optimize_1p3M.json  --method multifold --migiter 0 1 --obs nparticle,spherocity --step1
+bash run_1D_MCA3P_genweightCH3.sh
+bash run_1D_MCA3P_genweightCP1.sh
+bash run_1D_MCA3P_genweightEPOS.sh
 ```
 To run test on the gen- and reco-level reweighting from nomial MC to systematic variaitons.
 ```
-python evaluate_iterations.py --config config/dataset_v7_MCEPOS_unfoldCP1_optimize_1p3M_sysweightCP5genweight2EPOS.json  --method multifold --migiter 0 1 --obs nparticle,spherocity --step1
+bash run_1D_MCA3P_sysweightA3Ptrackdrop.sh
+bash run_1D_MCA3P_sysweightCH3genweightA3P.sh
+bash run_1D_MCA3P_sysweightCP1genweightA3P.sh
+bash run_1D_MCA3P_sysweightEPOSgenweightA3P.sh
 ```
 
-to run for all observables you can do:
-
+## Bias and coverage test:
+To process the toy experiments:
 ```
-for obs in spherocity thrust transverse_spherocity transverse_thrust broadening isotropy; do
-    python evaluate_iterations.py --config config/dataset_v7_MCEPOS_unfoldCP1_optimize_1p3M.json    --method multifold --migiter 0 1 2 10 20 --eff-acc --obs nparticle,${obs}
-    python evaluate_chi2_iterations.py --input results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/unfold_nparticle_${obs}_nominal_optimize_multifold.root --output results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/iter    _nparticle_${obs}_nominal_optimize_multifold.root --config config/plot_1d_v7_MCEPOS_unfoldCP1.json  --plot --plotdir results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/plots_multifold/ --obs nparticle,${obs}
-done
+python run_coverage_process.py
 ```
-
-to specify a different binning configuration for a variable simply add the name of the binning after the variable separated by a colon `:`. e.g. using `--obs nparticle,spherocity:coarse_sph_binning`, will use the default binning for `nparticle` as defined in the config file, and the `coarse_sph_binning` for `spherocity`. In the case `coarse_sph_binning` should be defined in the configuration file under the `binnings` heading.
-
-This can be used for running nparticle for example:
-
-
+Then extract bias and coverage from the toys:
 ```
-python evaluate_iterations.py --config config/dataset_v7_MCEPOS_unfoldCP1_optimize_1p3M.json  --method multifold --migiter 0 1 2 10 20 --eff-acc --obs nparticle,nparticle:nparticle_fine
-python evaluate_chi2_iterations.py --input results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/unfold_nparticle_nparticle_nominal_optimize_multifold.root --output results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/iter_nparticle_nparticle_nominal_optimize_multifold.root --config config/plot_1d_v7_MCEPOS_unfoldCP1.json --plot --plotdir results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/plots_multifold/ --obs nparticle,nparticle:nparticle_fine
+python coverage.py --input config/merge_MCA3P_unfoldCUEP8M1_maxweight10_minweightp1_v3_stat_sys_bs.txt --output results_finebin_v7_MCA3P_unfoldCUEP8M1_maxweight10_minweightp1_coverage_v3_1/merge_bs_dataunc.csv --dataunc
+```
+For plotting
+```
+python plot_bias.py 
 ```
 
-To run the 2D unfolding of nparticle versus spherocity
+## Unfold pseudo-data
+Test the 1D unfolding with pseudo-data from A14, CP4 and CUETP8M1 tunes (also output plots of uncertainty decompostions and bottomline tests):
+```
+bash run_1D_MCA3P_unfoldA14_v3.sh
+bash run_1D_MCA3P_unfoldCP5_v3.sh
+bash run_1D_MCA3P_unfoldCUEP8M1_v3.sh
+```
+2D unfold of pseudo-data:
+```
+bash run_1D_MCA3P_unfoldCUEP8M1_v3_2d.sh
+```
+Unfold CP5 pseudo-data with alternative systematic templates from A14, CUETP8M1 and EPOS instead of nominal choices of CP1, Herwig CH3 and EPOS
+```
+bash run_1D_MCA3P_unfoldCP5_othersys_v3.sh
+```
 
-```
-python evaluate_iterations.py --config config/dataset_v7_MCEPOS_unfoldCP1_optimize_1p3M.json  --method multifold --migiter 0 1 2 10 20 --eff-acc --obs nparticle:nparticle_dim1_2D,spherocity
-python evaluate_chi2_iterations.py --input results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/unfold_nparticle_spherocity_nominal_optimize_multifold.root --output results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/iter_nparticle_spherocity_nominal_optimize_multifold.root --config config/plot_1d_v7_MCEPOS_unfoldCP1.json --plot --plotdir results_finebin_v7_MCEPOS_sysCP1_1d_1p3M_eff_acc_ensemble4/plots_multifold/ --obs nparticle:nparticle_dim1_2D,spherocity
-```
-
-The test for unfoldin the ZeroBias data with systematic uncertainty:
-```
-bash run_1D_MCEPOS_unfolddata.sh
-```
