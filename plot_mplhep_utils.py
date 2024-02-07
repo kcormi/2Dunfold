@@ -121,20 +121,97 @@ class HistArray:
       result._nested_error = [self._nested_error[i] / other for i in range(len(self))]
     return result
 
+  def errorratio(self,other):
+    result = HistArray()
+    result._nested_bins = self._nested_bins
+    if isinstance(other,HistArray):
+      result._nested_value = [np.ones(len(self._nested_value[i])) for i in range(len(self))]
+      result._nested_error = [self._nested_error[i] / other._nested_value[i] for i in range(len(self))]
+    return result
+
+  def __sub__(self,other):
+    result = HistArray()
+    result._nested_bins = self._nested_bins
+    if isinstance(other,HistArray):
+      result._nested_value = [self._nested_value[i] - other._nested_value[i] for i in range(len(self))]
+      result._nested_error = [np.sqrt(self._nested_error[i]**2 + other._nested_error[i]**2) for i in range(len(self))]
+    else:
+      result._nested_value = [self._nested_value[i] - other for i in range(len(self))]
+      result._nested_error = [self._nested_error[i] for i in range(len(self))]
+    return result
+
+  def __add__(self,other):
+    result = HistArray()
+    result._nested_bins = self._nested_bins
+    if isinstance(other,HistArray):
+      result._nested_value = [self._nested_value[i] + other._nested_value[i] for i in range(len(self))]
+      result._nested_error = [np.sqrt(self._nested_error[i]**2 + other._nested_error[i]**2) for i in range(len(self))]
+    else:
+      result._nested_value = [self._nested_value[i] + other for i in range(len(self))]
+      result._nested_error = [self._nested_error[i] for i in range(len(self))]
+    return result
+
+  def __radd__(self, other):
+    if other == 0:
+      return self
+    else:
+      return self.__add__(other)
+
+
+  def __mul__(self,other):
+    result = HistArray()
+    result._nested_bins = self._nested_bins
+    if isinstance(other,HistArray):
+      result._nested_value = [self._nested_value[i] * other._nested_value[i] for i in range(len(self))]
+      result._nested_error = [self._nested_error[i] * other._nested_value[i] for i in range(len(self))]
+    else:
+      result._nested_value = [self._nested_value[i] * other for i in range(len(self))]
+      result._nested_error = [self._nested_error[i] * other for i in range(len(self))]
+    return result
+
+  def __pow__(self,other):
+    result = HistArray()
+    result._nested_bins = self._nested_bins
+    if isinstance(other,HistArray):
+      result._nested_value = [self._nested_value[i] ** other._nested_value[i] for i in range(len(self))]
+      result._nested_error = [self._nested_error[i] for i in range(len(self))]
+    else:
+      result._nested_value = [self._nested_value[i] ** other for i in range(len(self))]
+      result._nested_error = [self._nested_error[i] for i in range(len(self))]
+    return result
+
+  def __abs__(self):
+    result = HistArray()
+    result._nested_bins = self._nested_bins
+    result._nested_value = [np.fabs(self._nested_value[i]) for i in range(len(self))]
+    result._nested_error = [np.fabs(self._nested_error[i]) for i in range(len(self))]
+    return result
   def divide_by_bin_width(self):
     for ibin1 in range(len(self._nested_bins)):
-      if self._bins is not None:
-        self._nested_value[ibin1] = self._nested_value[ibin1] / (self._bins[ibin1+1]-self._bins[ibin1])
-        self._nested_error[ibin1] = self._nested_error[ibin1] / (self._bins[ibin1+1]-self._bins[ibin1])
+      #if self._bins is not None:
+      #  self._nested_value[ibin1] = self._nested_value[ibin1] / (self._bins[ibin1+1]-self._bins[ibin1])
+      #  self._nested_error[ibin1] = self._nested_error[ibin1] / (self._bins[ibin1+1]-self._bins[ibin1])
       for ibin2 in range(len(self._nested_bins[ibin1])-1):
         self._nested_value[ibin1][ibin2] = self._nested_value[ibin1][ibin2] / (self._nested_bins[ibin1][ibin2+1]-self._nested_bins[ibin1][ibin2])
         self._nested_error[ibin1][ibin2] = self._nested_error[ibin1][ibin2] / (self._nested_bins[ibin1][ibin2+1]-self._nested_bins[ibin1][ibin2])
+
+
+  def relative_error(self):
+    result = HistArray()
+    result._nested_bins = self._nested_bins
+    result._nested_value = [self._nested_error[i]/self._nested_value[i] for i in range(len(self))]
+    result._nested_error = [np.zeros(np.shape(self._nested_error[i])) for i in range(len(self))]
+    return result
 
 def map_marker_style(style):
   marker_dict = { 'marker' :'o', 
                   'cross': '.',
                   'triangle': '^',
-                  'triangle_down': 'v' }
+                  'triangle_down': 'v',
+                  'boldermarker' :'o',
+                  'boldercross': '.',
+                  'boldertriangle': '^',
+                  'boldertriangle_down': 'v' }
   return marker_dict.get( style, None)
 
 def draw_array(value,error,bins,style,ax,color,legend):
@@ -143,16 +220,71 @@ def draw_array(value,error,bins,style,ax,color,legend):
   if marker is not None:
     center = [(bins[i] + bins[i+1])/2 for i in range(len(bins)-1)]
     xerrs = [(bins[i+1] - bins[i])/2 for i in range(len(bins)-1)]
+    if 'bolder' in style:
+      ax.errorbar(
+        center,
+        list(value),
+        xerr = xerrs,
+        yerr = list(error),
+        color = color,
+        marker = marker,
+        markersize = 10,
+        label = legend,
+        linewidth = 3,
+        ls = 'none'
+      )
+    else:
+      ax.errorbar(
+        center,
+        list(value),
+        xerr = xerrs,
+        yerr = list(error),
+        color = color,
+        marker = marker,
+        markersize = 10,
+        label = legend,
+        ls = 'none'
+      )
+  elif style == "func":
+    center = [(bins[i] + bins[i+1])/2 for i in range(len(bins)-1)]
     ax.errorbar(
       center,
       list(value),
-      xerr = xerrs,
       yerr = list(error),
       color = color,
       marker = marker,
+      markersize = 10,
       label = legend,
-      ls = 'none'
+      ls = '-'
     )
+  elif style == "dashedfunc":
+    center = [(bins[i] + bins[i+1])/2 for i in range(len(bins)-1)]
+    ax.errorbar(
+      center,
+      list(value),
+      yerr = list(error),
+      color = color,
+      marker = marker,
+      markersize = 10,
+      label = legend,
+      ls = '-.'
+    )
+  elif style == "line":
+    center = [(bins[i] + bins[i+1])/2 for i in range(len(bins)-1)]
+    ax.plot(center,
+            list(value),
+            color = color,
+            label = legend,
+            linestyle = '-'
+           )
+  elif style == "dashedline":
+    center = [(bins[i] + bins[i+1])/2 for i in range(len(bins)-1)]
+    ax.plot(center,
+            list(value),
+            color = color,
+            label = legend,
+            linestyle = '-.'
+           )
   elif style == 'fillederror':
     error_up = np.append(value,value[-1]) + np.append(error,error[-1])
     error_down = np.append(value,value[-1]) - np.append(error,error[-1])
@@ -229,6 +361,20 @@ def draw_array(value,error,bins,style,ax,color,legend):
       hatch = "///",
       label = legend
     )
+  elif style == 'righthatch':
+    error_up = np.append(value,value[-1]) + np.append(error,error[-1])
+    error_down = np.append(value,value[-1]) - np.append(error,error[-1])
+    ax.fill_between(
+      x = bins,
+      y1 = error_up,
+      y2 = error_down,
+      facecolor = "none",
+      edgecolor = color,
+      step = "post",
+      linewidth = 0,
+      hatch = '\\',
+      label = legend
+    )
   else:
     print(f"style {style} not recognized")
 
@@ -240,7 +386,7 @@ def get_histarray(source):
   else:
     return None
 
-def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title="", is_logY=0, do_ratio=1, output_path="./", hist_ref_stat=0, text_list=[], style_ref='marker', color_ref="black", list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3):
+def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title="", is_logY=0, do_ratio=1, output_path="./", hist_ref_stat=0, text_list=[], style_ref='marker', color_ref="black", list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3,limY=None):
 
   hist_ref_arrays = get_histarray(hist_ref)
   hist_ref_stat_arrays = get_histarray(hist_ref_stat)
@@ -253,9 +399,8 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
     axs = axs.flatten()
   elif len(hist_ref_arrays) == 1:
     axs = [axs]
-  hep.cms.label('Preliminary', data=False, rlabel="", loc=0, ax = axs[0],fontsize = 20)
+  hep.cms.label('Preliminary', data=True if color_ref=="black" else False, rlabel="", loc=0, ax = axs[0],fontsize = 20)
   hep.cms.lumitext(lumi_text(1.4817568788812e-08), ax = axs[len(hist_ref_arrays)-1])
-
   order_hist_array = list_hist_compare_arrays.copy()
   order_style = list_style_compare.copy()
   order_color = list_color_compare.copy()
@@ -274,47 +419,70 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
   for ihist in range(len(hist_ref_arrays)):
     for (hist_array,style,color,legend) in zip(order_hist_array,order_style,order_color,order_legend):
       draw_array(hist_array.nested_value[ihist], hist_array.nested_error[ihist],hist_array.nested_bins[ihist],style, axs[ihist],color,legend) 
-      axs[ihist].text(.5,.65,latex_root_to_mpl(text_list[ihist]),horizontalalignment='center',transform=axs[ihist].transAxes,fontsize = 'x-small')
+      if len(hist_ref_arrays)>1:
+        axs[ihist].text(.5,.9,latex_root_to_mpl(text_list[ihist]),horizontalalignment='center',transform=axs[ihist].transAxes,fontsize = 'x-small')
       if ihist != len(hist_ref_arrays)-1 and not do_ratio:
         x_ticks = axs[ihist].xaxis.get_major_ticks()
         x_ticks[-2].label1.set_visible(False)
   axs[0].set_ylabel(labelY)
   axs[0].ticklabel_format(axis='y',style='sci',useMathText=True)
-  axs[ihist].legend(facecolor='white', framealpha=0.95)
+  if ihist>0:
+    axs[ihist].legend(facecolor='white', framealpha=0.95,loc='center left', bbox_to_anchor=(1, 0.5))
+  else:
+    axs[ihist].legend(facecolor='white', framealpha=0.95)
   bottom, top = axs[ihist].get_ylim()
+  if limY: top = limY
   axs[ihist].set_yscale('log' if is_logY else 'linear')
   if is_logY:
-    axs[ihist].set_ylim(top = top*50)
+    if top<1e300:
+      axs[ihist].set_ylim(top = top*50)
+    else:
+      axs[ihist].set_ylim(top = 1e6)
   else:
-    axs[ihist].set_ylim(top = top*1.5, bottom = max(bottom,0))
+    print(top,bottom)
+    if top<1e300:
+      axs[ihist].set_ylim(top = top*1.5, bottom = max(bottom,0))
+      print(axs[ihist].get_ylim())
+    else:
+      axs[ihist].set_ylim(top = 1e6)
+  axs[0].yaxis.get_offset_text().set_x(-0.05*ihist-0.055)
   if do_ratio:
     order_hist_array_ratio = [hist_compare_arrays / hist_ref_arrays for hist_compare_arrays in list_hist_compare_arrays]
     order_style_ratio = ["fillederror" if style_compare == "filled" else style_compare for style_compare in list_style_compare ]
     order_color_ratio = list_color_compare.copy()
+    order_legend_ratio = [None] * len(list_hist_compare_arrays)
     order_hist_array_ratio.insert(0,hist_ref_arrays / hist_ref_arrays)
-    order_style_ratio.insert(0,"fillederror")
+    order_style_ratio.insert(0,"fillederror" if "line" not in style_ref else style_ref)
     order_color_ratio.insert(0,"darkgrey")
+    order_legend_ratio.insert(0,r'stat.$\bigoplus$sys. unc.')
     if hist_ref_stat_arrays is not None:
-      order_hist_array_ratio.insert(1,hist_ref_stat_arrays / hist_ref_arrays)
+      order_hist_array_ratio.insert(1,hist_ref_stat_arrays.errorratio(hist_ref_arrays))
       order_style_ratio.insert(1,"fillederror")
       order_color_ratio.insert(1,"dimgray")
+      order_legend_ratio.insert(1,r'stat. unc.')
     for iratio in range(len(hist_ref_arrays)):
-      for (hist_array,style,color) in zip(order_hist_array_ratio,order_style_ratio,order_color_ratio):
-        draw_array(hist_array.nested_value[iratio], hist_array.nested_error[iratio],hist_array.nested_bins[iratio],style, axs[iratio+len(hist_ref_arrays)],color,None)
+      for (hist_array,style,color,legend) in zip(order_hist_array_ratio,order_style_ratio,order_color_ratio,order_legend_ratio):
+        draw_array(hist_array.nested_value[iratio], hist_array.nested_error[iratio],hist_array.nested_bins[iratio],style, axs[iratio+len(hist_ref_arrays)],color,legend)
         if iratio != len(hist_ref_arrays)-1:
           x_ticks = axs[iratio+len(hist_ref_arrays)].xaxis.get_major_ticks()
           x_ticks[-2].label1.set_visible(False)
     axs[len(hist_ref_arrays)].set_ylabel(label_ratio)
+    if hist_ref_stat_arrays is not None:
+      if iratio>0:
+        axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=1,loc='center left',bbox_to_anchor=(1, 0.5))
+      else:
+        axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=2)
   axs[len(axs)-1].set_xlabel(latex_root_to_mpl(title))
   axs[len(axs)-1].set_xlim(left = hist_ref_arrays.nested_bins[0][0], right = hist_ref_arrays.nested_bins[0][-1])
-  ratio_bottom, ratio_top = axs[len(axs)-1].get_ylim()
-  ratio_range_sym = max(1.0-ratio_bottom,ratio_top-1.0)
-  ratio_bottom_sym, ratio_top_sym = 1.0-ratio_range_sym, 1.0+ratio_range_sym
-  axs[len(axs)-1].set_ylim(bottom = max(0,ratio_bottom_sym), top = ratio_top_sym)
+  if do_ratio:
+    ratio_bottom, ratio_top = axs[len(axs)-1].get_ylim()
+    ratio_range_sym = max(1.0-ratio_bottom,ratio_top-1.0)
+    ratio_bottom_sym, ratio_top_sym = 1.0-ratio_range_sym, 1.0+ratio_range_sym
+    axs[len(axs)-1].set_ylim(bottom = max(0,ratio_bottom_sym), top = ratio_top_sym)
   plt.subplots_adjust(wspace=0, hspace=0)
   if is_logY:
     output_path += "_logy"
-  plt.savefig(output_path + '.pdf')
-  plt.savefig(output_path + '.png')
+  plt.savefig(output_path + '.pdf',bbox_inches="tight")
+  plt.savefig(output_path + '.png',bbox_inches="tight")
   plt.close()
 

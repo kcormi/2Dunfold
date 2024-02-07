@@ -17,117 +17,903 @@ binnings:
         gen: 
             edges: &np_fine_bin_gen [3.0,5.0,8.0,11.0,15.0,20.0,27.0,34.0,43.0,54.0,65.0,80.0,98.0,120.0,250.0]
 
+    nparticle_fine2:
+        reco:
+            edges: &np_fine2_bin_reco [3.0,5.0,8.0,11.0,15.0,18.0,21.0,24.0,27.0,30.0,34.0,38.0,42.0,46.0,50.0,55.0,60.0,65.0,70.0,80.0,98.0,120.0,250.0]
+        gen:
+            edges: &np_fine2_bin_gen [3.0,5.0,8.0,11.0,15.0,18.0,21.0,24.0,27.0,30.0,34.0,38.0,42.0,46.0,50.0,55.0,60.0,65.0,70.0,80.0,98.0,120.0,250.0]
+
+    nparticle_coarse_min4:
+        reco:
+            edges: &np_coarse_min4_bin_reco  [ 4., 160. ]
+        gen:
+            edges: &np_coarse_min4_bin_gen [ 4., 140. ]
+
+    nparticle_coarse_min5:
+        reco:
+            edges: &np_coarse_min5_bin_reco  [ 5., 160. ]
+        gen:
+            edges: &np_coarse_min5_bin_gen [ 5., 140. ]
+
+    nparticle_coarse_min6:
+        reco:
+            edges: &np_coarse_min6_bin_reco  [ 6., 160. ]
+        gen:
+            edges: &np_coarse_min6_bin_gen [ 6., 140. ]
+
+    nparticle_coarse_min7:
+        reco:
+            edges: &np_coarse_min7_bin_reco  [7., 160. ]
+        gen:
+            edges: &np_coarse_min7_bin_gen [ 7., 140. ]
+
+    nparticle_coarse_min8:
+        reco:
+            edges: &np_coarse_min8_bin_reco  [8., 160. ]
+        gen:
+            edges: &np_coarse_min8_bin_gen [ 8., 140. ]
+
+    nparticle_coarse_min9:
+        reco:
+            edges: &np_coarse_min9_bin_reco  [9., 160. ]
+        gen:
+            edges: &np_coarse_min9_bin_gen [ 9., 140. ]
+
+    nparticle_coarse_min10:
+        reco:
+            edges: &np_coarse_min10_bin_reco  [10., 160. ]
+        gen:
+            edges: &np_coarse_min10_bin_gen [ 10., 140. ]
+
+    spherocity_default:
+        reco:
+            edges: &np_spherocity_bin_default_reco [0,0.02,0.04,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.202,0.215,0.228,0.241,0.254,0.267,0.28,0.294,0.31,0.326,0.344,0.363,0.386,0.41,0.436,0.465,0.5,0.55,0.6,0.67,0.75,1.0]
+        gen:
+            edges: &np_spherocity_bin_default_gen [0.0,0.06,0.12,0.18,0.24,0.3,0.36,0.42,0.48,0.56,0.64,0.72,1.0]
+
+    spherocity_sym:
+        reco:
+            edges: &np_spherocity_bin_sym_reco [0.0,0.06,0.12,0.18,0.24,0.3,0.36,0.42,0.48,0.56,0.64,0.72,1.0]
+        gen:
+            edges: &np_spherocity_bin_sym_gen [0.0,0.06,0.12,0.18,0.24,0.3,0.36,0.42,0.48,0.56,0.64,0.72,1.0]
+
+    spherocity_coarse:
+        reco:
+            edges: &np_spherocity_bin_coarse_reco [0.0,0.126,0.19,0.26,0.36,1.0]
+        gen:
+            edges: &np_spherocity_bin_coarse_gen [0.0,0.124,0.19,0.26,0.36,1.0]
+
+    thrust_default:
+        reco:
+            edges: &np_thrust_bin_default_reco [0,0.035,0.055,0.064,0.07,0.076,0.082,0.086,0.09,0.094,0.098,0.101,0.103,0.105,0.107,0.109,0.111,0.113,0.115,0.117,0.119,0.121,0.123,0.125,0.127,0.129,0.131,0.133,0.135,0.137,0.139,0.141,0.143,0.145,0.147,0.149,0.151,0.153,0.155,0.157,0.159,0.161,0.163,0.165,0.167,0.169,0.171,0.173,0.175,0.177,0.179,0.181,0.183,0.185,0.187,0.189,0.191,0.193,0.195,0.197,0.199,0.202,0.206,0.21,0.214,0.218,0.223,0.23,0.25,0.26,0.28,0.3,0.325,0.35,0.45]
+        gen:
+            edges: &np_thrust_bin_default_gen [0.0,0.05,0.1,0.15,0.2,0.25,0.3,0.45]
+
+    thrust_sym:
+        reco:
+            edges: &np_thrust_bin_sym_reco [0.0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.15,0.17,0.19,0.21,0.25,0.3,0.45]
+        gen:
+            edges: &np_thrust_bin_sym_gen [0.0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.15,0.17,0.19,0.21,0.25,0.3,0.45]
+
+    thrust_coarse:
+        reco:
+            edges: &np_thrust_bin_coarse_reco [0.0, 0.099, 0.139, 0.176, 0.223, 0.45]
+        gen:
+            edges: &np_thrust_bin_coarse_gen [0.0, 0.098, 0.138, 0.175, 0.222, 0.45]
+
+    broadening_default:
+        reco:
+            edges: &np_broadening_bin_default_reco [0,0.02,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.105,0.11,0.114,0.118,0.122,0.126,0.13,0.133,0.136,0.138,0.14,0.142,0.144,0.146,0.148,0.15,0.152,0.154,0.156,0.158,0.16,0.162,0.164,0.166,0.168,0.17,0.172,0.173,0.174,0.175,0.176,0.177,0.178,0.179,0.180,0.181,0.182,0.183,0.184,0.185,0.186,0.187,0.188,0.19,0.191,0.192,0.193,0.194,0.195,0.196,0.197,0.198,0.199,0.2,0.202,0.204,0.206,0.208,0.21,0.212,0.214,0.216,0.218,0.22,0.223,0.226,0.23,0.235,0.24,0.25,0.26,0.27,0.28,0.3,0.34,0.4]
+        gen:
+            edges: &np_broadening_bin_default_gen [0,0.08,0.13,0.19,0.25,0.31,0.4]
+
+    broadening_sym:
+        reco:
+            edges: &np_broadening_bin_sym_reco [0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.22,0.25,0.28,0.31,0.4]
+        gen:
+            edges: &np_broadening_bin_sym_gen [0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.22,0.25,0.28,0.31,0.4]
+
+    broadening_coarse:
+        reco:
+            edges: &np_broadening_bin_coarse_reco [0.0,0.172,0.197,0.225,0.258,0.4]
+        gen:
+            edges: &np_broadening_bin_coarse_gen [0.0,0.161,0.196,0.224,0.258,0.4]
+
+    transverse_spherocity_default:
+        reco:
+            edges: &np_transverse_spherocity_bin_default_reco [0,0.05,0.1,0.15,0.2,0.23,0.26,0.29,0.32,0.35,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.78,0.8,0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.97,1.0]
+        gen:
+            edges: &np_transverse_spherocity_bin_default_gen [0.0,0.15,0.3,0.45,0.6,0.75,0.875,1.0]
+
+    transverse_spherocity_sym:
+        reco:
+            edges: &np_transverse_spherocity_bin_sym_reco [0,0.05,0.1,0.15,0.2,0.23,0.26,0.29,0.32,0.35,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.78,0.8,0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.97,1.0]
+        gen:
+            edges: &np_transverse_spherocity_bin_sym_gen [0,0.05,0.1,0.15,0.2,0.23,0.26,0.29,0.32,0.35,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.78,0.8,0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.97,1.0]
+
+    transverse_spherocity_coarse:
+        reco:
+            edges: &np_transverse_spherocity_bin_coarse_reco [0.0,0.317,0.468,0.591,0.711,1.0]
+        gen:
+            edges: &np_transverse_spherocity_bin_coarse_gen [0.0,0.311,0.462,0.586,0.708,1.0]
+
+    transverse_thrust_default:
+        reco:
+            edges: &np_transverse_thrust_bin_default_reco [0,0.06,0.08,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.195,0.2,0.205,0.21,0.215,0.22,0.225,0.23,0.235,0.24,0.245,0.25,0.255,0.26,0.265,0.27,0.275,0.28,0.285,0.29,0.295,0.3,0.306,0.31,0.32,0.34,0.4]
+        gen:
+            edges: &np_transverse_thrust_bin_default_gen [0,0.15,0.2,0.25,0.3,0.35,0.4]
+
+    transverse_thrust_sym:
+        reco:
+            edges: &np_transverse_thrust_bin_sym_reco [0,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.195,0.205,0.215,0.225,0.235,0.245,0.255,0.265,0.275,0.285,0.295,0.31,0.33,0.35,0.4]
+        gen:
+            edges: &np_transverse_thrust_bin_sym_gen [0,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.195,0.205,0.215,0.225,0.235,0.245,0.255,0.265,0.275,0.285,0.295,0.31,0.33,0.35,0.4]
+
+    transverse_thrust_coarse:
+        reco:
+            edges: &np_transverse_thrust_bin_coarse_reco [0.0,0.141,0.196,0.238,0.277,0.4]
+        gen:
+            edges: &np_transverse_thrust_bin_coarse_gen [0.0,0.139,0.195,0.237,0.277,0.4]
+
+    isotropy_default:
+        reco:
+            edges: &np_isotropy_bin_default_reco [0.1,0.2,0.3,0.35,0.4,0.425,0.45,0.475,0.5,0.525,0.55,0.575,0.6,0.625,0.65,0.675,0.7,0.725,0.75,0.775,0.8,0.85,0.9,0.95,1.0]
+        gen:
+            edges: &np_isotropy_bin_default_gen [0.0,0.25,0.35,0.45,0.55,0.65,0.75,0.85,1.0]
+
+    isotropy_sym:
+        reco:
+            edges: &np_isotropy_bin_sym_reco [0.1,0.2,0.3,0.35,0.4,0.425,0.45,0.475,0.5,0.525,0.55,0.575,0.6,0.625,0.65,0.675,0.7,0.725,0.75,0.775,0.8,0.85,0.9,0.95,1.0]
+        gen:
+            edges: &np_isotropy_bin_sym_gen [0.1,0.2,0.3,0.35,0.4,0.425,0.45,0.475,0.5,0.525,0.55,0.575,0.6,0.625,0.65,0.675,0.7,0.725,0.75,0.775,0.8,0.85,0.9,0.95,1.0]
+
+    isotropy_coarse:
+        reco:
+            edges: &np_isotropy_bin_coarse_reco [0.0,0.38,0.458,0.544,0.659,1.0]
+        gen:
+            edges: &np_isotropy_bin_coarse_gen [0.0,0.38,0.46,0.548,0.668,1.0]
+
+    nparticle_dim1_2D_sym:
+        reco:
+            edges: &np_dim1_2D_bin_sym_reco [3.0,10.0,30.0,50.0,80.0,160.0]
+        gen:
+            edges: &np_dim1_2D_bin_sym_gen [3.0,10.0,30.0,50.0,80.0,160.0]
+
+    mass_default:
+        reco:
+            edges: &np_mass_bin_default_reco [0.0,10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0,90.0,100.0,120.0,140.0,160.0,180.0,200.0,250.0,300.0,350.0,400.0,450.0,500.0,550.0,600.0]
+        gen:
+            edges: &np_mass_bin_default_gen [0.0,10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0,90.0,100.0,120.0,140.0,160.0,180.0,200.0,250.0,300.0,350.0,400.0,450.0,500.0]
+
+    mass_sym:
+        reco:
+            edges: &np_mass_bin_sym_reco [0.0,10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0,90.0,100.0,120.0,140.0,160.0,180.0,200.0,250.0,300.0,350.0,400.0,450.0,500.0]
+        gen:
+            edges: &np_mass_bin_sym_gen [0.0,10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0,90.0,100.0,120.0,140.0,160.0,180.0,200.0,250.0,300.0,350.0,400.0,450.0,500.0]
+
+    1jettiness_default:
+        reco:
+            edges: &np_1jettiness_bin_default_reco [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,120.0,130.0,140.0,150.0,160.0,170.0,180.0,190.0,200.0,220.0,250.0,400.0]
+        gen:
+            edges: &np_1jettiness_bin_default_gen [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,120.0,130.0,140.0,150.0,160.0,170.0,180.0,190.0,200.0,220.0,250.0,400.0]
+
+    2jettiness_default:
+        reco:
+            edges: &np_2jettiness_bin_default_reco [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,120.0,130.0,140.0,150.0,160.0,170.0,180.0,190.0,200.0,220.0,250.0,400.0]
+        gen:
+            edges: &np_2jettiness_bin_default_gen [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,120.0,130.0,140.0,150.0,160.0,170.0,180.0,190.0,200.0,220.0,250.0,400.0]
+
+    3jettiness_default:
+        reco:
+            edges: &np_3jettiness_bin_default_reco [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,120.0,135.0,150.0,170.0,250.0]
+        gen:
+            edges: &np_3jettiness_bin_default_gen [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,120.0,135.0,150.0,170.0,250.0]
+
+    4jettiness_default:
+        reco:
+            edges: &np_4jettiness_bin_default_reco [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,120.0,135.0,200.0]
+        gen:
+            edges: &np_4jettiness_bin_default_gen [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,120.0,135.0,200.0]
+
+    5jettiness_default:
+        reco:
+            edges: &np_5jettiness_bin_default_reco [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,120.0,180.0]
+        gen:
+            edges: &np_5jettiness_bin_default_gen [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,120.0,180.0]
+
+    6jettiness_default:
+        reco:
+            edges: &np_6jettiness_bin_default_reco [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,150.0]
+        gen:
+            edges: &np_6jettiness_bin_default_gen [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,110.0,150.0]
+
+    7jettiness_default:
+        reco:
+            edges: &np_7jettiness_bin_default_reco [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,150.0]
+        gen:
+            edges: &np_7jettiness_bin_default_gen [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,100.0,150.0]
+
+    8jettiness_default:
+        reco:
+            edges: &np_8jettiness_bin_default_reco [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,125.0]
+        gen:
+            edges: &np_8jettiness_bin_default_gen [0.0,2.0,4.0,6.0,8.0,10.0,12.0,14.0,16.0,18.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,90.0,125.0]
+
+    21jettiness_default:
+        reco:
+            edges: &np_21jettiness_bin_default_reco [0.0,0.1,0.15,0.2,0.25,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.85,1.0]
+        gen:
+            edges: &np_21jettiness_bin_default_gen [0.0,0.1,0.15,0.2,0.25,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.85,1.0]
+
+    32jettiness_default:
+        reco:
+            edges: &np_32jettiness_bin_default_reco [0.0,0.2,0.25,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,1.0]
+        gen:
+            edges: &np_32jettiness_bin_default_gen [0.0,0.2,0.25,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,1.0]
+
+    43jettiness_default:
+        reco:
+            edges: &np_43jettiness_bin_default_reco [0.0,0.2,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,1.1]
+        gen:
+            edges: &np_43jettiness_bin_default_gen [0.0,0.2,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,1.1]
+
+    54jettiness_default:
+        reco:
+            edges: &np_54jettiness_bin_default_reco [0.0,0.2,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,0.95,1.2]
+        gen:
+            edges: &np_54jettiness_bin_default_gen [0.0,0.2,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,0.95,1.2]
+
+    65jettiness_default:
+        reco:
+            edges: &np_65jettiness_bin_default_reco [0.0,0.2,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,0.95,1.2]
+        gen:
+            edges: &np_65jettiness_bin_default_gen [0.0,0.2,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,0.95,1.2]
+
+    76jettiness_default:
+        reco:
+            edges: &np_76jettiness_bin_default_reco [0.0,0.2,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,0.95,1.2]
+        gen:
+            edges: &np_76jettiness_bin_default_gen [0.0,0.2,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,0.95,1.2]
+
+    87jettiness_default:
+        reco:
+            edges: &np_87jettiness_bin_default_reco [0.0,0.2,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,0.95,1.2]
+        gen:
+            edges: &np_87jettiness_bin_default_gen [0.0,0.2,0.3,0.34,0.38,0.42,0.46,0.5,0.54,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.8,0.82,0.84,0.86,0.9,0.95,1.2]
+
+    82jettiness_default:
+        reco:
+            edges: &np_82jettiness_bin_default_reco [0.0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.22,0.24,0.26,0.28,0.3,0.32,0.34,0.36,0.38,0.4,0.43,0.46,0.5]
+        gen:
+            edges: &np_82jettiness_bin_default_gen [0.0,0.02,0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.22,0.24,0.26,0.28,0.3,0.32,0.34,0.36,0.38,0.4,0.43,0.46,0.5]
+
+    84jettiness_default:
+        reco:
+            edges: &np_84jettiness_bin_default_reco [0.0,0.06,0.1,0.12,0.14,0.16,0.18,0.2,0.22,0.24,0.26,0.28,0.3,0.32,0.34,0.36,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.64,0.68,0.72,0.8]
+        gen:
+            edges: &np_84jettiness_bin_default_gen [0.0,0.06,0.1,0.12,0.14,0.16,0.18,0.2,0.22,0.24,0.26,0.28,0.3,0.32,0.34,0.36,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.64,0.68,0.72,0.8]
+
+    42jettiness_default:
+        reco:
+            edges: &np_42jettiness_bin_default_reco [0.0,0.05,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.22,0.24,0.26,0.28,0.3,0.32,0.34,0.36,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.73,0.76,0.8,0.9]
+        gen:
+            edges: &np_42jettiness_bin_default_gen [0.0,0.05,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.22,0.24,0.26,0.28,0.3,0.32,0.34,0.36,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.73,0.76,0.8,0.9]
+
+    chjet_deltaR_default:
+        reco:
+            edges: &np_chjet_deltaR_bin_default_reco [0.0,0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0,3.15]
+        gen:
+            edges: &np_chjet_deltaR_bin_default_gen [0.0,0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0,3.15]
+
+    chjet_deltaphi_default:
+        reco:
+            edges: &np_chjet_deltaphi_bin_default_reco [0.0,0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0,3.15]
+        gen:
+            edges: &np_chjet_deltaphi_bin_default_gen [0.0,0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0,3.15]
+
 nparticle:
     reco:
-        name: "N_{tracks} (high purity, pt>0.5GeV)"
+        name: "N_{tracks}"
         shortname: "N_{tracks}"
         root_var: "Instanton_N_Trk_highPurity_pt05"
         np_var: "reco_ntrk"
         edges: *np_coarse_bin_reco
     gen:
-        name: "N_{ch} (|#eta|<2.4, pt>0.5)"
+        name: "N_{ch}"
         shortname: "N_{ch}"
         root_var: "Instanton_N_gen_ChargedFSParticle_eta2p4pt05"
         np_var: "gen_nch"
         edges: *np_coarse_bin_gen
 
+nparticle_eta05:
+    reco:
+        name: "N_{tracks} (high purity, |#eta|<0.5 pt>0.5GeV)"
+        shortname: "N_{tracks}"
+        root_var: "Instanton_N_Trk_highPurity_eta05pt05"
+        np_var: "reco_ntrk_eta05"
+        edges: *np_fine_bin_reco
+    gen:
+        name: "N_{ch} (|#eta|<0.5, pt>0.5)"
+        shortname: "N_{ch}"
+        root_var: "Instanton_N_gen_ChargedFSParticle_eta05pt05"
+        np_var: "gen_nch_eta05"
+        edges: *np_fine_bin_gen
+
+nparticle_eta05to1:
+    reco:
+        name: "N_{tracks} (high purity, 0.5<|#eta|<1 pt>0.5GeV)"
+        shortname: "N_{tracks}"
+        root_var: "Instanton_N_Trk_highPurity_eta05to1pt05"
+        np_var: "reco_ntrk_eta05to1"
+        edges: *np_fine_bin_reco
+    gen:
+        name: "N_{ch} (0.5<|#eta|<1, pt>0.5)"
+        shortname: "N_{ch}"
+        root_var: "Instanton_N_gen_ChargedFSParticle_eta05to1pt05"
+        np_var: "gen_nch_eta05to1"
+        edges: *np_fine_bin_gen
+
+nparticle_eta1to1p5:
+    reco:
+        name: "N_{tracks} (high purity, 1<|#eta|<1.5 pt>0.5GeV)"
+        shortname: "N_{tracks}"
+        root_var: "Instanton_N_Trk_highPurity_eta1to1p5pt05"
+        np_var: "reco_ntrk_eta1to1p5"
+        edges: *np_fine_bin_reco
+    gen:
+        name: "N_{ch} (1<|#eta|<1.5, pt>0.5)"
+        shortname: "N_{ch}"
+        root_var: "Instanton_N_gen_ChargedFSParticle_eta1to1p5pt05"
+        np_var: "gen_nch_eta1to1p5"
+        edges: *np_fine_bin_gen
+
+nparticle_eta1p5to2:
+    reco:
+        name: "N_{tracks} (high purity, 1.5<|#eta|<2 pt>0.5GeV)"
+        shortname: "N_{tracks}"
+        root_var: "Instanton_N_Trk_highPurity_eta1p5to2pt05"
+        np_var: "reco_ntrk_eta1p5to2"
+        edges: *np_fine_bin_reco
+    gen:
+        name: "N_{ch} (1.5<|#eta|<2, pt>0.5)"
+        shortname: "N_{ch}"
+        root_var: "Instanton_N_gen_ChargedFSParticle_eta1p5to2pt05"
+        np_var: "gen_nch_eta1p5to2"
+        edges: *np_fine_bin_gen
+
+nparticle_eta2to2p4:
+    reco:
+        name: "N_{tracks} (high purity, 2<|#eta|<2.4 pt>0.5GeV)"
+        shortname: "N_{tracks}"
+        root_var: "Instanton_N_Trk_highPurity_eta2to2p4pt05"
+        np_var: "reco_ntrk_eta2to2p4"
+        edges: *np_fine_bin_reco
+    gen:
+        name: "N_{ch} (2<|#eta|<2.4, pt>0.5)"
+        shortname: "N_{ch}"
+        root_var: "Instanton_N_gen_ChargedFSParticle_eta2to2p4pt05"
+        np_var: "gen_nch_eta2to2p4"
+        edges: *np_fine_bin_gen
+
 mass:
      reco:
-        name: "#sqrt{s_{tracks}} (high purity, pt>0.5 GeV)"
+        name: "#sqrt{s_{tracks}}"
         root_var: "Instanton_Trk_Purity_pt05_mass"
         np_var: "reco_mass"
         shortname: "#sqrt{s_{tracks}}"
-        edges: [0.0,10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0,90.0,100.0,120.0,140.0,160.0,180.0,200.0,250.0,300.0,350.0,400.0,450.0,500.0,550.0,600.0]
+        edges: *np_mass_bin_default_reco
 
      gen:
-        name: "#sqrt{s_{ch}} (|#eta|<2.4, pt>0.5 GeV)"
+        name: "#sqrt{s_{ch}}"
         root_var: "Instanton_gen_mass_eta2p4pt05"
         np_var: "gen_mass"
         shortname: "#sqrt{s_{ch}}"
-        edges: [0.0,10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0,90.0,100.0,120.0,140.0,160.0,180.0,200.0,250.0,300.0,350.0,400.0,450.0,500.0]
+        edges: *np_mass_bin_default_gen
 
 
 spherocity:
      reco:
-        name: "S_{tracks} (high purity, pt>0.5 GeV)"
+        name: "S_{tracks}"
         root_var: "Instanton_Trk_spherocity"
+        shortname: "S_{tracks}"
         np_var: "reco_spherocity"
-        edges: [0,0.02,0.04,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.202,0.215,0.228,0.241,0.254,0.267,0.28,0.294,0.31,0.326,0.344,0.363,0.386,0.41,0.436,0.465,0.5,0.55,0.6,0.67,0.75,1.0]
+        edges: *np_spherocity_bin_default_reco
      gen:
-        name: "S_{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        name: "S_{ch}"
         root_var: "Instanton_gen_spherocity_eta2p4pt05"
+        shortname: "S_{ch}"
         np_var: "gen_spherocity"
-        edges: [0.0,0.06,0.12,0.18,0.24,0.3,0.36,0.42,0.48,0.56,0.64,0.72,1.0]
+        edges: *np_spherocity_bin_default_gen
 
 transverse_spherocity:
      reco:
-        name: "S_{T}^{tracks} (high purity, pt>0.5 GeV, |#eta|<2.4)"
+        name: "S_{T}^{tracks}"
         root_var: "Instanton_Trk_transversespherocity"
         shortname: "S_T^{tracks}"
         np_var: "reco_transversespherocity"
-        edges: [0,0.05,0.1,0.15,0.2,0.23,0.26,0.29,0.32,0.35,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.78,0.8,0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.97,1.0]
+        edges: *np_transverse_spherocity_bin_default_reco
      gen:
-        name: "S_{T}^{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        name: "S_{T}^{ch}"
         root_var: "Instanton_gen_transversespherocity_eta2p4pt05"
         shortname: "S_T^{ch}"
         np_var: "gen_transversespherocity"
+        edges: *np_transverse_spherocity_bin_default_gen
+
+transverse_spherocity_eta05:
+     reco:
+        name: "S_{T}^{tracks} (high purity, pt>0.5 GeV, |#eta|<0.5)"
+        root_var: "Instanton_Trk_transversespherocity_eta05"
+        shortname: "S_T^{tracks}"
+        np_var: "reco_transversespherocity_eta05"
+        edges: [0,0.05,0.1,0.15,0.2,0.23,0.26,0.29,0.32,0.35,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.78,0.8,0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.97,1.0]
+     gen:
+        name: "S_{T}^{ch} (|#eta|<0.5, pt>0.5 GeV)"
+        root_var: "Instanton_gen_transversespherocity_eta05pt05"
+        shortname: "S_T^{ch}"
+        np_var: "gen_transversespherocity_eta05"
+        edges: [0.0,0.15,0.3,0.45,0.6,0.75,0.875,1.0]
+
+transverse_spherocity_eta05to1:
+     reco:
+        name: "S_{T}^{tracks} (high purity, pt>0.5 GeV, 0.5<|#eta|<1)"
+        root_var: "Instanton_Trk_transversespherocity_eta05to1"
+        shortname: "S_T^{tracks}"
+        np_var: "reco_transversespherocity_eta05to1"
+        edges: [0,0.05,0.1,0.15,0.2,0.23,0.26,0.29,0.32,0.35,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.78,0.8,0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.97,1.0]
+     gen:
+        name: "S_{T}^{ch} (0.5<|#eta|<1, pt>0.5 GeV)"
+        root_var: "Instanton_gen_transversespherocity_eta05to1pt05"
+        shortname: "S_T^{ch}"
+        np_var: "gen_transversespherocity_eta05to1"
+        edges: [0.0,0.15,0.3,0.45,0.6,0.75,0.875,1.0]
+
+transverse_spherocity_eta1to1p5:
+     reco:
+        name: "S_{T}^{tracks} (high purity, pt>0.5 GeV, 1<|#eta|<1.5)"
+        root_var: "Instanton_Trk_transversespherocity_eta1to1p5"
+        shortname: "S_T^{tracks}"
+        np_var: "reco_transversespherocity_eta1to1p5"
+        edges: [0,0.05,0.1,0.15,0.2,0.23,0.26,0.29,0.32,0.35,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.78,0.8,0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.97,1.0]
+     gen:
+        name: "S_{T}^{ch} (1<|#eta|<1.5, pt>0.5 GeV)"
+        root_var: "Instanton_gen_transversespherocity_eta05to1pt05"
+        shortname: "S_T^{ch}"
+        np_var: "gen_transversespherocity_eta05to1"
+        edges: [0.0,0.15,0.3,0.45,0.6,0.75,0.875,1.0]
+
+transverse_spherocity_eta1p5to2:
+     reco:
+        name: "S_{T}^{tracks} (high purity, pt>0.5 GeV, 1.5<|#eta|<2)"
+        root_var: "Instanton_Trk_transversespherocity_eta1p5to2"
+        shortname: "S_T^{tracks}"
+        np_var: "reco_transversespherocity_eta1p5to2"
+        edges: [0,0.05,0.1,0.15,0.2,0.23,0.26,0.29,0.32,0.35,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.78,0.8,0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.97,1.0]
+     gen:
+        name: "S_{T}^{ch} (1.5<|#eta|<2, pt>0.5 GeV)"
+        root_var: "Instanton_gen_transversespherocity_eta1p5to2pt05"
+        shortname: "S_T^{ch}"
+        np_var: "gen_transversespherocity_eta1p5to2"
+        edges: [0.0,0.15,0.3,0.45,0.6,0.75,0.875,1.0]
+
+transverse_spherocity_eta2to2p4:
+     reco:
+        name: "S_{T}^{tracks} (high purity, pt>0.5 GeV, 2<|#eta|<2.4)"
+        root_var: "Instanton_Trk_transversespherocity_eta2to2p4"
+        shortname: "S_T^{tracks}"
+        np_var: "reco_transversespherocity_eta2to2p4"
+        edges: [0,0.05,0.1,0.15,0.2,0.23,0.26,0.29,0.32,0.35,0.38,0.4,0.42,0.44,0.46,0.48,0.5,0.52,0.54,0.56,0.58,0.6,0.62,0.64,0.66,0.68,0.7,0.72,0.74,0.76,0.78,0.8,0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.97,1.0]
+     gen:
+        name: "S_{T}^{ch} (2<|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_transversespherocity_eta2to2p4pt05"
+        shortname: "S_T^{ch}"
+        np_var: "gen_transversespherocity_eta2to2p4"
         edges: [0.0,0.15,0.3,0.45,0.6,0.75,0.875,1.0]
 
 thrust:
      reco:
-        name: "T_{tracks} (high purity, pt>0.5 GeV)"
+        name: "T_{tracks}"
         root_var: "Instanton_Trk_thrust"
         np_var: "reco_thrust"
         shortname: "T_{tracks}"
-        edges: [0,0.035,0.055,0.064,0.07,0.076,0.082,0.086,0.09,0.094,0.098,0.101,0.103,0.105,0.107,0.109,0.111,0.113,0.115,0.117,0.119,0.121,0.123,0.125,0.127,0.129,0.131,0.133,0.135,0.137,0.139,0.141,0.143,0.145,0.147,0.149,0.151,0.153,0.155,0.157,0.159,0.161,0.163,0.165,0.167,0.169,0.171,0.173,0.175,0.177,0.179,0.181,0.183,0.185,0.187,0.189,0.191,0.193,0.195,0.197,0.199,0.202,0.206,0.21,0.214,0.218,0.223,0.23,0.25,0.26,0.28,0.3,0.325,0.35,0.45]
+        edges: *np_thrust_bin_default_reco
 
      gen:
-        name: "T_{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        name: "T_{ch}"
         root_var: "Instanton_gen_thrust_eta2p4pt05"
         np_var: "gen_thrust"
         shortname: "T_{ch}"
-        edges: [0.0,0.05,0.1,0.15,0.2,0.25,0.3,0.45]
+        edges: *np_thrust_bin_default_gen
 
 transverse_thrust:
      reco:
-        name: "T_{T}^{tracks} (high purity, pt>0.5 GeV)"
+        name: "T_{T}^{tracks}"
         root_var: "Instanton_Trk_transversethrust"
         np_var: "reco_transversethrust"
         shortname: "T_T^{tracks}"
-        edges: [0,0.06,0.08,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.195,0.2,0.205,0.21,0.215,0.22,0.225,0.23,0.235,0.24,0.245,0.25,0.255,0.26,0.265,0.27,0.275,0.28,0.285,0.29,0.295,0.3,0.306,0.31,0.32,0.34,0.4]
+        edges: *np_transverse_thrust_bin_default_reco
      gen:
-        name: "T_{T}^{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        name: "T_{T}^{ch}"
         root_var: "Instanton_gen_transversethrust_eta2p4pt05"
         np_var: "gen_transversethrust"
+        shortname: "T_T^{ch}"
+        edges: *np_transverse_thrust_bin_default_gen
+
+transverse_thrust_eta05:
+     reco:
+        name: "T_{T}^{tracks} (high purity, pt>0.5 GeV, |#eta|<0.5)"
+        root_var: "Instanton_Trk_transversethrust_eta05"
+        np_var: "reco_transversethrust_eta05"
+        shortname: "T_T^{tracks}"
+        edges: [0,0.06,0.08,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.195,0.2,0.205,0.21,0.215,0.22,0.225,0.23,0.235,0.24,0.245,0.25,0.255,0.26,0.265,0.27,0.275,0.28,0.285,0.29,0.295,0.3,0.306,0.31,0.32,0.34,0.4]
+     gen:
+        name: "T_{T}^{ch} (|#eta|<0.5, pt>0.5 GeV)"
+        root_var: "Instanton_gen_transversethrust_eta05pt05"
+        np_var: "gen_transversethrust_eta05"
+        shortname: "T_T^{ch}"
+        edges: [0,0.15,0.2,0.25,0.3,0.35,0.4]
+
+transverse_thrust_eta05to1:
+     reco:
+        name: "T_{T}^{tracks} (high purity, pt>0.5 GeV, 0.5<|#eta|<1)"
+        root_var: "Instanton_Trk_transversethrust_eta05to1"
+        np_var: "reco_transversethrust_eta05to1"
+        shortname: "T_T^{tracks}"
+        edges: [0,0.06,0.08,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.195,0.2,0.205,0.21,0.215,0.22,0.225,0.23,0.235,0.24,0.245,0.25,0.255,0.26,0.265,0.27,0.275,0.28,0.285,0.29,0.295,0.3,0.306,0.31,0.32,0.34,0.4]
+     gen:
+        name: "T_{T}^{ch} (0.5<|#eta|<1, pt>0.5 GeV)"
+        root_var: "Instanton_gen_transversethrust_eta05to1pt05"
+        np_var: "gen_transversethrust_eta05to1"
+        shortname: "T_T^{ch}"
+        edges: [0,0.15,0.2,0.25,0.3,0.35,0.4]
+
+transverse_thrust_eta1to1p5:
+     reco:
+        name: "T_{T}^{tracks} (high purity, pt>0.5 GeV, 1<|#eta|<1.5)"
+        root_var: "Instanton_Trk_transversethrust_eta1to1p5"
+        np_var: "reco_transversethrust_eta1to1p5"
+        shortname: "T_T^{tracks}"
+        edges: [0,0.06,0.08,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.195,0.2,0.205,0.21,0.215,0.22,0.225,0.23,0.235,0.24,0.245,0.25,0.255,0.26,0.265,0.27,0.275,0.28,0.285,0.29,0.295,0.3,0.306,0.31,0.32,0.34,0.4]
+     gen:
+        name: "T_{T}^{ch} (1<|#eta|<1.5, pt>0.5 GeV)"
+        root_var: "Instanton_gen_transversethrust_eta1to1p5pt05"
+        np_var: "gen_transversethrust_eta1to1p5"
+        shortname: "T_T^{ch}"
+        edges: [0,0.15,0.2,0.25,0.3,0.35,0.4]
+
+transverse_thrust_eta1p5to2:
+     reco:
+        name: "T_{T}^{tracks} (high purity, pt>0.5 GeV, 1.5<|#eta|<2)"
+        root_var: "Instanton_Trk_transversethrust_eta1p5to2"
+        np_var: "reco_transversethrust_eta1p5to2"
+        shortname: "T_T^{tracks}"
+        edges: [0,0.06,0.08,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.195,0.2,0.205,0.21,0.215,0.22,0.225,0.23,0.235,0.24,0.245,0.25,0.255,0.26,0.265,0.27,0.275,0.28,0.285,0.29,0.295,0.3,0.306,0.31,0.32,0.34,0.4]
+     gen:
+        name: "T_{T}^{ch} (1.5<|#eta|<2, pt>0.5 GeV)"
+        root_var: "Instanton_gen_transversethrust_eta1p5to2pt05"
+        np_var: "gen_transversethrust_eta1p5to2"
+        shortname: "T_T^{ch}"
+        edges: [0,0.15,0.2,0.25,0.3,0.35,0.4]
+
+transverse_thrust_eta2to2p4:
+     reco:
+        name: "T_{T}^{tracks} (high purity, pt>0.5 GeV, 2<|#eta|<2.4)"
+        root_var: "Instanton_Trk_transversethrust_eta2to2p4"
+        np_var: "reco_transversethrust_eta2to2p4"
+        shortname: "T_T^{tracks}"
+        edges: [0,0.06,0.08,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.195,0.2,0.205,0.21,0.215,0.22,0.225,0.23,0.235,0.24,0.245,0.25,0.255,0.26,0.265,0.27,0.275,0.28,0.285,0.29,0.295,0.3,0.306,0.31,0.32,0.34,0.4]
+     gen:
+        name: "T_{T}^{ch} (2<|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_transversethrust_eta2to2p4pt05"
+        np_var: "gen_transversethrust_eta2to2p4"
         shortname: "T_T^{ch}"
         edges: [0,0.15,0.2,0.25,0.3,0.35,0.4]
 
 broadening:
      reco:
-        name: "B_{tracks} (high purity, pt>0.5 GeV)"
+        name: "B_{tracks}"
         root_var: "Instanton_Trk_broaden"
         np_var: "reco_broaden"
         shortname: "B_{tracks}"
-        edges: [0,0.02,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.105,0.11,0.114,0.118,0.122,0.126,0.13,0.133,0.136,0.138,0.14,0.142,0.144,0.146,0.148,0.15,0.152,0.154,0.156,0.158,0.16,0.162,0.164,0.166,0.168,0.17,0.172,0.173,0.174,0.175,0.176,0.177,0.178,0.179,0.180,0.181,0.182,0.183,0.184,0.185,0.186,0.187,0.188,0.19,0.191,0.192,0.193,0.194,0.195,0.196,0.197,0.198,0.199,0.2,0.202,0.204,0.206,0.208,0.21,0.212,0.214,0.216,0.218,0.22,0.223,0.226,0.23,0.235,0.24,0.25,0.26,0.27,0.28,0.3,0.34,0.4]
+        edges: *np_broadening_bin_default_reco
      gen:
-        name: "B_{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        name: "B_{ch}"
         root_var: "Instanton_gen_broaden_eta2p4pt05"
         np_var: "gen_broaden"
         shortname: "B_{ch}"
-        edges: [0,0.08,0.13,0.19,0.25,0.31,0.4]
+        edges: *np_broadening_bin_default_gen
 
 isotropy:
      reco:
-        name: "Isotropy^{tracks} (high purity, pt>0.5 GeV)"
+        name: "Isotropy^{tracks}"
         root_var: "isotropy"
-        shortname: "Isotropy^{tracks}"
+        shortname: "Iso^{tracks}"
         np_var: "reco_isotropy"
-        edges: [0.1,0.2,0.3,0.35,0.4,0.425,0.45,0.475,0.5,0.525,0.55,0.575,0.6,0.625,0.65,0.675,0.7,0.725,0.75,0.775,0.8,0.85,0.9,0.95,1.0]
+        edges: *np_isotropy_bin_default_reco
      gen:
-        name: "Isotropy^{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        name: "Isotropy^{ch}"
         root_var: "isotropy_gen"
-        shortname: "Isotropy^{ch}"
+        shortname: "Iso^{ch}"
         np_var: "gen_isotropy"
-        edges: [0.0,0.25,0.35,0.45,0.55,0.65,0.75,0.85,1.0]
+        edges: *np_isotropy_bin_default_gen
 
      require_extra_file: 1
+
+1jettiness:
+     reco:
+        name: "1jettiness_{tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_1Jettiness_Purity_pt05"
+        np_var: "reco_1jettiness"
+        shortname: "1jettiness_{tracks}"
+        edges: *np_1jettiness_bin_default_reco
+     gen:
+        name: "1jettiness_{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_1Jettiness_eta2p4pt05"
+        np_var: "gen_1jettiness"
+        shortname: "1jettiness_{ch}"
+        edges: *np_1jettiness_bin_default_gen
+
+2jettiness:
+     reco:
+        name: "2jettiness_{tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_2Jettiness_Purity_pt05"
+        np_var: "reco_2jettiness"
+        shortname: "2jettiness_{tracks}"
+        edges: *np_2jettiness_bin_default_reco
+     gen:
+        name: "2jettiness_{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_2Jettiness_eta2p4pt05"
+        np_var: "gen_2jettiness"
+        shortname: "2jettiness_{ch}"
+        edges: *np_2jettiness_bin_default_gen
+
+3jettiness:
+     reco:
+        name: "3jettiness_{tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_3Jettiness_Purity_pt05"
+        np_var: "reco_3jettiness"
+        shortname: "3jettiness_{tracks}"
+        edges: *np_3jettiness_bin_default_reco
+     gen:
+        name: "3jettiness_{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_3Jettiness_eta2p4pt05"
+        np_var: "gen_3jettiness"
+        shortname: "3jettiness_{ch}"
+        edges: *np_3jettiness_bin_default_gen
+
+4jettiness:
+     reco:
+        name: "4jettiness_{tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_4Jettiness_Purity_pt05"
+        np_var: "reco_4jettiness"
+        shortname: "4jettiness_{tracks}"
+        edges: *np_4jettiness_bin_default_reco
+     gen:
+        name: "4jettiness_{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_4Jettiness_eta2p4pt05"
+        np_var: "gen_4jettiness"
+        shortname: "4jettiness_{ch}"
+        edges: *np_4jettiness_bin_default_gen
+
+5jettiness:
+     reco:
+        name: "5jettiness_{tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_5Jettiness_Purity_pt05"
+        np_var: "reco_5jettiness"
+        shortname: "5jettiness_{tracks}"
+        edges: *np_5jettiness_bin_default_reco
+     gen:
+        name: "5jettiness_{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_5Jettiness_eta2p4pt05"
+        np_var: "gen_5jettiness"
+        shortname: "5jettiness_{ch}"
+        edges: *np_5jettiness_bin_default_gen
+
+6jettiness:
+     reco:
+        name: "6jettiness_{tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_6Jettiness_Purity_pt05"
+        np_var: "reco_6jettiness"
+        shortname: "6jettiness_{tracks}"
+        edges: *np_6jettiness_bin_default_reco
+     gen:
+        name: "6jettiness_{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_6Jettiness_eta2p4pt05"
+        np_var: "gen_6jettiness"
+        shortname: "6jettiness_{ch}"
+        edges: *np_6jettiness_bin_default_gen
+
+7jettiness:
+     reco:
+        name: "7jettiness_{tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_7Jettiness_Purity_pt05"
+        np_var: "reco_7jettiness"
+        shortname: "7jettiness_{tracks}"
+        edges: *np_7jettiness_bin_default_reco
+     gen:
+        name: "7jettiness_{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_7Jettiness_eta2p4pt05"
+        np_var: "gen_7jettiness"
+        shortname: "7jettiness_{ch}"
+        edges: *np_7jettiness_bin_default_gen
+
+8jettiness:
+     reco:
+        name: "8jettiness_{tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_8Jettiness_Purity_pt05"
+        np_var: "reco_8jettiness"
+        shortname: "8jettiness_{tracks}"
+        edges: *np_8jettiness_bin_default_reco
+     gen:
+        name: "8jettiness_{ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_8Jettiness_eta2p4pt05"
+        np_var: "gen_8jettiness"
+        shortname: "8jettiness_{ch}"
+        edges: *np_8jettiness_bin_default_gen
+
+21jettiness:
+     reco:
+        name: "#tau_{21tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_2Jettiness_Purity_pt05/Instanton_1Jettiness_Purity_pt05"
+        np_var: "reco_21jettiness"
+        shortname: "#tau_{21tracks}"
+        edges: *np_21jettiness_bin_default_reco
+     gen:
+        name: "#tau_{21ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_2Jettiness_eta2p4pt05/Instanton_gen_1Jettiness_eta2p4pt05"
+        np_var: "gen_21jettiness"
+        shortname: "#tau_{21ch}"
+        edges: *np_21jettiness_bin_default_gen
+
+32jettiness:
+     reco:
+        name: "#tau_{32tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_3Jettiness_Purity_pt05/Instanton_2Jettiness_Purity_pt05"
+        np_var: "reco_32jettiness"
+        shortname: "#tau_{32tracks}"
+        edges: *np_32jettiness_bin_default_reco
+     gen:
+        name: "#tau_{32ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_3Jettiness_eta2p4pt05/Instanton_gen_2Jettiness_eta2p4pt05"
+        np_var: "gen_32jettiness"
+        shortname: "#tau_{32ch}"
+        edges: *np_32jettiness_bin_default_gen
+
+43jettiness:
+     reco:
+        name: "#tau_{43tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_4Jettiness_Purity_pt05/Instanton_3Jettiness_Purity_pt05"
+        np_var: "reco_43jettiness"
+        shortname: "#tau_{43tracks}"
+        edges: *np_43jettiness_bin_default_reco
+     gen:
+        name: "#tau_{43ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_4Jettiness_eta2p4pt05/Instanton_gen_3Jettiness_eta2p4pt05"
+        np_var: "gen_43jettiness"
+        shortname: "#tau_{43ch}"
+        edges: *np_43jettiness_bin_default_gen
+
+54jettiness:
+     reco:
+        name: "#tau_{54tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_5Jettiness_Purity_pt05/Instanton_4Jettiness_Purity_pt05"
+        np_var: "reco_54jettiness"
+        shortname: "#tau_{54tracks}"
+        edges: *np_54jettiness_bin_default_reco
+     gen:
+        name: "#tau_{54ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_5Jettiness_eta2p4pt05/Instanton_gen_4Jettiness_eta2p4pt05"
+        np_var: "gen_54jettiness"
+        shortname: "#tau_{54ch}"
+        edges: *np_54jettiness_bin_default_gen
+
+65jettiness:
+     reco:
+        name: "#tau_{65tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_6Jettiness_Purity_pt05/Instanton_5Jettiness_Purity_pt05"
+        np_var: "reco_65jettiness"
+        shortname: "#tau_{65tracks}"
+        edges: *np_65jettiness_bin_default_reco
+     gen:
+        name: "#tau_{65ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_6Jettiness_eta2p4pt05/Instanton_gen_5Jettiness_eta2p4pt05"
+        np_var: "gen_65jettiness"
+        shortname: "#tau_{65ch}"
+        edges: *np_65jettiness_bin_default_gen
+
+76jettiness:
+     reco:
+        name: "#tau_{76tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_7Jettiness_Purity_pt05/Instanton_6Jettiness_Purity_pt05"
+        np_var: "reco_76jettiness"
+        shortname: "#tau_{76tracks}"
+        edges: *np_76jettiness_bin_default_reco
+     gen:
+        name: "#tau_{76ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_7Jettiness_eta2p4pt05/Instanton_gen_6Jettiness_eta2p4pt05"
+        np_var: "gen_76jettiness"
+        shortname: "#tau_{76ch}"
+        edges: *np_76jettiness_bin_default_gen
+
+87jettiness:
+     reco:
+        name: "#tau_{87tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_8Jettiness_Purity_pt05/Instanton_7Jettiness_Purity_pt05"
+        np_var: "reco_87jettiness"
+        shortname: "#tau_{87tracks}"
+        edges: *np_87jettiness_bin_default_reco
+     gen:
+        name: "#tau_{87ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_8Jettiness_eta2p4pt05/Instanton_gen_7Jettiness_eta2p4pt05"
+        np_var: "gen_87jettiness"
+        shortname: "#tau_{87ch}"
+        edges: *np_87jettiness_bin_default_gen
+
+84jettiness:
+     reco:
+        name: "#tau_{84tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_8Jettiness_Purity_pt05/Instanton_4Jettiness_Purity_pt05"
+        np_var: "reco_84jettiness"
+        shortname: "#tau_{84tracks}"
+        edges: *np_84jettiness_bin_default_reco
+     gen:
+        name: "#tau_{84ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_8Jettiness_eta2p4pt05/Instanton_gen_4Jettiness_eta2p4pt05"
+        np_var: "gen_84jettiness"
+        shortname: "#tau_{84ch}"
+        edges: *np_84jettiness_bin_default_gen
+
+82jettiness:
+     reco:
+        name: "#tau_{82tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_8Jettiness_Purity_pt05/Instanton_2Jettiness_Purity_pt05"
+        np_var: "reco_82jettiness"
+        shortname: "#tau_{82tracks}"
+        edges: *np_82jettiness_bin_default_reco
+     gen:
+        name: "#tau_{82ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_8Jettiness_eta2p4pt05/Instanton_gen_2Jettiness_eta2p4pt05"
+        np_var: "gen_82jettiness"
+        shortname: "#tau_{82ch}"
+        edges: *np_82jettiness_bin_default_gen
+
+42jettiness:
+     reco:
+        name: "#tau_{42tracks} (high purity, pt>0.5 GeV)"
+        root_var: "Instanton_4Jettiness_Purity_pt05/Instanton_2Jettiness_Purity_pt05"
+        np_var: "reco_42jettiness"
+        shortname: "#tau_{42tracks}"
+        edges: *np_42jettiness_bin_default_reco
+     gen:
+        name: "#tau_{42ch} (|#eta|<2.4, pt>0.5 GeV)"
+        root_var: "Instanton_gen_4Jettiness_eta2p4pt05/Instanton_gen_2Jettiness_eta2p4pt05"
+        np_var: "gen_42jettiness"
+        shortname: "#tau_{42ch}"
+        edges: *np_42jettiness_bin_default_gen
+
+chjet_deltaR:
+     reco:
+        name: "#Delta R_{track jet 12}"
+        root_var: "Instanton_TrackJet_deltaR"
+        np_var: "reco_trackjet_deltaR"
+        shortname: "#Delta R_{track jet 12}"
+        edges: *np_chjet_deltaR_bin_default_reco
+     gen:
+        name: "#Delta R_{chjet 12}"
+        root_var: "ChargedFSParticle_eta2p4pt05_jet_deltaR"
+        np_var: "gen_chjet_deltaR"
+        shortname: "#Delta R_{track jet 12}"
+        edges: *np_chjet_deltaR_bin_default_gen
+
+chjet_deltaphi:
+     reco:
+        name: "#Delta #phi_{track jet 12}"
+        root_var: "Instanton_TrackJet_deltaphi"
+        np_var: "reco_trackjet_deltaphi"
+        shortname: "#Delta #phi_{track jet 12}"
+        edges: *np_chjet_deltaphi_bin_default_reco
+     gen:
+        name: "#Delta #phi_{chjet 12}"
+        root_var: "ChargedFSParticle_eta2p4pt05_jet_deltaphi"
+        np_var: "gen_chjet_deltaphi"
+        shortname: "#Delta #phi_{track jet 12}"
+        edges: *np_chjet_deltaphi_bin_default_gen

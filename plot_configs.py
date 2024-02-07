@@ -59,16 +59,16 @@ class PlotConfig(ConfigBase):
 
     @property
     def hists(self):
-        return [ c.hist for c in self.compare if c.hist ]
+        return [ c.hist for c in self.compare if c and c.hist]
 
     @property
     def colors(self):
-        return [ c.color for c in self.compare if c.hist ]
+        return [ c.color for c in self.compare if c and c.hist ]
 
     @property
     def legends(self):
-        return [ c.legend for c in self.compare if c.hist ]
+        return [ c.legend for c in self.compare if c and c.hist ]
 
     @property
     def styles(self):
-        return [ c.style for c in self.compare if c.hist ]
+        return [ c.style for c in self.compare if c and c.hist ]

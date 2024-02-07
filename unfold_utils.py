@@ -17,7 +17,7 @@ from abc import ABC, abstractmethod
 from typing import Union
 from GOF.binned import *
 import catpy.catpy.test_stats as cts
-
+import copy
 
 class CutType(Enum):
     PassReco = 1
@@ -51,6 +51,14 @@ root_cuts[CutType.PassReco_noPassGen] = '(PV_N_good==1&&PV_isgood&&(Instanton_N_
 root_cuts[CutType.noPassReco_PassGen] = '(((PV_N_good!=1)||(PV_isgood&&(Instanton_N_Trk_highPurity_pt05<=2)))&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>2))'
 root_cuts[CutType.noPassReco_noPassGen] = '(((PV_N_good!=1)||(PV_isgood&&(Instanton_N_Trk_highPurity_pt05<=2)))&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05<=2))'
 
+root_cuts_N50 = {}
+root_cuts_N50[CutType.PassReco] = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>=50))'
+root_cuts_N50[CutType.PassGen] = '(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>=50)'
+root_cuts_N50[CutType.PassReco_PassGen] = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>=50)&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>=50))'
+root_cuts_N50[CutType.PassReco_noPassGen] = '(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>=50)&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05<50))'
+root_cuts_N50[CutType.noPassReco_PassGen] = '(((PV_N_good!=1)||(PV_isgood&&(Instanton_N_Trk_highPurity_pt05<50)))&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05>=50))'
+root_cuts_N50[CutType.noPassReco_noPassGen] = '(((PV_N_good!=1)||(PV_isgood&&(Instanton_N_Trk_highPurity_pt05<50)))&&(Instanton_N_gen_ChargedFSParticle_eta2p4pt05<50))'
+
 np_cuts = {}
 np_cuts[CutType.PassReco] = [['reco_ntrk', '!=', 'NAN']]
 np_cuts[CutType.PassGen] = [['gen_nch', '>', '2']]
@@ -59,9 +67,32 @@ np_cuts[CutType.PassReco_noPassGen] = [['reco_ntrk', '!=', 'NAN'], ['gen_nch', '
 np_cuts[CutType.noPassReco_PassGen] = [['reco_ntrk', '==', 'NAN'], ['gen_nch', '>', '2']]
 np_cuts[CutType.noPassReco_noPassGen] = [['reco_ntrk', '==', 'NAN'], ['gen_nch', '<=', '2']]
 
+np_cuts_N50 = {}    
+np_cuts_N50[CutType.PassReco] = [['reco_ntrk', '!=', 'NAN'],['reco_ntrk', '>=', '50']]
+np_cuts_N50[CutType.PassGen] = [['gen_nch', '>=', '50']]
+np_cuts_N50[CutType.PassReco_PassGen] = [['reco_ntrk', '!=', 'NAN'],['reco_ntrk', '>=', '50'],['gen_nch', '>=', '50']]
+np_cuts_N50[CutType.PassReco_noPassGen] = [['reco_ntrk', '!=', 'NAN'],['reco_ntrk', '>=', '50'],['gen_nch', '<', '50']]
+np_cuts_N50[CutType.noPassReco_PassGen] = [['reco_ntrk', '==', 'NAN'],['reco_ntrk', '<', '50','or'], ['gen_nch', '>=', '50']]
+np_cuts_N50[CutType.noPassReco_noPassGen] = [['reco_ntrk', '==', 'NAN'],['reco_ntrk', '<', '50','or'], ['gen_nch', '<', '50']]
+
+
 ak_cuts = {}
 ak_cuts[CutType.PassReco] = [['PV_N_good', '==', 1], ['PV_isgood', None, None],['Instanton_N_Trk_highPurity_pt05', '>', 2]]
 ak_cuts[CutType.PassGen] = [['Instanton_N_gen_ChargedFSParticle_eta2p4pt05','>', 2]]
+ak_cuts[CutType.PassReco_PassGen] = [['PV_N_good', '==', 1], ['PV_isgood', None, None],['Instanton_N_Trk_highPurity_pt05', '>', 2],['Instanton_N_gen_ChargedFSParticle_eta2p4pt05','>', 2]]
+ak_cuts[CutType.PassReco_noPassGen] = [['PV_N_good', '==', 1], ['PV_isgood', None, None],['Instanton_N_Trk_highPurity_pt05', '>', 2],['Instanton_N_gen_ChargedFSParticle_eta2p4pt05','<=', 2]]
+ak_cuts[CutType.noPassReco_PassGen] = [['PV_N_good', '!=', 1], ['PV_isgood', "!", None,"or"],['Instanton_N_Trk_highPurity_pt05', '<=', 2,"or"],['Instanton_N_gen_ChargedFSParticle_eta2p4pt05','>', 2]]
+ak_cuts[CutType.noPassReco_noPassGen] = [['PV_N_good', '!=', 1], ['PV_isgood', "!", None,"or"],['Instanton_N_Trk_highPurity_pt05', '<=', 2,"or"],['Instanton_N_gen_ChargedFSParticle_eta2p4pt05','<=', 2]]
+
+ak_cuts_N50 = {}
+ak_cuts_N50[CutType.PassReco] = [['PV_N_good', '==', 1], ['PV_isgood', None, None],['Instanton_N_Trk_highPurity_pt05', '>=', 50]]
+ak_cuts_N50[CutType.PassGen] = [['Instanton_N_gen_ChargedFSParticle_eta2p4pt05','>=', 50]]
+ak_cuts_N50[CutType.PassReco_PassGen] = [['PV_N_good', '==', 1], ['PV_isgood', None, None],['Instanton_N_Trk_highPurity_pt05', '>=', 50],['Instanton_N_gen_ChargedFSParticle_eta2p4pt05','>=', 50]]
+ak_cuts_N50[CutType.PassReco_noPassGen] = [['PV_N_good', '==', 1], ['PV_isgood', None, None],['Instanton_N_Trk_highPurity_pt05', '>=', 50],['Instanton_N_gen_ChargedFSParticle_eta2p4pt05','<', 50]]
+ak_cuts_N50[CutType.noPassReco_PassGen] = [['PV_N_good', '!=', 1], ['PV_isgood', "!", None,"or"],['Instanton_N_Trk_highPurity_pt05', '<', 50,"or"],['Instanton_N_gen_ChargedFSParticle_eta2p4pt05','>=', 50]]
+ak_cuts_N50[CutType.noPassReco_noPassGen] = [['PV_N_good', '!=', 1], ['PV_isgood', "!", None,"or"],['Instanton_N_Trk_highPurity_pt05', '<', 50,"or"],['Instanton_N_gen_ChargedFSParticle_eta2p4pt05','<', 50]]
+
+
 
 @dataclass
 class ObsArray:
@@ -78,55 +109,150 @@ def filter_np_cut(np_dic, np_cut):
         for cut in np_cut:
             if cut[1] == '!=':
                 if np.isnan(float(cut[2])):
-                    filter_cut = filter_cut * (np.isnan(np_dic[cut[0]]) == False)
+                    if len(cut)<=3 or cut[3] == 'and':
+                        filter_cut = filter_cut * (np.isnan(np_dic[cut[0]]) == False)
+                    elif cut[3] == 'or':
+                        filter_cut = filter_cut + (np.isnan(np_dic[cut[0]]) == False)
                 else:
-                    filter_cut = filter_cut * (np_dic[cut[0]] != float(cut[2]))
+                    if len(cut)<=3 or cut[3] == 'and':
+                        filter_cut = filter_cut * (np_dic[cut[0]] != float(cut[2]))
+                    elif cut[3] == 'or':
+                        filter_cut = filter_cut + (np_dic[cut[0]] != float(cut[2]))
             elif cut[1] == '==':
                 if np.isnan(float(cut[2])):
-                    filter_cut = filter_cut * np.isnan(np_dic[cut[0]])
+                    if len(cut)<=3 or cut[3] == 'and':
+                        filter_cut = filter_cut * np.isnan(np_dic[cut[0]])
+                    elif cut[3] == 'or':
+                        filter_cut = filter_cut + np.isnan(np_dic[cut[0]])
                 else:
-                    filter_cut = filter_cut * (np_dic[cut[0]] == float(cut[2]))
+                    if len(cut)<=3 or cut[3] == 'and':
+                        filter_cut = filter_cut * (np_dic[cut[0]] == float(cut[2]))
+                    elif cut[3] == 'or':
+                        filter_cut = filter_cut + (np_dic[cut[0]] == float(cut[2]))
             elif cut[1] == '>':
-                filter_cut = filter_cut * (np_dic[cut[0]] > float(cut[2]))
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = filter_cut * (np_dic[cut[0]] > float(cut[2]))
+                elif cut[3] == 'or':
+                    filter_cut = filter_cut + (np_dic[cut[0]] > float(cut[2]))
             elif cut[1] == '>=':
-                filter_cut = filter_cut * (np_dic[cut[0]] >= float(cut[2]))
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = filter_cut * (np_dic[cut[0]] >= float(cut[2]))
+                elif cut[3] == 'or':
+                    filter_cut = filter_cut + (np_dic[cut[0]] >= float(cut[2]))
             elif cut[1] == '<':
-                filter_cut = filter_cut * (np_dic[cut[0]] < float(cut[2]))
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = filter_cut * (np_dic[cut[0]] < float(cut[2]))
+                elif cut[3] == 'or':
+                    filter_cut = filter_cut + (np_dic[cut[0]] < float(cut[2]))
             elif cut[1] == '<=':
-                filter_cut = filter_cut * (np_dic[cut[0]] <= float(cut[2]))
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = filter_cut * (np_dic[cut[0]] <= float(cut[2]))
+                elif cut[3] == 'or':
+                    filter_cut = filter_cut + (np_dic[cut[0]] <= float(cut[2]))
             else:
                 raise ValueError('Cannot recognize the cut ', cut)
 
         return filter_cut
 
-def filter_ak_cut(ak_arrays, cut):
-  if cut == CutType.PassReco:
-    filter_cut = (ak_arrays['PV_N_good']==1)&(ak_arrays['PV_isgood'])&(ak_arrays['Instanton_N_Trk_highPurity_pt05']>2)
-  elif cut == CutType.PassGen:
-    filter_cut = (ak_arrays['Instanton_N_gen_ChargedFSParticle_eta2p4pt05']>2)
-  elif cut == CutType.PassReco_PassGen:
-    filter_cut = (ak_arrays['PV_N_good']==1)&(ak_arrays['PV_isgood'])&(ak_arrays['Instanton_N_Trk_highPurity_pt05']>2)&(ak_arrays['Instanton_N_gen_ChargedFSParticle_eta2p4pt05']>2)
-  elif cut == CutType.PassReco_noPassGen:
-    filter_cut = (ak_arrays['PV_N_good']==1)&(ak_arrays['PV_isgood'])&(ak_arrays['Instanton_N_Trk_highPurity_pt05']>2)&~(ak_arrays['Instanton_N_gen_ChargedFSParticle_eta2p4pt05']>2)
-  elif cut == CutType.noPassReco_PassGen:
-    filter_cut = ~((ak_arrays['PV_N_good']==1)&(ak_arrays['PV_isgood'])&(ak_arrays['Instanton_N_Trk_highPurity_pt05']>2))&(ak_arrays['Instanton_N_gen_ChargedFSParticle_eta2p4pt05']>2)
-  elif cut == CutType.noPassReco_noPassGen:
-    filter_cut = ~((ak_arrays['PV_N_good']==1)&(ak_arrays['PV_isgood'])&(ak_arrays['Instanton_N_Trk_highPurity_pt05']>2))&~(ak_arrays['Instanton_N_gen_ChargedFSParticle_eta2p4pt05']>2)
-  else:
-    raise ValueError('Cannot recognize the cut ', cut)
+def filter_ak_cut(ak_arrays, ak_cut):
+    filter_cut=None
+    for cut in ak_cut:
+        if filter_cut is None:
+            if cut[1] is None:
+                filter_cut = ak_arrays[cut[0]]
+            elif cut[1] == "!":
+                filter_cut = ~ak_arrays[cut[0]]
+            elif cut[1] == "==":
+                filter_cut = (ak_arrays[cut[0]] == cut[2])
+            elif cut[1] == "!=":
+                filter_cut = (ak_arrays[cut[0]] != cut[2])
+            elif cut[1] == ">=":
+                filter_cut = (ak_arrays[cut[0]] >= cut[2])
+            elif cut[1] == ">":
+                filter_cut = (ak_arrays[cut[0]] > cut[2])
+            elif cut[1] == "<=":
+                filter_cut = (ak_arrays[cut[0]] <= cut[2])
+            elif cut[1] == "<":
+                filter_cut = (ak_arrays[cut[0]] < cut[2])
+            else:
+                raise ValueError('Cannot recognize the cut ', cut)
+        else:
+            if cut[1] is None:
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = (filter_cut & ak_arrays[cut[0]])
+                elif cut[3] == 'or':
+                    filter_cut = (filter_cut | ak_arrays[cut[0]])
+            elif cut[1] == "!":
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = (filter_cut & ~ak_arrays[cut[0]])
+                elif cut[3] == 'or':
+                    filter_cut = (filter_cut | ~ak_arrays[cut[0]])
+            elif cut[1] == "==":
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = (filter_cut & (ak_arrays[cut[0]] == cut[2]))
+                elif cut[3] == 'or':
+                    filter_cut = (filter_cut | (ak_arrays[cut[0]] == cut[2]))
+            elif cut[1] == "!=":
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = (filter_cut & (ak_arrays[cut[0]] != cut[2]))
+                elif cut[3] == 'or':
+                    filter_cut = (filter_cut | (ak_arrays[cut[0]] != cut[2]))
+            elif cut[1] == ">=":
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = (filter_cut & (ak_arrays[cut[0]] >= cut[2]))
+                elif cut[3] == 'or':
+                    filter_cut = (filter_cut | (ak_arrays[cut[0]] >= cut[2]))
+            elif cut[1] == ">":
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = (filter_cut & (ak_arrays[cut[0]] > cut[2]))
+                elif cut[3] == 'or':
+                    filter_cut = (filter_cut | (ak_arrays[cut[0]] > cut[2]))
+            elif cut[1] == "<=":
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = (filter_cut & (ak_arrays[cut[0]] <= cut[2]))
+                elif cut[3] == 'or':
+                    filter_cut = (filter_cut | (ak_arrays[cut[0]] <= cut[2]))
+            elif cut[1] == "<":
+                if len(cut)<=3 or cut[3] == 'and':
+                    filter_cut = (filter_cut & (ak_arrays[cut[0]] < cut[2]))
+                elif cut[3] == 'or':
+                    filter_cut = (filter_cut | (ak_arrays[cut[0]] < cut[2]))
+            else:
+                raise ValueError('Cannot recognize the cut ', cut)
 
-  return filter_cut
+    return filter_cut
 
 
 
-def merge_bins(obs, trees=[], root_cut='', threshold=1.0, bin_edges_dim1_1d=None, bin_edges_dim2_1d=None):
+def merge_bins(obs, events_list=[], cut=CutType.PassReco_PassGen, threshold=1.0, bin_edges_dim1_1d=None, bin_edges_dim2_1d=None):
     bin_edges_dim1_1d = [] if bin_edges_dim1_1d is None else bin_edges_dim1_1d
     bin_edges_dim2_1d = [] if bin_edges_dim2_1d is None else bin_edges_dim2_1d
     hists = []
-    for itree, tree in enumerate(trees):
-        hist = ROOT.TH2F(f'HistMerge{itree}', f'HistMerge{itree}', len(bin_edges_dim1_1d) - 1, np.array(bin_edges_dim1_1d), len(bin_edges_dim2_1d) - 1, np.array(bin_edges_dim2_1d))
-        print(f'{obs[1]}:{obs[0]}>>HistMerge{itree}')
-        tree.Draw(f'{obs[1]}:{obs[0]}>>HistMerge{itree}', root_cut, 'colzgoff')
+    for i,events in enumerate(events_list):
+        print("debugging\n")
+        print(f'HistMerge{i}', f'HistMerge{i}', len(bin_edges_dim1_1d) - 1, np.array(bin_edges_dim1_1d), len(bin_edges_dim2_1d) - 1, np.array(bin_edges_dim2_1d))
+        hist = ROOT.TH2F(f'HistMerge{i}', f'HistMerge{i}', len(bin_edges_dim1_1d) - 1, np.array(bin_edges_dim1_1d), len(bin_edges_dim2_1d) - 1, np.array(bin_edges_dim2_1d))
+        if isinstance(events,ROOT.TTree):
+          print(f'{obs[1].root_var}:{obs[0].root_var}>>HistMerge{i}')
+          events.Draw(f'{obs[1].root_var}:{obs[0].root_var}>>HistMerge{i}', root_cuts[cut], 'colzgoff')
+        else:
+          histogram2d_list = []
+          if not isinstance(events,list):
+            events = [events]
+          for event_onefile in events:
+            np_onefile = np.load(event_onefile,allow_pickle=True)
+            print(event_onefile)
+            print("obs[0].np_var",obs[0].np_var)
+            print("obs[1].np_var",obs[1].np_var)
+            print(np_onefile[obs[0].np_var])
+            print(np_onefile[obs[1].np_var])
+            print(len(np_onefile[obs[0].np_var]),len(np_onefile[obs[1].np_var]))
+            H,_,_ = np.histogram2d(np_onefile[obs[0].np_var],np_onefile[obs[1].np_var],bins=(np.array(bin_edges_dim1_1d),np.array(bin_edges_dim2_1d)))
+            histogram2d_list.append(copy.deepcopy(H))
+          histogram2d_sum = sum(histogram2d_list)
+          for ibinx in range(len(bin_edges_dim1_1d)-1):
+            for ibiny in range(len(bin_edges_dim2_1d)-1):
+              hist.SetBinContent(ibinx+1,ibiny+1,histogram2d_sum[ibinx,ibiny])
         hists.append(hist)
 
     bin_edges_dim2_merge = []
@@ -177,7 +303,7 @@ class GOFCollections(ABC):
 
     @classmethod
     @abstractmethod
-    def from_source(cls,source_compare,source_target,compare_name,target_name):
+    def from_source(cls,source_compare,source_target,compare_name,target_name,source_compare_syslist,source_target_syslist):
       '''Create a class instance from source_compare and source_target, calculate the GOF and store it in values. The compare_name and targe_name are strings naming the two sources.'''
       return NotImplemented
 
@@ -205,11 +331,11 @@ class Chi2Values:
   target_error: Union[float, list]
 
   @classmethod
-  def from_histlist(cls,histlist_compare,histlist_target):
+  def from_histlist(cls,histlist_compare,histlist_target,histlist_compare_syslist=[],histlist_target_syslist=[]):
     if histlist_compare is None or histlist_target is None:
       return None
-    _,_,wchi2_per_dof,_ = GOF_binned_from_root(histlist_compare.root_hists, histlist_target.root_hists, use_error='both')
-    _,_,wchi2_per_dof_targeterror,_ = GOF_binned_from_root(histlist_compare.root_hists, histlist_target.root_hists, use_error='second')
+    _,_,wchi2_per_dof,_ = GOF_binned_from_root(histlist_compare.root_hists, histlist_target.root_hists, hist_list1_syslist = [histlist_compare_sys.root_hists for histlist_compare_sys in histlist_compare_syslist], hist_list2_syslist = [histlist_target_sys.root_hists for histlist_target_sys in histlist_target_syslist], use_error='both')
+    _,_,wchi2_per_dof_targeterror,_ = GOF_binned_from_root(histlist_compare.root_hists, histlist_target.root_hists,hist_list1_syslist = [histlist_compare_sys.root_hists for histlist_compare_sys in histlist_compare_syslist], hist_list2_syslist = [histlist_target_sys.root_hists for histlist_target_sys in histlist_target_syslist], use_error='second')
     return cls(both_error=wchi2_per_dof,target_error=wchi2_per_dof_targeterror)
 
   @classmethod
@@ -248,7 +374,7 @@ def search_histlist(dict_histlist,histtype,level):
 class Chi2Collections(GOFCollections):
 
     @classmethod
-    def from_source(cls,source_compare,source_target,compare_name,target_name):
+    def from_source(cls,source_compare,source_target,compare_name,target_name,source_compare_syslist = [],source_target_syslist = []):
 
       chi2_values = {}
       level_lists = [histlist_compare.level for histlist_compare in source_compare.values() if isinstance(histlist_compare,HistList)] #grab all the level options
@@ -258,7 +384,9 @@ class Chi2Collections(GOFCollections):
 
       for level in level_lists:
         chi2_values[level] = Chi2Values.from_histlist(search_histlist(source_compare,'inclusive',level),
-                                                          search_histlist(source_target,'inclusive',level))
+                                                      search_histlist(source_target,'inclusive',level),
+                                                      [search_histlist(source_compare_sys,'inclusive',level) for source_compare_sys in source_compare_syslist],
+                                                      [search_histlist(source_target_sys,'inclusive',level) for source_target_sys in source_target_syslist])
 
       for level, value in list(chi2_values.items()):
         if value is None: chi2_values.pop(level)
@@ -295,7 +423,7 @@ class Chi2Collections(GOFCollections):
 class KSDistanceCollections(GOFCollections):
 
     @classmethod
-    def from_source(cls,source_compare,source_target,compare_name,target_name):
+    def from_source(cls,source_compare,source_target,compare_name,target_name,source_compare_syslist = [],source_target_syslist = []):
       ksdistances = {}
       for level in ['gen','reco']:
         ksdistances[level] = KSDistance.from_array(getattr(source_compare,level), getattr(source_target,level), weight_compare = getattr(source_compare,"weight_"+level), weight_target = getattr(source_target,"weight_"+level))
@@ -752,8 +880,8 @@ class HistList:
             self.root_2Dhist.SetBinContent(ihist + 1, self.root_2Dhist.GetNbinsY() + 1, np.sum(wgts) )
             self.root_2Dhist.SetBinError(ihist + 1, self.root_2Dhist.GetNbinsY() + 1, np.sqrt(np.sum(np.square(wgts))) )
 
-            self.bin_sum.append(np.sum([ self.root_2Dhist.GetBinContent(ihist + 1, ibin + 1) for ibin in range(self.root_2Dhist.GetNbinsX()) ]))
-            self.bin_norm.append(np.sum([ self.root_2Dhist.GetBinContent(ihist + 1, ibin) for ibin in range(self.root_2Dhist.GetNbinsX() + 2) ]))
+            self.bin_sum.append(np.sum([ self.root_2Dhist.GetBinContent(ihist + 1, ibin + 1) for ibin in range(self.root_2Dhist.GetNbinsY()) ]))
+            self.bin_norm.append(np.sum([ self.root_2Dhist.GetBinContent(ihist + 1, ibin) for ibin in range(self.root_2Dhist.GetNbinsY() + 2) ]))
 
         for ibin in range(self.root_2Dhist.GetNbinsY()):
             wgts = weight[ base_cut & (obs_arrays[self.dim1.np_var] < self.dim1.edges[0]) & (obs_arrays[self.dim2.np_var] >= self.dim2.edges[0][ibin]) & (obs_arrays[self.dim2.np_var] < self.dim2.edges[0][ibin + 1])]

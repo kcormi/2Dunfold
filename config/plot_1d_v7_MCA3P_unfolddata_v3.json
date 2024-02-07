@@ -1,0 +1,23 @@
+{
+  "varunfold":"config/observables.yml",
+  "outputdir":"results_finebin_v7_MCA3P_unfolddata_v3_1/plots_multifold_1",
+  "input":"results_finebin_v7_MCA3P_unfolddata_v3_1/merge.csv",
+  "MC_name":"A3P",
+  "MCvar_name":["CP1","EPOS","CUEPT8M1","A14","CP5","CH3"],
+  "data_name":"ZeroBias",
+  "pseudodata_name":"CP1",
+  "workflow":"unfold",
+  "pseudodata":false,
+  "addsys":true,
+  "sys_name":["sys_CP1_gen_up","sys_CP1_migration_up","sys_EPOS_gen_up","sys_EPOS_migration_up","sys_CH3_gen_up","sys_CH3_migration_up","sys_trackdrop_up"],
+  "addstat":false,
+  "perbinshape":true,
+  "addbkg":false,
+  "reluncname":["totalsys","CP1_gen","CP1_migration","EPOS_gen","EPOS_migration","CH3_gen","CH3_migration","trackdrop","MCstat"],
+  "relunclegend":["Total sys. unc.","CP1 gen.","CP1 mig.","EPOS gen.","EPOS mig.","CH3 gen.","CH3 mig.","track reco. eff.","MC stat. unc."],
+  "methods":["multifold"],
+  "evaluate-sys-bootstrap":["multifold"],
+  "evaluate-stat-bootstrap":["multifold"],
+  "evaluate-relunc":["multifold"],
+  "normalize_XS":true
+}
