@@ -1,0 +1,196 @@
+{
+  "varunfold":"config/observables.yml",
+  "MC_name":"A3P",
+  "data_name":"ZeroBias",
+  "pseudodata_name":"CUEP8M1",
+  "workflow":"unfold",
+  "combine":{
+    "isfit":false,
+    "fitdir":"rootfiles_finebin_v7_MCCP1ES_CP5sys_trksys_1d",
+    "multidim_data":true,
+    "multidim_asimov":true,
+    "multidim_toy":true,
+    "multidim_freezesys":true,
+    "fitdiag_data":true,
+    "fitdiag_asimov":true,
+    "fitdiag_toy":true
+  },
+  "smoofit":{
+    "isfit":false,
+    "smoofit_data":false,
+    "smoofit_asimov":false,
+    "smoofit_toy":false
+  },
+  "omnifold":{
+    "isfit":true,
+    "sim":["/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new_EPOS_merge.npz","/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new_EPOS_G.npz"],
+    "weight":"/work/jinw/omnifold/OmniFold/results_omnifold_maxweight10_MCEPOS_unfoldCP1_1p3M_sysweight/weights/OmniFold_PFN_Rep-0.npy",
+    "sys":{
+      "CP5":{
+      "sim":"/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new.npz",
+      "weight":"/work/jinw/omnifold/OmniFold/results_omnifold_maxweight100/weights/OmniFold_PFN_Rep-0.npy"
+      },
+      "Drop_tracks":{
+        "sim":"/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new_CP1_tuneES_trackdrop.npz",
+        "weight":"/work/jinw/omnifold/OmniFold/results_omnifold_maxweight_trkdrop_MCCP1tuneES/weights/OmniFold_PFN_Rep-0.npy"
+      }
+    },
+    "asimovweight":"/work/jinw/omnifold/OmniFold/results_omnifold_maxweight_MCCP1_tuneES_unfoldCP1tuneES/weights/OmniFold_PFN_Rep-0.npy",
+    "splitsim":"/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new_CP1_tuneES_1.npz",
+    "splitweight":"/work/jinw/omnifold/OmniFold/results_omnifold_maxweight_MCCP1_tuneES_splittest/weights/OmniFold_PFN_Rep-0.npy",
+    "addbs":true,
+    "bsweightdir":"/work/jinw/omnifold/OmniFold/results_omnifold_maxweight_MCCP1_tuneES/weights/",
+    "addsysbs":true,
+    "sysbsweightdir":"/work/jinw/omnifold/OmniFold/results_omnifold_maxweight_MCCP1_tuneES/weights/"
+  },
+  "multifold":{
+    "isfit":true,
+    "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+    "weight":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/omnifold_train/results_multifold_maxweight10_minweightp1_MCA3P_unfoldCUEP8M1_ensemble4_v3_1/weights/ManyFold_DNN_Rep-0_bs_16_MCbs_16.npy",
+    "sys":{
+      "EPOS_gen":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "weight":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/omnifold_train/results_multifold_maxweight10_minweightp1_MCA3P_unfoldCUEP8M1_ensemble4_v3_1/weights/bs_16_EPOS_genManyFold_DNN_Rep-0_bs_16_MCbs_16.npy"
+      },
+      "CP1_gen":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "weight":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/omnifold_train/results_multifold_maxweight10_minweightp1_MCA3P_unfoldCUEP8M1_ensemble4_v3_1/weights/bs_16_CP1_genManyFold_DNN_Rep-0_bs_16_MCbs_16.npy"
+      },
+      "EPOS_mig":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "weight":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/omnifold_train/results_multifold_maxweight10_minweightp1_MCA3P_unfoldCUEP8M1_ensemble4_v3_1/weights/bs_16_EPOS_migrationManyFold_DNN_Rep-0_bs_16_MCbs_16.npy"
+      },
+      "CP1_mig":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "weight":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/omnifold_train/results_multifold_maxweight10_minweightp1_MCA3P_unfoldCUEP8M1_ensemble4_v3_1/weights/bs_16_CP1_migrationManyFold_DNN_Rep-0_bs_16_MCbs_16.npy"
+      },
+      "CH3_gen":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "weight":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/omnifold_train/results_multifold_maxweight10_minweightp1_MCA3P_unfoldCUEP8M1_ensemble4_v3_1/weights/bs_16_CH3_genManyFold_DNN_Rep-0_bs_16_MCbs_16.npy"
+      },
+      "CH3_mig":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "weight":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/omnifold_train/results_multifold_maxweight10_minweightp1_MCA3P_unfoldCUEP8M1_ensemble4_v3_1/weights/bs_16_CH3_migrationManyFold_DNN_Rep-0_bs_16_MCbs_16.npy"
+      },
+      "trackdrop":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "weight":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/omnifold_train/results_multifold_maxweight10_minweightp1_MCA3P_unfoldCUEP8M1_ensemble4_v3_1/weights/bs_16_trackdropManyFold_DNN_Rep-0_bs_16_MCbs_16.npy"
+      }
+    },
+    "asimovweight":"",
+    "splitsim":"/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new_CP1_tuneES_1.npz",
+    "splitweight":"",
+    "addbs":false,
+    "bsweightdir":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight_MCCP1_tuneES/weights/",
+    "addsysbs":false,
+    "sysbsweightdir":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight_MCCP1_tuneES/weights/"
+  },
+  "unifold":{
+    "isfit":false,
+    "sim":"/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new_CP1_tuneES.npz",
+    "weight":"/work/jinw/omnifold/OmniFold/results_unifold_maxweight_MCCP1_tuneES_optimize/weights/UniFold_DNN_spherocity_Rep-0.npy",
+    "sys":{
+      "CP5":{
+        "sim":"/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new.npz",
+        "weight":"/work/jinw/omnifold/OmniFold/results_unifold_maxweight100/weights/UniFold_DNN_spherocity_Rep-0.npy"
+      },
+      "Drop_tracks":{
+        "sim":"/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new_CP1_tuneES_trackdrop.npz",
+        "weight":"/work/jinw/omnifold/OmniFold/results_unifold_maxweight_trkdrop_MCCP1tuneES/weights/UniFold_DNN_spherocity_Rep-0.npy"
+      }
+    },
+    "asimovweight":"/work/jinw/omnifold/OmniFold/results_unifold_maxweight_MCCP1_tuneES_unfoldCP1tuneES/weights/UniFold_DNN_spherocity_Rep-0.npy",
+    "splitsim":"/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new_CP1_tuneES_1.npz",
+    "splitweight":"/work/jinw/omnifold/OmniFold/results_unifold_maxweight_MCCP1_tuneES_splittest/weights/UniFold_DNN_spherocity_Rep-0.npy",
+    "addbs":true,
+    "bsweightdir":"/work/jinw/omnifold/OmniFold/results_unifold_maxweight_MCCP1_tuneES/weights/spherocity/",
+    "addsysbs":true,
+    "sysbsweightdir":"/work/jinw/omnifold/OmniFold/results_unifold_maxweight_MCCP1_tuneES/weights/spherocity/"
+  },
+  "isshape":true,
+  "outputdir":"results_finebin_v7_MCA3P_unfoldCUEP8M1_maxweight10_minweightp1_coverage_v3_1",
+  "inputfilesim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+  "inputfilesim_weight":null,
+  "inputfilesim_sys":{
+     "EPOS_gen":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "down":null
+     },
+     "CP1_gen":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "down":null
+     },
+     "EPOS_mig":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "down":null
+     },
+     "CP1_mig":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "down":null
+     },
+     "CP1_gen":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "down":null
+     },
+     "CP1_mig":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "down":null
+     },
+     "trackdrop":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+        "down":null
+     }
+  },
+  "inputfilesim_sys_weight":{
+     "EPOS_gen":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCA3P_genweightEPOS_ensemble4_v3/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "EPOS_mig":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCA3P_sysweightEPOS_ensemble4_v3/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "CP1_gen":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCA3P_genweightCP1_ensemble4_v3/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "CP1_mig":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCA3P_sysweightCP1_ensemble4_v3/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "CH3_gen":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCA3P_genweightCH3_ensemble4_v3/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "CH3_mig":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCA3P_sysweightCH3_ensemble4_v3/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "trackdrop":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCA3P_sysweighttrkdrop_ensemble4_v3/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     }
+  },
+  "addsys":true,
+  "inputfiledata":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_new/flatTuple_ZeroBias_2018lowPU_new_hltv6_ext1-3.npz",
+                   "/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_new/flatTuple_ZeroBias_2018lowPU_new_hltv6_ext1-4.npz",
+                   "/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_new/flatTuple_ZeroBias_2018lowPU_new_hltv6_ext1-5.npz",
+                   "/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_new/flatTuple_ZeroBias_2018lowPU_new_hltv6_ext1-6.npz"],
+  "MCtag":"nominal",
+  "analysis":"LowPU2018",
+  "era":"13TeV",
+  "normalize":false,
+  "mergerecobin":true,
+  "mergethresholdreco":1.0,
+  "mergegenbin":true,
+  "mergethresholdgen":10.0,
+  "cut":"(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05>2))",
+  "normfactorMC":37.08209678,
+  "normfactordata":1.0,
+  "pseudodata":true,
+  "inputfilepseudodata": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_CUEP8M1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_v3/flatTuple_MB_trk_noPU_new_CUEP8M1_B.npz"],
+  "pseudodataweight":null,
+  "normfactorpseudodata":33.56950474,
+  "bsweight":""
+
+}

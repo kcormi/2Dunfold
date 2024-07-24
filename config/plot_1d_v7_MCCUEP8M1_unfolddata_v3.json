@@ -1,0 +1,22 @@
+{
+  "varunfold":"config/observables.yml",
+  "outputdir":"results_finebin_v7_MCCUEP8M1_unfolddata_v3/plots_multifold",
+  "input":"results_finebin_v7_MCCUEP8M1_unfolddata_v3/merge.csv",
+  "MC_name":"CUEP8M1",
+  "data_name":"ZeroBias",
+  "pseudodata_name":"CP1",
+  "workflow":"unfold",
+  "pseudodata":false,
+  "addsys":true,
+  "sys_name":["sys_CP5_up","sys_CP1_up"],
+  "addstat":false,
+  "perbinshape":true,
+  "addbkg":false,
+  "reluncname":["totalsys","CP5","CP1","MCstat"],
+  "relunclegend":["Total sys. unc.","CP5","CP1","MC stat. unc."],
+  "methods":["multifold"],
+  "evaluate-sys-bootstrap":[],
+  "evaluate-stat-bootstrap":[],
+  "evaluate-relunc":["multifold"],
+  "normalize_XS":true
+}

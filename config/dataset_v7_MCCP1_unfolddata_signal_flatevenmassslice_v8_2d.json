@@ -1,0 +1,296 @@
+{
+  "varunfold":"config/observables.yml",
+  "MC_name":"CP1",
+  "data_name":"ZeroBias",
+  "pseudodata_name":"A3P",
+  "workflow":"unfold",
+  "multifold":{
+    "isfit": true,
+    "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+    "weight":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_unfolddata_1p8M_ensemble4_v7/weights/ManyFold_DNN_Rep-0.npy",
+    "sys":{
+      "A3P_gen":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "weight":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_unfolddata_1p8M_ensemble4_v7/weights/A3P_genManyFold_DNN_Rep-0.npy"
+      },
+      "A3P_migration":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "weight":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_unfolddata_1p8M_ensemble4_v7/weights/A3P_migrationManyFold_DNN_Rep-0.npy"
+      },
+      "EPOS_gen":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "weight":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_unfolddata_1p8M_ensemble4_v7/weights/EPOS_genManyFold_DNN_Rep-0.npy"
+      },
+      "EPOS_migration":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "weight":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_unfolddata_1p8M_ensemble4_v7/weights/EPOS_migrationManyFold_DNN_Rep-0.npy"
+      },
+      "CH3_gen":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "weight":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_unfolddata_1p8M_ensemble4_v7/weights/CH3_genManyFold_DNN_Rep-0.npy"
+      },
+      "CH3_migration":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "weight":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_unfolddata_1p8M_ensemble4_v7/weights/CH3_migrationManyFold_DNN_Rep-0.npy"
+      },
+      "trackdrop":{
+        "sim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "weight":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_unfolddata_1p8M_ensemble4_v7/weights/trackdropManyFold_DNN_Rep-0.npy"
+      }
+    },
+    "asimovweight":"",
+    "splitsim":"/work/jinw/omnifold/OmniFold/preselect/flatTuple_MB_trk_noPU_new_CP1_tuneES_1.npz",
+    "splitweight":"",
+    "addbs":false,
+    "bsweightdir":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/omnifold_train/results_multifold_maxweight10_minweightp1_MCCP1_unfolddata_1p8M_ensemble4_v7/weights/",
+    "addsysbs":false,
+    "sysbsweightdir":"/pnfs/psi.ch/cms/trivcat/store/user/jinw/omnifold_train/results_multifold_maxweight10_minweightp1_MCCP1_unfolddata_1p8M_ensemble4_v7/weights/"
+  },
+  "isshape":true,
+  "outputdir":"results_finebin_v7_MCCP1_unfolddata_signal_flatevenmassslice_v8_2d",
+  "inputfilesim":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+  "inputfilesim_weight":null,
+  "inputfilesim_sys":{
+     "A3P_gen":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "down":null
+     },
+     "A3P_migration":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "down":null
+     },
+     "EPOS_gen":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "down":null
+     },
+     "EPOS_migration":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+       "down":null
+     },
+     "CH3_gen":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "down":null
+     },
+     "CH3_migration":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+       "down":null
+     },
+     "trackdrop":{
+        "up": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP1_B.npz"],
+        "down":null
+     }
+  },
+  "inputfilesim_sys_weight":{
+     "EPOS_gen":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_genweightEPOS_ensemble4_v7/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "EPOS_mig":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_sysweightEPOS_ensemble4_v7/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "A3P_gen":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_genweightA3P_ensemble4_v7/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "A3P_mig":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_sysweightA3P_ensemble4_v7/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "CH3_gen":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_genweightCH3_ensemble4_v7/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "CH3_mig":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_sysweightCH3_ensemble4_v7/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     },
+     "trackdrop":{
+        "up": "/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_minweightp1_MCCP1_sysweighttrkdrop_ensemble4_v7/weights/ManyFold_DNN_Rep-0.npy",
+        "down":null
+     }
+  },
+  "addsys":true,
+  "inputfilesim_MCvar":{
+     "A3P":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_A3P_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_A3P_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_A3P_C.npz"],
+     "EPOS":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_EPOS_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_EPOS_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_EPOS_C.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_EPOS_D.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_EPOS_E.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_EPOS_G.npz"],
+     "CP5":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP5_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP5_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CP5_C.npz"],
+     "CUETP8M1":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CUEP8M1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CUEP8M1_B.npz"],
+     "A14":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_A14_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_A14_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_A14_C.npz"],
+     "CH3":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CH3_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_MB_trk_noPU_new_CH3_B.npz"],
+     "CP1_diff":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_CP1_diffractive_mixAndMatch_noPU.npz"],
+     "CP1_nondiff":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_CP1_nonDiffractive_mixAndMatch_noPU.npz"],
+      "instanton_M3_0": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_0.npz"],
+      "instanton_M3_1": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_1.npz"],
+      "instanton_M3_2": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_2.npz"],
+      "instanton_M3_3": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_3.npz"],
+      "instanton_M3_4": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_4.npz"],
+      "instanton_M3_5": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_5.npz"],
+      "instanton_M3_6": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_6.npz"],
+      "instanton_M3_7": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_7.npz"],
+      "instanton_M3_8": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_8.npz"],
+      "instanton_M3_9": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_9.npz"],
+      "instanton_M3_10": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_10.npz"],
+      "instanton_M3_11": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_11.npz"],
+      "instanton_M3_12": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_12.npz"],
+      "instanton_M3_13": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_13.npz"],
+      "instanton_M3_14": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_14.npz"],
+      "instanton_M3_15": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_15.npz"],
+      "instanton_M3_16": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_16.npz"],
+      "instanton_M3_17": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_17.npz"],
+      "instanton_M3_18": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_18.npz"],
+      "instanton_M3_19": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_19.npz"],
+      "instanton_M3_20": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_20.npz"],
+      "instanton_M3_21": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_21.npz"],
+      "instanton_M3_22": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_22.npz"],
+      "instanton_M3_23": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_23.npz"],
+      "instanton_M3_24": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_24.npz"],
+      "instanton_M3_25": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_25.npz"],
+      "instanton_M3_26": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_26.npz"],
+      "instanton_M3_27": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_27.npz"],
+      "instanton_M3_28": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_28.npz"],
+      "instanton_M3_29": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_29.npz"],
+      "instanton_M3_30": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_30.npz"],
+      "instanton_M3_31": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_31.npz"],
+      "instanton_M3_32": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_32.npz"],
+      "instanton_M3_33": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_33.npz"],
+      "instanton_M3_34": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_34.npz"],
+      "instanton_M3_35": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_35.npz"],
+      "instanton_M3_36": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_36.npz"],
+      "instanton_M3_37": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_37.npz"],
+      "instanton_M3_38": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_38.npz"],
+      "instanton_M3_39": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_39.npz"],
+      "instanton_M3_40": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_40.npz"],
+      "instanton_M3_41": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_41.npz"],
+      "instanton_M3_42": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_42.npz"],
+      "instanton_M3_43": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_43.npz"],
+      "instanton_M3_44": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_44.npz"],
+      "instanton_M3_45": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_45.npz"],
+      "instanton_M3_46": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_46.npz"],
+      "instanton_M3_47": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_47.npz"],
+      "instanton_M3_48": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_48.npz"],
+      "instanton_M3_49": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_49.npz"],
+      "instanton_M3_50": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_50.npz"],
+      "instanton_M3_51": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_51.npz"],
+      "instanton_M3_52": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_52.npz"],
+      "instanton_M3_53": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_53.npz"],
+      "instanton_M3_54": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_54.npz"],
+      "instanton_M3_55": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_55.npz"],
+      "instanton_M3_56": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M3_flat_Rambo_noPu_56.npz"],
+      "instanton_M10_4f_0": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_0.npz"],
+      "instanton_M10_4f_1": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_1.npz"],
+      "instanton_M10_4f_2": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_2.npz"],
+      "instanton_M10_4f_3": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_3.npz"],
+      "instanton_M10_4f_4": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_4.npz"],
+      "instanton_M10_4f_5": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_5.npz"],
+      "instanton_M10_4f_6": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_6.npz"],
+      "instanton_M10_4f_7": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_7.npz"],
+      "instanton_M10_4f_8": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_8.npz"],
+      "instanton_M10_4f_9": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_9.npz"],
+      "instanton_M10_4f_10": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_10.npz"],
+      "instanton_M10_4f_11": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_11.npz"],
+      "instanton_M10_4f_12": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_12.npz"],
+      "instanton_M10_4f_13": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_13.npz"],
+      "instanton_M10_4f_14": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_14.npz"],
+      "instanton_M10_4f_15": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_15.npz"],
+      "instanton_M10_4f_16": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_16.npz"],
+      "instanton_M10_4f_17": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_17.npz"],
+      "instanton_M10_4f_18": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_18.npz"],
+      "instanton_M10_4f_19": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_19.npz"],
+      "instanton_M10_4f_20": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_20.npz"],
+      "instanton_M10_4f_21": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_21.npz"],
+      "instanton_M10_4f_22": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_22.npz"],
+      "instanton_M10_4f_23": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_23.npz"],
+      "instanton_M10_4f_24": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_24.npz"],
+      "instanton_M10_4f_25": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_25.npz"],
+      "instanton_M10_4f_26": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_26.npz"],
+      "instanton_M10_4f_27": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_27.npz"],
+      "instanton_M10_4f_28": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_28.npz"],
+      "instanton_M10_4f_29": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_29.npz"],
+      "instanton_M10_4f_30": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_30.npz"],
+      "instanton_M10_4f_31": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_31.npz"],
+      "instanton_M10_4f_32": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_32.npz"],
+      "instanton_M10_4f_33": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_33.npz"],
+      "instanton_M10_4f_34": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_34.npz"],
+      "instanton_M10_4f_35": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_35.npz"],
+      "instanton_M10_4f_36": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_36.npz"],
+      "instanton_M10_4f_37": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_37.npz"],
+      "instanton_M10_4f_38": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_38.npz"],
+      "instanton_M10_4f_39": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_39.npz"],
+      "instanton_M10_4f_40": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_40.npz"],
+      "instanton_M10_4f_41": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_41.npz"],
+      "instanton_M10_4f_42": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_42.npz"],
+      "instanton_M10_4f_43": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_43.npz"],
+      "instanton_M10_4f_44": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_44.npz"],
+      "instanton_M10_4f_45": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_45.npz"],
+      "instanton_M10_4f_46": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_46.npz"],
+      "instanton_M10_4f_47": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_47.npz"],
+      "instanton_M10_4f_48": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_48.npz"],
+      "instanton_M10_4f_49": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_49.npz"],
+      "instanton_M10_4f_50": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_50.npz"],
+      "instanton_M10_4f_51": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_51.npz"],
+      "instanton_M10_4f_52": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_52.npz"],
+      "instanton_M10_4f_53": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_53.npz"],
+      "instanton_M10_4f_54": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_54.npz"],
+      "instanton_M10_4f_55": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_55.npz"],
+      "instanton_M10_4f_56": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_56.npz"],
+      "instanton_M10_4f_57": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_57.npz"],
+      "instanton_M10_4f_58": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_58.npz"],
+      "instanton_M10_4f_59": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_59.npz"],
+      "instanton_M10_4f_60": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_60.npz"],
+      "instanton_M10_4f_61": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_61.npz"],
+      "instanton_M10_4f_62": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_62.npz"],
+      "instanton_M10_4f_63": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_63.npz"],
+      "instanton_M10_4f_64": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_64.npz"],
+      "instanton_M10_4f_65": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_65.npz"],
+      "instanton_M10_4f_66": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_66.npz"],
+      "instanton_M10_4f_67": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_67.npz"],
+      "instanton_M10_4f_68": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_68.npz"],
+      "instanton_M10_4f_69": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7_flat/flatTuple_instanton_M10_4f_flat_Rambo_noPu_69.npz"]
+  },
+  "instanton_M3_slice": [3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 80.0, 100.0, 120.0, 140.0, 170.0],
+  "instanton_M10_4f_slice": [10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0, 60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0, 75.0, 80.0, 85.0, 90.0, 95.0, 100.0, 120.0, 140.0, 160.0, 190.0],
+  "inputfilesim_MCvar_weight":{
+     "A3P":null,
+     "EPOS":null,
+     "CP5":null,
+     "CUETP8M1":null,
+     "A14":null,
+     "CH3":null,
+     "CP1_diff":null,
+     "CP1_nondiff":null,
+     "instanton":null
+  },
+  "normfactor_MCvar":{
+     "A3P":37.08209678,
+     "EPOS":34.15991903,
+     "CP5":37.17406913722888,
+     "CUETP8M1":33.56950474,
+     "A14":34.42328974,
+     "CH3":37.42778327,
+     "CP1_diff":37.0,
+     "CP1_nondiff":37.0,
+     "instanton":77.7
+  },
+  "inputfiledata":["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_ZeroBias_2018lowPU_new_hltv6_ext1-3.npz",
+                   "/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_ZeroBias_2018lowPU_new_hltv6_ext1-4.npz",
+                   "/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_ZeroBias_2018lowPU_new_hltv6_ext1-5.npz",
+                   "/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_reduced_v7/flatTuple_ZeroBias_2018lowPU_new_hltv6_ext1-6.npz"],
+  "MCtag":"nominal",
+  "analysis":"LowPU2018",
+  "era":"13TeV",
+  "normalize":false,
+  "mergerecobin":true,
+  "mergethresholdreco":0.5,
+  "mergegenbin":true,
+  "mergethresholdgen":0.3,
+  "cut":"(PV_N_good==1&&PV_isgood&&(Instanton_N_Trk_highPurity_pt05_lowIP>2))",
+  "normfactorMC":41.21333667,
+  "normfactordata":1.0,
+  "pseudodata":false,
+  "inputfilepseudodata": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_new/flatTuple_MB_trk_noPU_new_CP1_A.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_new/flatTuple_MB_trk_noPU_new_CP1_B.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_new/flatTuple_MB_trk_noPU_new_CP1_D.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_new/flatTuple_MB_trk_noPU_new_CP1_F.npz","/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ_new/flatTuple_MB_trk_noPU_new_CP1_G.npz"],
+  "pseudodataweight":"/work/jinw/omnifold/OmniFold/results_multifold_maxweight10_MCEPOS_unfoldCP1_1p3M_ensemble4_normXS_coverage_v2/weights/ManyFold_DNN_Rep-0_bs_6_MCbs_6_dataweight.npy",
+  "normfactorpseudodata":19.47381303,
+  "bsweight":""
+
+}

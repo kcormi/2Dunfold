@@ -1,0 +1,23 @@
+{
+  "varunfold":"config/observables.yml",
+  "outputdir":"results_finebin_v7_MCA3P_unfoldCP5_split_v7/plots_multifold",
+  "input":"results_finebin_v7_MCA3P_unfoldCP5_split_v7/merge.csv",
+  "MC_name":"A3P",
+  "MCvar_name":["CP5_alternative"],
+  "data_name":"ZeroBias",
+  "pseudodata_name":"CP5",
+  "workflow":"unfold",
+  "pseudodata":true,
+  "addsys":false,
+  "sys_name":[],
+  "addstat":false,
+  "perbinshape":true,
+  "addbkg":false,
+  "reluncname":["MCstat"],
+  "relunclegend":["MC stat. unc."],
+  "methods":["multifold"],
+  "evaluate-sys-bootstrap":[],
+  "evaluate-stat-bootstrap":[],
+  "evaluate-relunc":["multifold"],
+  "normalize_XS":true
+}

@@ -63,7 +63,7 @@ def get_df_entries(df, **kwargs_selections):
     
   return df[selection]
 
-def get_histconfigcollection(df,color_list,style_list,legend_list,df_stat=None):
+def get_histconfigcollection(df,color_list,style_list,legend_list,df_stat=None,norm=False):
   gen_entry = df[(df['histtype']=='inclusive')&df['dim1_isgen']&df['dim2_isgen']]
   reco_entry = df[(df['histtype']=='inclusive')&~df['dim1_isgen']&~df['dim2_isgen']] 
   #Plan: process the results from bootstraps -> add 'histtype' options 'inclusive_sysunc', 'inclusive_statunc','inclusive_totalunc'
@@ -95,10 +95,14 @@ def get_histconfigcollection(df,color_list,style_list,legend_list,df_stat=None):
     if len(entry)>0:
       histarray = HistArray.from_df_entry(entry.iloc[0])
       if i<2:
+        if norm:
+          histarray.normalize()
         histarray.divide_by_bin_width()
       if df_stat is not None and len(entry_statonly)>0:
         histarray_statonly = HistArray.from_df_entry(entry_statonly.iloc[0])
         if i<2:
+          if norm:
+            histarray_statonly.normalize()
           histarray_statonly.divide_by_bin_width()
       else:
         histarray_statonly = 0
@@ -147,7 +151,7 @@ def plot_wrapper(plt_list,**kwargs):
   else:
     plot_flat_hists_mpl(plt_list.ref.hist, plt_list.hists, plt_list.ref.legend, plt_list.legends, **input_args)
 
-def draw_plot(plt_list, plotdir, var1_nm, var2_nm, obs2, txt_list,use_root=True,**kwargs):
+def draw_plot(plt_list, plotdir, var1_nm, var2_nm, obs2, txt_list,use_root=True,normalize_XS=True,**kwargs):
     if plt_list.ref is None: return
     path = f'{plotdir}/{plt_list.name}_{var1_nm}_{var2_nm}'
     os.system(f"mkdir -p {plotdir}")
@@ -159,18 +163,24 @@ def draw_plot(plt_list, plotdir, var1_nm, var2_nm, obs2, txt_list,use_root=True,
       "do_ratio": 1,
       "output_path": path,
       "text_list": txt_list,
-      "labelY":'Normalized Events/Bin Width',
+      "labelY":r'$\sigma$/d'+latex_root_to_mpl(axis_title) if normalize_XS else "1/N dN/d"+r'{}'.format(latex_root_to_mpl(axis_title).replace(']','^{-1}]')),
       "range_ratio": 0.1 if "eff" in plt_list.name or "acc" in plt_list.name else 0.3,
-      "use_root": use_root
+      "use_root": use_root,
+      "merge_bin": True
     }
     for key in kwargs.keys():
       plot_args[key] = kwargs[key]
     if "eff" in plt_list.name:
      plot_args["labelY"] = "Efficiency"
+     plot_args["merge_bin"] = False
     elif "acc" in plt_list.name:
      plot_args["labelY"] = "Acceptance"
+     plot_args["merge_bin"] = False
     elif "unc_breakdown" in plt_list.name:
      plot_args["labelY"] = "Relative uncertainty" 
+     plot_args["merge_bin"] = False
+    elif "reco" in plt_list.name:
+     plot_args["merge_bin"] = False
     plot_wrapper(plt_list,**plot_args)
 
     if not("eff" in plt_list.name or "acc" in plt_list.name):
@@ -205,12 +215,12 @@ def get_sel_legend_color(config,config_style,datatype,varname=None):
   if varname is not None:
     sel = {'datatype': "MC",
            'dataset': varname}
-    legend = "MC: "+varname
+    legend = config[f"MCvar_legend"][config[f"MCvar_name"].index(varname)]
     color = config_style['mpl']["MCvar_color"][config[f"MCvar_name"].index(varname)]
   else:
     sel = {'datatype': datatype,
            'dataset': config[f"{datatype}_name"]}
-    legend = datatype + ": " + config[f"{datatype}_name"]
+    legend = config[f"{datatype}_legend"]
     color = config_style['mpl'][f"{datatype}_color"]
   return sel,legend,color
 
@@ -294,18 +304,19 @@ if __name__=="__main__":
         records_chi2 = get_df_entries(df, **base_sel|chi2_sel)
         records_ks = get_df_entries(df, **base_sel|ks_sel)
 
+        print(base_sel)
         records_chi2_unfold_MC = get_df_entries(df, **base_sel|chi2_unfold_MC_sel)
         records_chi2_MC_data = get_df_entries(df, **base_sel|chi2_MC_data_sel)
         print("records_chi2_unfold_MC",records_chi2_unfold_MC)
         print("records_chi2_MC_data",records_chi2_MC_data)
 
-        hcc_data = get_histconfigcollection(records_data,data_color,['boldertriangle','boldercross','boldertriangle','boldertriangle',None],data_legend)
+        hcc_data = get_histconfigcollection(records_data,data_color,['boldertriangle','boldercross','boldertriangle','boldertriangle',None],data_legend,norm = (False if ("normalize_XS" in config.keys() and config["normalize_XS"]) else True))
 
-        hcc_MC = get_histconfigcollection(records_MC,MC_color,['fillederror','fillederror','cross','cross',None],MC_legend)
+        hcc_MC = get_histconfigcollection(records_MC,MC_color,['fillederror','fillederror','cross','cross',None],MC_legend,norm = (False if ("normalize_XS" in config.keys() and config["normalize_XS"]) else True))
         hcc_MCvar_list = []
         if "MCvar_name" in config.keys():
           for MCvar in config["MCvar_name"]:
-            hcc_MCvar_list.append(get_histconfigcollection(get_df_entries(df, **base_sel|MCvar_sel[MCvar]),MCvar_color[MCvar],['fillederror','fillederror','cross','cross',None],MCvar_legend[MCvar]))
+            hcc_MCvar_list.append(get_histconfigcollection(get_df_entries(df, **base_sel|MCvar_sel[MCvar]),MCvar_color[MCvar],['fillederror','fillederror','cross','cross',None],MCvar_legend[MCvar],norm = (False if ("normalize_XS" in config.keys() and config["normalize_XS"]) else True)))
 
 
         chi2_collection,_ = get_histconfig_gof(records_chi2,default_colors[icolor],(f"{obs[0]}:{obs[1]}").replace("spherocity","sphericity"),["gen_both_error","gen_target_error","reco_both_error","reco_target_error"])
@@ -323,7 +334,7 @@ if __name__=="__main__":
         ks_collection_list.append(ks_collection)
 
         iters = np.sort(np.unique(df[~np.isnan(df['iter'])]['iter']))
-                
+       
         for it in iters:
           iter_sel = {'datatype': config['workflow']+args.unfold_tag,
                       'dataset': config['MC_name'],
@@ -334,7 +345,7 @@ if __name__=="__main__":
           it_legend = result_settings.legend_refold+args.unfold_tag
           it_legend_unfold = result_settings.legend_unfold+args.unfold_tag
           tag = result_settings.tag
-          hcc_it = get_histconfigcollection(records_it,[it_color_unfold,it_color,it_color_unfold,it_color_unfold,None],["marker","filled","cross","cross",None],[it_legend_unfold,it_legend,it_legend_unfold+" Eff.",it_legend_unfold+" Acc.",it_legend_unfold+" Mig."])
+          hcc_it = get_histconfigcollection(records_it,[it_color_unfold,it_color,it_color_unfold,it_color_unfold,None],["marker","filled","cross","cross",None],[it_legend_unfold,it_legend,it_legend_unfold+" Eff.",it_legend_unfold+" Acc.",it_legend_unfold+" Mig."],norm = (False if ("normalize_XS" in config.keys() and config["normalize_XS"]) else True))
 
           hcc_sys_list = []
           if method in config["evaluate-relunc"]:
@@ -350,7 +361,7 @@ if __name__=="__main__":
                 records_sys = get_df_entries(df, **base_sel|sys_sel)
                 print(base_sel|sys_sel)
                 it_legend_sys = config["relunclegend"][isys]
-                hcc_sys_list.append(get_histconfigcollection(records_sys,[color_unc[isys],color_unc[isys],color_unc[isys],color_unc[isys],None],["marker","fillederror","cross","cross",None],[it_legend_sys,it_legend_sys,it_legend_sys+" Eff.",it_legend_sys+" Acc.",it_legend_sys+" Mig."]))
+                hcc_sys_list.append(get_histconfigcollection(records_sys,[color_unc[isys],color_unc[isys],color_unc[isys],color_unc[isys],None],["marker","fillederror","cross","cross",None],[it_legend_sys,it_legend_sys,it_legend_sys+" Eff.",it_legend_sys+" Acc.",it_legend_sys+" Mig."],norm = (False if ("normalize_XS" in config.keys() and config["normalize_XS"]) else True)))
                 print(records_sys)
                 histarray_sys = HistArray.from_df_entry(records_sys.iloc[0])
                 histarray_sys.divide_by_bin_width()
@@ -374,7 +385,7 @@ if __name__=="__main__":
             it_sysbs_color_unfold = result_settings.color_unfold
             it_sysbs_legend = result_settings.legend_refold+" sys."
             it_sysbs_legend_unfold = result_settings.legend_unfold+" sys."
-            hcc_it_sysbs = get_histconfigcollection(records_it_sysbs,[it_sysbs_color_unfold,it_sysbs_color,it_sysbs_color_unfold,it_sysbs_color_unfold,None],["hatch","hatch","hatch","hatch",None],[it_sysbs_legend_unfold,it_sysbs_legend,it_sysbs_legend_unfold+" Eff.",it_sysbs_legend_unfold+" Acc.",it_sysbs_legend_unfold+" Mig."])
+            hcc_it_sysbs = get_histconfigcollection(records_it_sysbs,[it_sysbs_color_unfold,it_sysbs_color,it_sysbs_color_unfold,it_sysbs_color_unfold,None],["hatch","hatch","hatch","hatch",None],[it_sysbs_legend_unfold,it_sysbs_legend,it_sysbs_legend_unfold+" Eff.",it_sysbs_legend_unfold+" Acc.",it_sysbs_legend_unfold+" Mig."],norm = (False if ("normalize_XS" in config.keys() and config["normalize_XS"]) else True))
             if method in config["evaluate-relunc"]:
               hc_relunc_list.append(HistConfig(hcc_it_sysbs.gen.hist.relative_error(),0,
                                         'k', "dashedline","Total sys. unc. (pseudo-experiment)"))
@@ -390,7 +401,7 @@ if __name__=="__main__":
             it_statbs_color_unfold = result_settings.color_unfold
             it_statbs_legend = result_settings.legend_refold+" stat."
             it_statbs_legend_unfold = result_settings.legend_unfold+" stat."
-            hcc_it_statbs = get_histconfigcollection(records_it_statbs,[it_statbs_color_unfold,it_statbs_color,it_statbs_color_unfold,it_statbs_color_unfold,None],["righthatch","righthatch","righthatch","righthatch",None],[it_statbs_legend_unfold,it_statbs_legend,it_statbs_legend_unfold+" Eff.",it_statbs_legend_unfold+" Acc.",it_statbs_legend_unfold+" Mig."])
+            hcc_it_statbs = get_histconfigcollection(records_it_statbs,[it_statbs_color_unfold,it_statbs_color,it_statbs_color_unfold,it_statbs_color_unfold,None],["righthatch","righthatch","righthatch","righthatch",None],[it_statbs_legend_unfold,it_statbs_legend,it_statbs_legend_unfold+" Eff.",it_statbs_legend_unfold+" Acc.",it_statbs_legend_unfold+" Mig."],norm = (False if ("normalize_XS" in config.keys() and config["normalize_XS"]) else True))
             if method in config["evaluate-relunc"]:
               hc_relunc_list.append(HistConfig(hcc_it_statbs.gen.hist.relative_error(),0,
                                         'orange', "dashedline","Stat. unc. (pseudo-experiment)"))
@@ -406,7 +417,7 @@ if __name__=="__main__":
             it_fullbs_color_unfold = "black"
             it_fullbs_legend = result_settings.legend_refold
             it_fullbs_legend_unfold = result_settings.legend_unfold
-            hcc_it_fullbs = get_histconfigcollection(records_it_fullbs,[it_fullbs_color_unfold,it_fullbs_color,it_fullbs_color_unfold,it_fullbs_color_unfold,None],["marker","marker","marker","marker",None],[it_fullbs_legend_unfold,it_fullbs_legend,it_fullbs_legend_unfold+" Eff.",it_fullbs_legend_unfold+" Acc.",it_fullbs_legend_unfold+" Mig."],records_it_statbs)
+            hcc_it_fullbs = get_histconfigcollection(records_it_fullbs,[it_fullbs_color_unfold,it_fullbs_color,it_fullbs_color_unfold,it_fullbs_color_unfold,None],["marker","marker","marker","marker",None],[it_fullbs_legend_unfold,it_fullbs_legend,it_fullbs_legend_unfold+" Eff.",it_fullbs_legend_unfold+" Acc.",it_fullbs_legend_unfold+" Mig."],records_it_statbs,norm = (False if ("normalize_XS" in config.keys() and config["normalize_XS"]) else True))
           else:
             hcc_it_fullbs = None
 
@@ -428,7 +439,7 @@ if __name__=="__main__":
                                                            ratio )
 
           if method in config['evaluate-sys-bootstrap'] and method in config['evaluate-stat-bootstrap']:
-            ratio = 'MC / Unfold'
+            ratio = 'MC / Data'
             pltLists[f"Unfoldbscompare_iter{it}"] = PlotConfig(
                                                              hcc_it_fullbs.gen,
                                                              [hcc_MC.gen]+[hcc_MCvar.gen for hcc_MCvar in hcc_MCvar_list],
@@ -438,7 +449,7 @@ if __name__=="__main__":
           ratio = 'Unfold / Truth' if config['workflow']=="unfold" else "Reweight / sys. var."
           pltLists[f"Unfoldcomparepseudodata_iter{it}"] = PlotConfig(
                                                                      hcc_data.gen,
-                                                                     [hcc_it.gen,hcc_it_sysbs.gen if hcc_it_sysbs else None,hcc_it_statbs.gen if hcc_it_statbs else None,hcc_MC.gen]+[hcc_sys.gen for hcc_sys in hcc_sys_list],
+                                                                     [hcc_it.gen,hcc_it_sysbs.gen if hcc_it_sysbs else None,hcc_it_statbs.gen if hcc_it_statbs else None,hcc_MC.gen]+[hcc_sys.gen for hcc_sys in hcc_sys_list]+[hcc_MCvar.gen for hcc_MCvar in hcc_MCvar_list],
                                                                      f'pseudodata_truth_unfold_{tag}_iter{it}',
                                                                      ratio)
 
@@ -481,7 +492,7 @@ if __name__=="__main__":
           for plt_type in to_plot:
             txt_list = TextListReco if pltLists[plt_type].is_reco else TextListGen
             print(plt_type,"drawing")
-            draw_plot( pltLists[plt_type], config["outputdir"], obs1_name, obs2_name, obs2, txt_list, use_root = False, labelY="X.S./Bin Width (nb)" if "normalize_XS" in config.keys() and config["normalize_XS"] else "Normalized Events/Bin Width")
+            draw_plot( pltLists[plt_type], config["outputdir"], obs1_name, obs2_name, obs2, txt_list, use_root = False, normalize_XS = True if ("normalize_XS" in config.keys() and config["normalize_XS"]) else False)
             print("draw finished")
         
       chi2_plot = ["gen_target_error","gen_target_error_rel","gen_both_error","gen_both_error_rel","reco_target_error","reco_target_error_rel","reco_both_error","reco_both_error_rel"]

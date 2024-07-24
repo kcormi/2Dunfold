@@ -10,7 +10,7 @@ from matplotlib.ticker import MaxNLocator
 hep.style.use("CMS")
 import ast
 from unfold_utils import HistList
-
+import copy
 def lumi_text(lumi):
     if np.log10(lumi) >= 0 and np.log10(lumi) < 3:
         lumi_print = lumi
@@ -195,6 +195,14 @@ class HistArray:
         self._nested_value[ibin1][ibin2] = self._nested_value[ibin1][ibin2] / (self._nested_bins[ibin1][ibin2+1]-self._nested_bins[ibin1][ibin2])
         self._nested_error[ibin1][ibin2] = self._nested_error[ibin1][ibin2] / (self._nested_bins[ibin1][ibin2+1]-self._nested_bins[ibin1][ibin2])
 
+  def normalize(self,norm=1.0):
+    s=0.
+    for ibin1 in range(len(self._nested_bins)):
+      s=s+sum(self._nested_value[ibin1])
+    for ibin1 in range(len(self._nested_bins)):
+      for ibin2 in range(len(self._nested_bins[ibin1])-1):
+        self._nested_value[ibin1][ibin2] = self._nested_value[ibin1][ibin2] / s
+        self._nested_error[ibin1][ibin2] = self._nested_error[ibin1][ibin2] / s
 
   def relative_error(self):
     result = HistArray()
@@ -382,25 +390,78 @@ def get_histarray(source):
   if isinstance(source,HistList):
     return HistArray(source)
   elif isinstance(source,HistArray):
-    return source
+    return copy.deepcopy(source)
   else:
     return None
 
-def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title="", is_logY=0, do_ratio=1, output_path="./", hist_ref_stat=0, text_list=[], style_ref='marker', color_ref="black", list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3,limY=None):
+def merge_bin_histarray(list_histarray,threshold=1.0):
+  bin_edges_dim2_merge=[]
+  for ibin0 in range(len(list_histarray[0]._nested_value)):
+    bin_edges_dim2_merge.append(copy.deepcopy(list(list_histarray[0]._nested_bins[ibin0])))
+    ibin1 = 0
+    content = np.zeros(len(list_histarray))
+    content_err2 = np.zeros(len(list_histarray))
+    merge_flag = True
+    new_bin_values=[[] for i in range(len(list_histarray))]
+    new_bin_error2=[[] for i in range(len(list_histarray))]
+    while ibin1 < len(list_histarray[0]._nested_bins[ibin0])-1:
+      content = content + np.array([histarray._nested_value[ibin0][ibin1]*(histarray._nested_bins[ibin0][ibin1+1]-histarray._nested_bins[ibin0][ibin1]) for histarray in list_histarray])
+      content_err2 = content_err2 + np.array([(histarray._nested_error[ibin0][ibin1]*(histarray._nested_bins[ibin0][ibin1+1]-histarray._nested_bins[ibin0][ibin1]))**2 for histarray in list_histarray])
+      if np.all(content>0) and np.all(np.sqrt(content_err2)/content <= threshold):
+        #print("content ",content)
+        for ihist in range(len(content)):
+          #print("ihist ",ihist)
+          #print("content[ihist] ",content[ihist])
+          #print("new_bin_values[ihist] before append ",new_bin_values[ihist])
+          new_bin_values[ihist].append(content[ihist])
+          #print("new_bin_values[ihist]",new_bin_values[ihist])
+          new_bin_error2[ihist].append(content_err2[ihist])
+        content = np.zeros(len(list_histarray))
+        content_err2 = np.zeros(len(list_histarray))
+        merge_flag = False
+      else:
+        merge_flag = True
+        if ibin1 != len(list_histarray[0]._nested_bins[ibin0]) - 2:
+          bin_edges_dim2_merge[ibin0].remove(list_histarray[0]._nested_bins[ibin0][ibin1+1])
+      ibin1 += 1
+      #print("ibin1 ",ibin1, ", new_bin_values ",new_bin_values)
+    if (np.any(content<=0) or np.any(np.sqrt(content_err2)/content > threshold)) and merge_flag:
+      if len(bin_edges_dim2_merge[ibin0]) > 2:
+        for ihist in range(len(content)):
+          new_bin_values[ihist][-1] += content[ihist]
+          new_bin_error2[ihist][-1] += content_err2[ihist]
+        del bin_edges_dim2_merge[ibin0][-2]
+      else:
+        for ihist in range(len(content)):
+          new_bin_values[ihist].append(content[ihist])
+          new_bin_error2[ihist].append(content_err2[ihist])
+      #  raise ValueError(f'Not enough statistics in first observable bin {ibin0}, expected at least  {threshold} relative uncertainty, but found {np.sqrt(content_err2)/content}')
+    for ihist, histarray in enumerate(list_histarray):
+      print("merged bins ",bin_edges_dim2_merge[ibin0])
+      print("new_bin_values ",np.array(new_bin_values[ihist]))
+      histarray._nested_bins[ibin0] = np.array(bin_edges_dim2_merge[ibin0])
+      histarray._nested_value[ibin0] = np.array(new_bin_values[ihist])/(histarray._nested_bins[ibin0][1:]-histarray._nested_bins[ibin0][:-1])
+      histarray._nested_error[ibin0] = np.sqrt(np.array(new_bin_error2[ihist]))/(histarray._nested_bins[ibin0][1:]-histarray._nested_bins[ibin0][:-1])
+      if histarray._nested_bins[ibin0][-1]>1 and len(histarray._nested_bins[ibin0])>=3 and (histarray._nested_bins[ibin0][-1]-histarray._nested_bins[ibin0][-2]>2*(histarray._nested_bins[ibin0][-2]-histarray._nested_bins[ibin0][-3])):
+        histarray._nested_bins[ibin0][-1] = histarray._nested_bins[ibin0][-2]+2*(histarray._nested_bins[ibin0][-2]-histarray._nested_bins[ibin0][-3])
+
+def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title="", is_logY=0, do_ratio=1, output_path="./", hist_ref_stat=0, text_list=[], style_ref='marker', color_ref="black", list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3,limY=None,merge_bin=False):
 
   hist_ref_arrays = get_histarray(hist_ref)
   hist_ref_stat_arrays = get_histarray(hist_ref_stat)
   list_hist_compare_arrays = [get_histarray(hist_compare) for hist_compare in list_hist_compare]
+  if merge_bin:
+    merge_bin_histarray([hist_ref_arrays]+([hist_ref_stat_arrays] if hist_ref_stat_arrays is not None else []) + list_hist_compare_arrays)
   if do_ratio:
-    f, axs = plt.subplots(2,len(hist_ref_arrays),sharex=True,sharey='row',gridspec_kw={"height_ratios": (2,1) },figsize=(12.0+(len(hist_ref_arrays)-1)*2,10.0))
+    f, axs = plt.subplots(2,len(hist_ref_arrays),sharex='col',sharey='row',gridspec_kw={"height_ratios": (2,1) },figsize=(12.0+(len(hist_ref_arrays)-1)*2,10.0))
   else:
-    f, axs = plt.subplots(1,len(hist_ref_arrays),sharex=True,sharey='row')
+    f, axs = plt.subplots(1,len(hist_ref_arrays),sharex='col',sharey='row')
   if do_ratio:
     axs = axs.flatten()
   elif len(hist_ref_arrays) == 1:
     axs = [axs]
-  hep.cms.label('Preliminary', data=True if color_ref=="black" else False, rlabel="", loc=0, ax = axs[0],fontsize = 20)
-  hep.cms.lumitext(lumi_text(1.4817568788812e-08), ax = axs[len(hist_ref_arrays)-1])
+  hep.cms.label('Preliminary', data=True if color_ref=="black" else False, rlabel="", loc=0, ax = axs[0],fontsize = 24)
+  hep.cms.lumitext(lumi_text(6.4161167683e-08), ax = axs[len(hist_ref_arrays)-1])
   order_hist_array = list_hist_compare_arrays.copy()
   order_style = list_style_compare.copy()
   order_color = list_color_compare.copy()
@@ -419,6 +480,7 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
   for ihist in range(len(hist_ref_arrays)):
     for (hist_array,style,color,legend) in zip(order_hist_array,order_style,order_color,order_legend):
       draw_array(hist_array.nested_value[ihist], hist_array.nested_error[ihist],hist_array.nested_bins[ihist],style, axs[ihist],color,legend) 
+      axs[ihist].set_xlim(left = hist_ref_arrays.nested_bins[ihist][0], right = hist_ref_arrays.nested_bins[ihist][-1])
       if len(hist_ref_arrays)>1:
         axs[ihist].text(.5,.9,latex_root_to_mpl(text_list[ihist]),horizontalalignment='center',transform=axs[ihist].transAxes,fontsize = 'x-small')
       if ihist != len(hist_ref_arrays)-1 and not do_ratio:
@@ -435,13 +497,13 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
   axs[ihist].set_yscale('log' if is_logY else 'linear')
   if is_logY:
     if top<1e300:
-      axs[ihist].set_ylim(top = top*50)
+      axs[ihist].set_ylim(top = top*80)
     else:
       axs[ihist].set_ylim(top = 1e6)
   else:
     print(top,bottom)
     if top<1e300:
-      axs[ihist].set_ylim(top = top*1.5, bottom = max(bottom,0))
+      axs[ihist].set_ylim(top = top*1.6, bottom = max(bottom,0))
       print(axs[ihist].get_ylim())
     else:
       axs[ihist].set_ylim(top = 1e6)
@@ -465,20 +527,31 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
         draw_array(hist_array.nested_value[iratio], hist_array.nested_error[iratio],hist_array.nested_bins[iratio],style, axs[iratio+len(hist_ref_arrays)],color,legend)
         if iratio != len(hist_ref_arrays)-1:
           x_ticks = axs[iratio+len(hist_ref_arrays)].xaxis.get_major_ticks()
-          x_ticks[-2].label1.set_visible(False)
+          #x_ticks[-2].label1.set_visible(False)
     axs[len(hist_ref_arrays)].set_ylabel(label_ratio)
+    #if hist_ref_stat_arrays is not None:
+    #  if iratio>0:
+    #    axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=1,loc='center left',bbox_to_anchor=(1, 0.5))
+    #  else:
+    #    axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=2)
+  axs[len(axs)-1].set_xlabel(latex_root_to_mpl(title))
+  axs[len(axs)-1].set_xlim(left = hist_ref_arrays.nested_bins[-1][0], right = hist_ref_arrays.nested_bins[-1][-1])
+  if do_ratio:
+    ratio_bottom, ratio_top = axs[len(axs)-1].get_ylim()
+    ratio_top = min(ratio_top,4.3)
+    ratio_range_sym = max(1.0-ratio_bottom,ratio_top-1.0)
+    ratio_bottom_sym, ratio_top_sym = 1.0-ratio_range_sym, 1.0+ratio_range_sym
+    axs[len(axs)-1].set_ylim(bottom = max(0,ratio_bottom_sym), top = ratio_top_sym)
     if hist_ref_stat_arrays is not None:
       if iratio>0:
         axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=1,loc='center left',bbox_to_anchor=(1, 0.5))
       else:
-        axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=2)
-  axs[len(axs)-1].set_xlabel(latex_root_to_mpl(title))
-  axs[len(axs)-1].set_xlim(left = hist_ref_arrays.nested_bins[0][0], right = hist_ref_arrays.nested_bins[0][-1])
-  if do_ratio:
-    ratio_bottom, ratio_top = axs[len(axs)-1].get_ylim()
-    ratio_range_sym = max(1.0-ratio_bottom,ratio_top-1.0)
-    ratio_bottom_sym, ratio_top_sym = 1.0-ratio_range_sym, 1.0+ratio_range_sym
-    axs[len(axs)-1].set_ylim(bottom = max(0,ratio_bottom_sym), top = ratio_top_sym)
+        if "Isotropy" in title or "N_{ch}" in title:
+            axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=2,loc = "upper left") 
+        elif "#sqrt{s_{ch}}" in title:
+            axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=2,loc = "lower left")
+        else:
+            axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=2)
   plt.subplots_adjust(wspace=0, hspace=0)
   if is_logY:
     output_path += "_logy"

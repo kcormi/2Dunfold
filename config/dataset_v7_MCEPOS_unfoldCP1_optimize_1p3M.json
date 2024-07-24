@@ -116,8 +116,8 @@
   "normfactorMC":1.0,
   "normfactordata":1.0,
   "pseudodata":true,
-  "inputfilepseudodata": { "default": "/pnfs/psi.ch/cms/trivcat/store/user/jinw/flatTuple/flatTuple_MB_trk_noPU_new_CP1_merge_ABCDEF.root",
-                "isotropy":"/work/jinw/CMSSW_10_2_15_patch2/src/2Dunfold/flatTuple_MB_trk_noPU_new_CP1_iso_nparticle_merge_ABCDEF.root" },
+  "inputfilepseudodata": ["/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ/flatTuple_MB_trk_noPU_new_CP1_merge_ABCDE.npz",
+                                   "/pnfs/psi.ch/cms/trivcat/store/user/jinw/NPZ/flatTuple_MB_trk_noPU_new_CP1_F.npz"],
   "bsweight":""
 
 }

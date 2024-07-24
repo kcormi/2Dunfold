@@ -1,7 +1,8 @@
 mpl:
   software: "mpl"
   data_color: "black"
-  MC_color: "olive"
+  MC_color: "#3f90da"
+  MCvar_color: ["#ffa90e","#bd1f01","#832db6","#a96b59","#e76300","#b9ac70","#92dadd"]
   pseudodata_color: "darkorange"
   MLE:
     color: "royalblue"
@@ -14,7 +15,7 @@ mpl:
   multifold:
     color: "mediumseagreen"
     color_unfold: "darkgreen"
-    legend: "multifold"
+    legend: "nominal"
   unifold:
     color: "salmon"
     color_unfold: "firebrick"

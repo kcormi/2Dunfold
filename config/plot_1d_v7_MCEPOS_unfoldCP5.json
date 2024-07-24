@@ -1,7 +1,7 @@
 {
   "varunfold":"config/observables.yml",
-  "outputdir":"plots_finebin_v7_MCEPOS_unfoldCP1_1d",
-  "inputdir":"results_finebin_v7_MCEPOS_unfoldCP1_1d",
+  "outputdir":"plots_finebin_v7_MCEPOS_unfoldCP5_1d",
+  "inputdir":"results_finebin_v7_MCEPOS_unfoldCP5_1d",
   "MC_name":"EPOS",
   "data_name":"ZeroBias",
   "pseudodata_name":"CP5",
