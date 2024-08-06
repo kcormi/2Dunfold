@@ -26,11 +26,11 @@ class ResultPlotSettings(ConfigBase):
 
     @property
     def legend_refold(self):
-        return f'{self.legend} refold' if not (self.sys_reweight or self.gen_reweight) else f'{self.legend} '+self.reweight_label
+        return f'{self.legend} refold' 
 
     @property
     def legend_unfold(self):
-        return f'{self.legend} unfold' if not (self.sys_reweight or self.gen_reweight) else f'{self.legend} '+self.reweight_label
+        return f'{self.legend} unfold'
 
     @property
     def tag(self):

@@ -336,6 +336,29 @@ def draw_array(value,error,bins,style,ax,color,legend):
       linewidth = 0,
       ax = ax
     )
+  elif style == 'dottedhist':
+    hep.histplot(
+      value,
+      bins=bins,
+      histtype = 'step',
+      linestyle='dotted',
+      linewidth='3',
+      color = color,
+      label = legend,
+      ax = ax
+    )
+  elif style == 'dashedhist':
+    hep.histplot(
+      value,
+      bins=bins,
+      histtype = 'step',
+      linestyle='--',
+      linewidth='3',
+      color = color,
+      label = legend,
+      ax = ax
+    )
+  
   elif style == 'hist':
     hep.histplot(
       value,
@@ -445,7 +468,7 @@ def merge_bin_histarray(list_histarray,threshold=1.0):
       if histarray._nested_bins[ibin0][-1]>1 and len(histarray._nested_bins[ibin0])>=3 and (histarray._nested_bins[ibin0][-1]-histarray._nested_bins[ibin0][-2]>2*(histarray._nested_bins[ibin0][-2]-histarray._nested_bins[ibin0][-3])):
         histarray._nested_bins[ibin0][-1] = histarray._nested_bins[ibin0][-2]+2*(histarray._nested_bins[ibin0][-2]-histarray._nested_bins[ibin0][-3])
 
-def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title="", is_logY=0, do_ratio=1, output_path="./", hist_ref_stat=0, text_list=[], style_ref='marker', color_ref="black", list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3,limY=None,merge_bin=False):
+def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_compare, title="", is_logY=0, do_ratio=1, output_path="./", hist_ref_stat=0, text_list=[], style_ref='marker', color_ref="black", list_style_compare=[], list_color_compare=[], labelY='Normalized Events/Bin Width', label_ratio='Data/MC',range_ratio=0.3,limY=None,merge_bin=False, ratio_type='linear',ratio_limits=None):
 
   hist_ref_arrays = get_histarray(hist_ref)
   hist_ref_stat_arrays = get_histarray(hist_ref_stat)
@@ -482,24 +505,28 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
       draw_array(hist_array.nested_value[ihist], hist_array.nested_error[ihist],hist_array.nested_bins[ihist],style, axs[ihist],color,legend) 
       axs[ihist].set_xlim(left = hist_ref_arrays.nested_bins[ihist][0], right = hist_ref_arrays.nested_bins[ihist][-1])
       if len(hist_ref_arrays)>1:
-        axs[ihist].text(.5,.9,latex_root_to_mpl(text_list[ihist]),horizontalalignment='center',transform=axs[ihist].transAxes,fontsize = 'x-small')
+        axs[ihist].text(.5,.9,latex_root_to_mpl(text_list[ihist]),horizontalalignment='center',transform=axs[ihist].transAxes,fontsize = 10)#'xx-small')
       if ihist != len(hist_ref_arrays)-1 and not do_ratio:
         x_ticks = axs[ihist].xaxis.get_major_ticks()
         x_ticks[-2].label1.set_visible(False)
   axs[0].set_ylabel(labelY)
   axs[0].ticklabel_format(axis='y',style='sci',useMathText=True)
   if ihist>0:
-    axs[ihist].legend(facecolor='white', framealpha=0.95,loc='center left', bbox_to_anchor=(1, 0.5))
+    axs[0].legend(facecolor='white', framealpha=0.95, loc='upper left', bbox_to_anchor = (0, -0.6) )
+    #axs[ihist].legend(facecolor='white', framealpha=0.95, loc='center left', bbox_to_anchor=(1, 0.5))
   else:
     axs[ihist].legend(facecolor='white', framealpha=0.95)
   bottom, top = axs[ihist].get_ylim()
   if limY: top = limY
   axs[ihist].set_yscale('log' if is_logY else 'linear')
   if is_logY:
-    if top<1e300:
-      axs[ihist].set_ylim(top = top*80)
+    if ihist == 0:
+        if top<1e300:
+          axs[ihist].set_ylim(top = top*20)#80)
+        else:
+          axs[ihist].set_ylim(top = 1e6)
     else:
-      axs[ihist].set_ylim(top = 1e6)
+        axs[ihist].set_ylim(top = top*4 )
   else:
     print(top,bottom)
     if top<1e300:
@@ -508,6 +535,7 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
     else:
       axs[ihist].set_ylim(top = 1e6)
   axs[0].yaxis.get_offset_text().set_x(-0.05*ihist-0.055)
+
   if do_ratio:
     order_hist_array_ratio = [hist_compare_arrays / hist_ref_arrays for hist_compare_arrays in list_hist_compare_arrays]
     order_style_ratio = ["fillederror" if style_compare == "filled" else style_compare for style_compare in list_style_compare ]
@@ -529,11 +557,7 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
           x_ticks = axs[iratio+len(hist_ref_arrays)].xaxis.get_major_ticks()
           #x_ticks[-2].label1.set_visible(False)
     axs[len(hist_ref_arrays)].set_ylabel(label_ratio)
-    #if hist_ref_stat_arrays is not None:
-    #  if iratio>0:
-    #    axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=1,loc='center left',bbox_to_anchor=(1, 0.5))
-    #  else:
-    #    axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=2)
+
   axs[len(axs)-1].set_xlabel(latex_root_to_mpl(title))
   axs[len(axs)-1].set_xlim(left = hist_ref_arrays.nested_bins[-1][0], right = hist_ref_arrays.nested_bins[-1][-1])
   if do_ratio:
@@ -542,6 +566,13 @@ def plot_flat_hists_mpl(hist_ref, list_hist_compare, legend_ref, list_legend_com
     ratio_range_sym = max(1.0-ratio_bottom,ratio_top-1.0)
     ratio_bottom_sym, ratio_top_sym = 1.0-ratio_range_sym, 1.0+ratio_range_sym
     axs[len(axs)-1].set_ylim(bottom = max(0,ratio_bottom_sym), top = ratio_top_sym)
+    axs[len(axs)-1].set_ylim(bottom = 0.25, top = 4)
+    axs[len(axs)-1].set_ylim(bottom = 0.9, top = 1.1)
+    if ratio_type=='log':
+        axs[len(axs)-1].set_yscale('log')
+    if ratio_limits is not None:
+        axs[len(axs)-1].set_ylim(bottom=ratio_limits[0], top=ratio_limits[1] )
+
     if hist_ref_stat_arrays is not None:
       if iratio>0:
         axs[iratio+len(hist_ref_arrays)].legend(facecolor='white', framealpha=0.95,ncol=1,loc='center left',bbox_to_anchor=(1, 0.5))
