@@ -16,7 +16,7 @@ from configs import HistDim
 from abc import ABC, abstractmethod
 from typing import Union
 from GOF.binned import *
-import catpy.catpy.test_stats as cts
+import catpy.test_stats as cts
 import copy
 
 class CutType(Enum):

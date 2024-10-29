@@ -1,6 +1,6 @@
 {
   "varunfold":"config/observables.yml",
-  "outputdir":"plots_instanton/plots_bselScaleCheck",
+  "outputdir":"plots_instanton/plots_forWeijie",
   "oldinput":"../minbias_template_fits/rebinned_9Gev3f_2d.csv",
   "input":"../minbias_template_fits/rebinned_multi_instanton_2d.csv",
   "MC_name":"CP1",
@@ -17,13 +17,20 @@
   "addstat":false,
   "perbinshape":true,
   "addbkg":false,
-  "ratio_limits":[0.2,4],
-  "reluncstyle":["hist","hist","dashedhist","dashedhist"],
-  "reluncname":["instanton_M3_3f_00","instanton_M6_3f_00","instanton_M3_3f_bSelScale3","instanton_M6_3f_bSelScale3"],
-  "relunclegend":["Instanton (${E}_{I} > 3$ GeV, 3 flavours)","Instanton ($E_{I} > 10$ GeV, 3 flavours)","Instanton ($E_{I} > 3$ GeV, 3 flavours) bSelScale=3","Instanton ($E_{I} > 6$ GeV, 3 flavours) bSelScale=3"],
+  "ratio_limits":[0.2,3],
+  "ratio_limits":[0.2,3],
+  "limYLOG": 1e10,
+  "combA" : ["CP1"],
+  "combB" : ["instanton_M10_4f_00"],
+  "fracA" : [0.7],
+  "fracB" : [0.3],
+  "reluncstyle":["hist","hist","hist","dashedhist"],
+  "reluncname":["instanton_M9_3f_02","instanton_M10_4f_00","instanton_M13_4f_13", "combo-CP1-instanton_M10_4f_00"],
+  "relunclegend":["Instanton (${E}_{I} > 10$ GeV, 3 flavours)","Instanton ($E_{I} > 10$ GeV, 4 flavours)","Instanton ($E_{I} > 20$ GeV, 4 flavours)","Mixed Model (70% CP1, 30% Instanton $E_I > 10$ GeV, 4f)"],
   "methods":["multifold"],
   "evaluate-sys-bootstrap":[""],
   "evaluate-stat-bootstrap":[""],
   "evaluate-relunc":["multifold"],
   "normalize_XS":false
 }
+

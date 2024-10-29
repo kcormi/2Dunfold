@@ -1,7 +1,6 @@
 {
   "varunfold":"config/observables.yml",
-  "outputdir":"plots_instanton/plots_bselScaleCheck",
-  "oldinput":"../minbias_template_fits/rebinned_9Gev3f_2d.csv",
+  "outputdir":"plots_instanton/plots_ggToqq_pTMaxMatch1bSel3",
   "input":"../minbias_template_fits/rebinned_multi_instanton_2d.csv",
   "MC_name":"CP1",
   "MC_legend": "PYTHIA CP1",
@@ -18,12 +17,13 @@
   "perbinshape":true,
   "addbkg":false,
   "ratio_limits":[0.2,4],
-  "reluncstyle":["hist","hist","dashedhist","dashedhist"],
-  "reluncname":["instanton_M3_3f_00","instanton_M6_3f_00","instanton_M3_3f_bSelScale3","instanton_M6_3f_bSelScale3"],
-  "relunclegend":["Instanton (${E}_{I} > 3$ GeV, 3 flavours)","Instanton ($E_{I} > 10$ GeV, 3 flavours)","Instanton ($E_{I} > 3$ GeV, 3 flavours) bSelScale=3","Instanton ($E_{I} > 6$ GeV, 3 flavours) bSelScale=3"],
+  "reluncstyle":["hist","hist","hist","dashedhist","dashedhist","dashedhist"],
+  "reluncname":["instanton_M3_3f_pTMatch1bSelScale3","instanton_M5_3f_pTMatch1bSelScale3","instanton_M7_3f_pTMatch1bSelScale3","instanton_M3_ggToqq_pTMatch1bSelScale3","instanton_M5_ggToqq_pTMatch1bSelScale3","instanton_M7_ggToqq_pTMatch1bSelScale3"],
+  "relunclegend":["Instanton ($E_{I} > 3$ GeV) alt. b-scale","Instanton ($E_{I} > 5$ GeV) alt. b-scale","Instanton ($E_{I} > 7$ GeV) alt. b-scale","ggToqq ($E_{I} > 3$ GeV) alt. b-scale","ggToqq ($E_{I} > 5$ GeV) alt. b-scale","ggToqq ($E_{I} > 7$ GeV) alt. b-scale"],
   "methods":["multifold"],
   "evaluate-sys-bootstrap":[""],
   "evaluate-stat-bootstrap":[""],
   "evaluate-relunc":["multifold"],
   "normalize_XS":false
 }
+

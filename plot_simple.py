@@ -212,6 +212,7 @@ if __name__=="__main__":
 
     df = pd.read_csv(config["input"])
 
+
     for method in config["methods"]:
       result_settings = ResultPlotSettings.from_yaml(style_file, ['mpl', method])
 
@@ -262,15 +263,40 @@ if __name__=="__main__":
           tag = result_settings.tag
 
           hcc_sys_list = []
-          if method in config["evaluate-relunc"]:
+
+          sys_sel = {"datatype": config['workflow'],
+                      "dim1_isgen": False,
+                     }
+          to_add = config["evaluate-relunc"]
+
+          if "combA" in config:
+            for combA, combB, fracA, fracB in zip(config["combA"],config["combB"],config["fracA"],config["fracB"]):
+                records_A = get_df_entries(df, **base_sel | sys_sel | {"dataset":combA} )
+                records_B = get_df_entries(df, **base_sel | sys_sel | {"dataset": combB} )
+                records_C = copy.deepcopy(records_A)
+                records_C.reset_index(inplace=True)
+                print(records_C)
+                records_C = records_C.drop(columns='index') 
+                print(records_C)
+                print(records_C.index[0])
+                records_C.at[0,'bin_values'] = [ list(x) for x in fracA*np.array(ast.literal_eval(records_A.iloc[0].bin_values)) + fracB*np.array(ast.literal_eval(records_B.iloc[0].bin_values)) ]
+                records_C.at[0,'bin_errors'] = [ list(np.sqrt(x)) for x in (fracA*np.array(ast.literal_eval(records_A.iloc[0].bin_errors)))**2 + (fracB*np.array(ast.literal_eval(records_B.iloc[0].bin_errors)))**2 ]
+                comb_name = f'combo-{combA}-{combB}'
+                records_C.at[0,'dataset'] = comb_name
+                to_add.append(comb_name)
+                df = pd.concat([df, records_C])
+
+
+          if method in to_add:
             #color_unc = ['orchid','darkviolet','darkmagenta','c','m','y','steelblue','r','b','indianred','saddlebrown']
             color_unc = ['darkviolet','darkmagenta','c','m','y','steelblue','r','b','indianred','saddlebrown']
             for isys,sys in enumerate(config["reluncname"]):
                 print(f'Running {sys}')
-                sys_sel = {"datatype": config['workflow'],
-                           "dataset": sys,
-                            "dim1_isgen": False,
-                           }
+                #sys_sel = {"datatype": config['workflow'],
+                #           "dataset": sys,
+                #            "dim1_isgen": False,
+                #           }
+                sys_sel.update( {"dataset": sys } )
                 records_sys = get_df_entries(df, **base_sel|sys_sel)
                 #print(records_sys)
                 it_legend_sys = config["relunclegend"][isys]

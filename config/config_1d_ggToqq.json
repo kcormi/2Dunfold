@@ -1,8 +1,7 @@
 {
   "varunfold":"config/observables.yml",
-  "outputdir":"plots_instanton/plots_bselScaleCheck",
-  "oldinput":"../minbias_template_fits/rebinned_9Gev3f_2d.csv",
-  "input":"../minbias_template_fits/rebinned_multi_instanton_2d.csv",
+  "outputdir":"plots_instanton/plots_ggToqq",
+  "input":"../minbias_template_fits/rebinned_multi_instanton_1d.csv",
   "MC_name":"CP1",
   "MC_legend": "PYTHIA CP1",
   "MCvar_name":["A3","EPOS","CH3","instanton_M3_3f_00","instanton_M9_3f_02","instanton_M10_4f_00"],
@@ -17,13 +16,15 @@
   "addstat":false,
   "perbinshape":true,
   "addbkg":false,
+  "limY": 100000000,
   "ratio_limits":[0.2,4],
-  "reluncstyle":["hist","hist","dashedhist","dashedhist"],
-  "reluncname":["instanton_M3_3f_00","instanton_M6_3f_00","instanton_M3_3f_bSelScale3","instanton_M6_3f_bSelScale3"],
-  "relunclegend":["Instanton (${E}_{I} > 3$ GeV, 3 flavours)","Instanton ($E_{I} > 10$ GeV, 3 flavours)","Instanton ($E_{I} > 3$ GeV, 3 flavours) bSelScale=3","Instanton ($E_{I} > 6$ GeV, 3 flavours) bSelScale=3"],
+  "reluncstyle":["hist","hist","hist","dashedhist","dashedhist","dashedhist"],
+  "reluncname":["instanton_M3_3f_00","instanton_M6_3f_00","instanton_M9_3f_00","instanton_M3_3f_ggToqq","instanton_M6_ggToqq","instanton_M9_ggToqq"],
+  "relunclegend":["Instanton (${E}_{I} > 3$)","Instanton ($E_{I} > 6$)","Instanton ($E_{I} > 9$)","ggToqq ($E > 3$)","ggToqq ($E_{I} > 6$)","ggToqq ($E_{I} > 9$)"],
   "methods":["multifold"],
   "evaluate-sys-bootstrap":[""],
   "evaluate-stat-bootstrap":[""],
   "evaluate-relunc":["multifold"],
   "normalize_XS":false
 }
+
